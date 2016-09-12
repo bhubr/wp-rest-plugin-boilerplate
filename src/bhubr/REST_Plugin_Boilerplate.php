@@ -15,7 +15,7 @@ class REST_Plugin_Boilerplate {
     public static function get_instance($wp_plugins_dir)
     {
         if (is_null(self::$_instance)) {
-            self::$_instance = new Commons($wp_plugins_dir);
+            self::$_instance = new REST_Plugin_Boilerplate($wp_plugins_dir);
         }
         return self::$_instance;
     }
