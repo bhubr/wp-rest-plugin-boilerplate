@@ -1,0 +1,43 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr_FR\n"
+"X-Generator: Poedit 1.8.9\n"
+
+msgid "WPPC_PLUGIN_NAME"
+msgstr "Base de Plugin WordPress par T1z"
+
+msgid "Add"
+msgstr "Ajouter"
+
+msgid "Add %s"
+msgstr "Ajouter %s"
+
+msgid "Edit %s"
+msgstr "Editer %s"
+
+msgid "New %s"
+msgstr "Nouveau %s"
+
+msgid "All %s"
+msgstr "Tous les %s"
+
+msgid "View %s"
+msgstr "Voir %s"
+
+msgid "Search %s"
+msgstr "Rechercher %s"
+
+msgid "Not found"
+msgstr "Non trouvé"
+
+msgid "No item found in Trash"
+msgstr "Aucun élément dans la Corbeille"
+
