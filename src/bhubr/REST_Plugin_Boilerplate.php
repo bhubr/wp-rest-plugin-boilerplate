@@ -33,13 +33,19 @@ class REST_Plugin_Boilerplate {
             $types = Base_Model::get_types();
             foreach($types as $type_lc => $type_definition) {
                 $type_plural = \Inflect::pluralize($type_lc);
-                register_rest_route( 'myplugin/v1', "/$type_plural/(?P<id>\d+)", array(
+                register_rest_route( 'myplugin/v1', "/$type_plural/(?P<id>\d+)", [
                     'methods' => 'GET',
                     'callback' => function($data) use($type_lc) {
                         $post_id = $data['id'];
                         return Post_Model::read($type_lc, $post_id);
                     },
-                ) );
+                ], [
+                    'methods' => 'DELETE',
+                    'callback' => function($data) use($type_lc) {
+                        $post_id = $data['id'];
+                        return Post_Model::delete($type_lc, $post_id);
+                    },
+                ] );
                 register_rest_route( 'myplugin/v1', "/$type_plural", array(
                     'methods' => 'POST',
                     'callback' => function(\WP_REST_Request $request) use($type_lc) {
