@@ -1,0 +1,24 @@
+{
+    "name": "bhubr/wp-rest-plugin-boilerplate",
+    "type": "library",
+    "description": "Boilerplate for WordPress plugins with REST API and Backbone.js admin app",
+    "keywords": ["wordpress","rest","backbone"],
+    "homepage": "https://github.com/t1z/wp-rest-plugin-boilerplate",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Benoît Hubert",
+            "email": "benoithubert@gmail.com",
+            "homepage": "http://benoithubert@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-0": {
+            "bhubr": "src/"
+        }
+    }
+}
