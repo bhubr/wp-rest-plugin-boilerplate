@@ -1,5 +1,5 @@
 <?php
-namespace t1z;
+namespace bhubr;
 require_once 'class-base-model.php';
 
 

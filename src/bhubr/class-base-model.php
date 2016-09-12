@@ -1,6 +1,6 @@
 <?php
-namespace t1z;
-if( !class_exists('t1z\Base_Model')) {
+namespace bhubr;
+if( !class_exists('bhubr\Base_Model')) {
 
 /**
  * Base model to represent WordPress objects
@@ -48,15 +48,15 @@ abstract class Base_Model {
             'labels' => [
                 'name'               => $name,
                 'singular_name'      => $name_s,
-                'add_new'            => __("Add", "t1z-wppc"),
-                'add_new_item'       => sprintf(__("Add %s", "t1z-wppc"), $name_s),
-                'edit_item'          => sprintf(__("Edit %s", "t1z-wppc"), $name_s),
-                'new_item'           => sprintf(__("New %s", "t1z-wppc"), $name_s),
-                'all_items'          => sprintf(__("All %s", "t1z-wppc"), $name_s),
-                'view_item'          => sprintf(__("View %s", "t1z-wppc"), $name_s),
-                'search_items'       => sprintf(__("Search %s", "t1z-wppc"), $name),
-                'not_found'          => __("Not found", "t1z-wppc"),
-                'not_found_in_trash' => __("No item found in Trash", "t1z-wppc"),
+                'add_new'            => __("Add", "bhubr-wppc"),
+                'add_new_item'       => sprintf(__("Add %s", "bhubr-wppc"), $name_s),
+                'edit_item'          => sprintf(__("Edit %s", "bhubr-wppc"), $name_s),
+                'new_item'           => sprintf(__("New %s", "bhubr-wppc"), $name_s),
+                'all_items'          => sprintf(__("All %s", "bhubr-wppc"), $name_s),
+                'view_item'          => sprintf(__("View %s", "bhubr-wppc"), $name_s),
+                'search_items'       => sprintf(__("Search %s", "bhubr-wppc"), $name),
+                'not_found'          => __("Not found", "bhubr-wppc"),
+                'not_found_in_trash' => __("No item found in Trash", "bhubr-wppc"),
                 // 'menu_name'          => "$name_s Items", "wp_{$singular_lc}_items"
             ],
             'description'   => "$name_s Items",
@@ -76,7 +76,7 @@ abstract class Base_Model {
         $args = [
             'labels' => [
                 'name' => $name,
-                'add_new_item' => sprintf(__("Add %s", "t1z-wppc"), $name_s),
+                'add_new_item' => sprintf(__("Add %s", "bhubr-wppc"), $name_s),
                 // 'new_item_name' => "New $singular_lc Taxonomy",
             ],
             'show_ui' => true,

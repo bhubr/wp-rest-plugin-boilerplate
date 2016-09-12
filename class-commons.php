@@ -1,6 +1,6 @@
 <?php
-namespace t1z;
-require_once 'src/t1z/vendor/Inflect.php';
+namespace bhubr;
+require_once 'vendor/Inflect.php';
 
 define('WPPC_LANG_DIR', __DIR__);
 
