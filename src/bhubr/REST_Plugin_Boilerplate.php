@@ -4,7 +4,7 @@ require_once 'vendor/Inflect.php';
 
 define('WPPC_LANG_DIR', __DIR__);
 
-class Commons {
+class REST_Plugin_Boilerplate {
     private static $_instance;
     protected $registered_plugins = [];
     protected $wp_plugins_dir;
