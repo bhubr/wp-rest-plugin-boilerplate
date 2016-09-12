@@ -1,6 +1,5 @@
 <?php
 namespace bhubr;
-if( !class_exists('bhubr\Base_Model')) {
 
 /**
  * Base model to represent WordPress objects
@@ -203,7 +202,6 @@ abstract class Base_Model {
     }
 
     
-}
 }
 
 ?>
