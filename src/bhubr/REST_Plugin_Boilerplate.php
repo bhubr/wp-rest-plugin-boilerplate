@@ -2,7 +2,7 @@
 namespace bhubr;
 require_once 'vendor/Inflect.php';
 
-define('WPPC_LANG_DIR', __DIR__);
+define('WPRBP_LANG_DIR', realpath(__DIR__ . '/../../languages'));
 
 class REST_Plugin_Boilerplate {
     private static $_instance;
@@ -85,8 +85,8 @@ class REST_Plugin_Boilerplate {
             $mo_file = $this->wp_plugins_dir . "/$plugin_name/languages/{$plugin_name}-$locale.mo";
             if (! load_textdomain( $plugin_name, $mo_file )) return false;
         }
-        $wppc_mo_file = WPPC_LANG_DIR . "/languages/t1z-wppc-$locale.mo";
-        if (! load_textdomain( 't1z-wppc', $wppc_mo_file )) return false;
+        $wprpb_mo_file = WPRBP_LANG_DIR . "/wprpb-$locale.mo";
+        if (! load_textdomain( 'bhubr-wprbp', $wprpb_mo_file )) return false;
         return true;
     }
 

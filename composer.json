@@ -1,7 +1,7 @@
 {
     "name": "bhubr/wp-rest-plugin-boilerplate",
     "type": "library",
-    "version": "0.6.6",
+    "version": "0.6.7",
     "description": "Boilerplate for WordPress plugins with REST API and Backbone.js admin app",
     "keywords": ["wordpress","rest","backbone"],
     "homepage": "https://github.com/t1z/wp-rest-plugin-boilerplate",
