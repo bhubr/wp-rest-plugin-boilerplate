@@ -25,7 +25,7 @@ class REST_Controller extends \WP_REST_Controller {
         array(
           'methods'         => \WP_REST_Server::READABLE,
           'callback'        => array( $this, 'get_items' ),
-          // 'permission_callback' => array( $this, 'get_items_permissions_check' ),
+          'permission_callback' => array( $this, 'get_items_permissions_check' ),
           'args'            => array(
 
           ),
@@ -41,7 +41,7 @@ class REST_Controller extends \WP_REST_Controller {
         array(
           'methods'         => \WP_REST_Server::READABLE,
           'callback'        => array( $this, 'get_item' ),
-          // 'permission_callback' => array( $this, 'get_item_permissions_check' ),
+          'permission_callback' => array( $this, 'get_item_permissions_check' ),
           'args'            => array(
             'context'          => array(
               'default'      => 'view',
@@ -57,7 +57,7 @@ class REST_Controller extends \WP_REST_Controller {
         array(
           'methods'  => \WP_REST_Server::DELETABLE,
           'callback' => array( $this, 'delete_item' ),
-          // 'permission_callback' => array( $this, 'delete_item_permissions_check' ),
+          'permission_callback' => array( $this, 'delete_item_permissions_check' ),
           'args'     => array(
             'force'    => array(
               'default'      => false,
@@ -117,13 +117,14 @@ class REST_Controller extends \WP_REST_Controller {
    */
   public function create_item( $request ) {
 
-    $item = $this->prepare_item_for_database( $request );
+    // var_dump($request->get_url_params());
+    // var_dump($request->get_json_params());
+    // $item = $this->prepare_item_for_database( $request );
 
-    if ( function_exists( 'slug_some_function_to_create_item')  ) {
-      $data = slug_some_function_to_create_item( $item );
-      if ( is_array( $data ) ) {
-        return new \WP_REST_Response( $data, 200 );
-      }
+    $attributes = $request->get_json_params();
+    $data = Post_Model::create($type_lc, $attibutes);
+    if ( is_array( $data ) ) {
+      return new \WP_REST_Response( $data, 200 );
     }
 
     return new \WP_Error( 'cant-create', __( 'message', 'text-domain'), array( 'status' => 500 ) );
@@ -178,7 +179,7 @@ class REST_Controller extends \WP_REST_Controller {
    */
   public function get_items_permissions_check( $request ) {
     //return true; <--use to make readable by all
-    return current_user_can( 'edit_something' );
+    return current_user_can( 'manage_options' );
   }
 
   /**
@@ -198,7 +199,7 @@ class REST_Controller extends \WP_REST_Controller {
    * @return \WP_Error|bool
    */
   public function create_item_permissions_check( $request ) {
-    return current_user_can( 'edit_something' );
+    return current_user_can( 'manage_options' );
   }
 
   /**
