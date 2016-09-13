@@ -98,10 +98,13 @@ class REST_Controller extends \WP_REST_Controller {
    * @return \WP_Error|\WP_REST_Response
    */
   public function get_item( $request ) {
-    //get parameters from request
-    $params = $request->get_params();
-    $item = array();//do a query, call another class, etc
-    $data = $this->prepare_item_for_response( $item, $request );
+    $route_bits = explode('/', $request->get_route());
+    $id = (int)array_pop($route_bits); // get id
+    $type_lc = \Inflect::singularize(array_pop($route_bits));
+    $post = Post_Model::read($type_lc, $id);
+    if ( is_array( $post ) ) {
+      return new \WP_REST_Response( $post, 200 );
+    }
 
     //return a response or error based on some conditional
     if ( 1 == 1 ) {
