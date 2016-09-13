@@ -31,10 +31,14 @@ class REST_Plugin_Boilerplate {
         add_action('init', array(&$this, 'register_types'));
         add_action('rest_api_init', function () {
             $types = Base_Model::get_types();
+            $type_names_lc = array_keys($types);
+            $type_names_plural = array_map(function($type_name_lc) {
+                return \Inflect::pluralize($type_name_lc);
+            }, $type_names_lc);
+            $controller = new REST_Controller();
+            $controller->set_bases($type_names_plural);
+            $controller->register_routes();
             foreach($types as $type_lc => $type_definition) {
-                $type_plural = \Inflect::pluralize($type_lc);
-                $controller = new REST_Controller();
-                $controller->register_routes($type_plural);
 
                 // register_rest_route( 'myplugin/v1', "/$type_plural/(?P<id>\d+)", [
                 //     'methods' => 'GET',
