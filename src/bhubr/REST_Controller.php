@@ -79,11 +79,13 @@ class REST_Controller extends \WP_REST_Controller {
    * @return \WP_Error|\WP_REST_Response
    */
   public function get_items( $request ) {
-    $items = array(); //do a query, call another class, etc
+    $route_bits = explode('/', $request->get_route());
+    $type_lc = \Inflect::singularize(array_pop($route_bits));
+    $items = Post_Model::read_all($type_lc);
     $data = array();
     foreach( $items as $item ) {
-      $itemdata = $this->prepare_item_for_response( $item, $request );
-      $data[] = $this->prepare_response_for_collection( $itemdata );
+      // $itemdata = $this->prepare_item_for_response( $item, $request );
+      $data[] = $this->prepare_response_for_collection( $item );
     }
 
     return new \WP_REST_Response( $data, 200 );
