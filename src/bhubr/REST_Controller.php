@@ -178,8 +178,8 @@ class REST_Controller extends \WP_REST_Controller {
    * @return \WP_Error|bool
    */
   public function get_items_permissions_check( $request ) {
-    //return true; <--use to make readable by all
-    return current_user_can( 'manage_options' );
+    return true; <--use to make readable by all
+    // return current_user_can( 'manage_options' );
   }
 
   /**
@@ -199,7 +199,8 @@ class REST_Controller extends \WP_REST_Controller {
    * @return \WP_Error|bool
    */
   public function create_item_permissions_check( $request ) {
-    return current_user_can( 'manage_options' );
+    return true;
+    // return current_user_can( 'manage_options' );
   }
 
   /**
