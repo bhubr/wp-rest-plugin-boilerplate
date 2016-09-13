@@ -176,7 +176,7 @@ class Post_Model extends Base_Model {
         if( false === $deleted_post ) {
             throw new \Exception( "Post $post_id could not be deleted" );
         }
-        return $deleted_post;
+        return (array)$deleted_post;
     }
 
     /**

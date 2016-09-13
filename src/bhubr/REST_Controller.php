@@ -121,8 +121,10 @@ class REST_Controller extends \WP_REST_Controller {
     // var_dump($request->get_json_params());
     // $item = $this->prepare_item_for_database( $request );
 
+    $route_bits = explode('/', $request->get_route());
+    $type_lc = \Inflect::singularize(array_pop($route_bits));
     $attributes = $request->get_json_params();
-    $data = Post_Model::create($type_lc, $attibutes);
+    $data = Post_Model::create($type_lc, $attributes);
     if ( is_array( $data ) ) {
       return new \WP_REST_Response( $data, 200 );
     }
@@ -161,12 +163,19 @@ class REST_Controller extends \WP_REST_Controller {
   public function delete_item( $request ) {
     $item = $this->prepare_item_for_database( $request );
 
-    if ( function_exists( 'slug_some_function_to_delete_item')  ) {
-      $deleted = slug_some_function_to_delete_item( $item );
-      if (  $deleted  ) {
-        return new \WP_REST_Response( true, 200 );
-      }
+    $route_bits = explode('/', $request->get_route());
+    $id = (int)array_pop($route_bits); // get id
+    $type_lc = \Inflect::singularize(array_pop($route_bits));
+    $deleted_post = Post_Model::delete($type_lc, $id);
+    if ( is_array( $deleted_post ) ) {
+      return new \WP_REST_Response( ['success' => true, 'deleted' => $deleted_post], 200 );
     }
+    // if ( function_exists( 'slug_some_function_to_delete_item')  ) {
+    //   $deleted = slug_some_function_to_delete_item( $item );
+    //   if (  $deleted  ) {
+    //     return new \WP_REST_Response( true, 200 );
+    //   }
+    // }
 
     return new \WP_Error( 'cant-delete', __( 'message', 'text-domain'), array( 'status' => 500 ) );
   }
