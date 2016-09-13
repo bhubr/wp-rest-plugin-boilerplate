@@ -1,10 +1,10 @@
 <?php
 namespace bhubr;
-if ( ! class_exists( 'WP_REST_Controller' ) ) {
+if ( ! class_exists( '\WP_REST_Controller' ) ) {
   require_once dirname( __FILE__ ) . '/vendor/class-wp-rest-controller.php';
 }
 
-class REST_Controller extends \WP_REST_Controller {
+class REST_Controller extends \\WP_REST_Controller {
   protected $bases = [];
 
   /**
@@ -23,7 +23,7 @@ class REST_Controller extends \WP_REST_Controller {
     foreach($this->bases as $base) {
       register_rest_route( $namespace, '/' . $base, array(
         array(
-          'methods'         => WP_REST_Server::READABLE,
+          'methods'         => \WP_REST_Server::READABLE,
           'callback'        => array( $this, 'get_items' ),
           // 'permission_callback' => array( $this, 'get_items_permissions_check' ),
           'args'            => array(
@@ -31,7 +31,7 @@ class REST_Controller extends \WP_REST_Controller {
           ),
         ),
         array(
-          'methods'         => WP_REST_Server::CREATABLE,
+          'methods'         => \WP_REST_Server::CREATABLE,
           'callback'        => array( $this, 'create_item' ),
           'permission_callback' => array( $this, 'create_item_permissions_check' ),
           'args'            => $this->get_endpoint_args_for_item_schema( true ),
@@ -39,7 +39,7 @@ class REST_Controller extends \WP_REST_Controller {
       ) );
       register_rest_route( $namespace, '/' . $base . '/(?P<id>[\d]+)', array(
         array(
-          'methods'         => WP_REST_Server::READABLE,
+          'methods'         => \WP_REST_Server::READABLE,
           'callback'        => array( $this, 'get_item' ),
           // 'permission_callback' => array( $this, 'get_item_permissions_check' ),
           'args'            => array(
@@ -49,13 +49,13 @@ class REST_Controller extends \WP_REST_Controller {
           ),
         ),
         array(
-          'methods'         => WP_REST_Server::EDITABLE,
+          'methods'         => \WP_REST_Server::EDITABLE,
           'callback'        => array( $this, 'update_item' ),
           'permission_callback' => array( $this, 'update_item_permissions_check' ),
           'args'            => $this->get_endpoint_args_for_item_schema( false ),
         ),
         array(
-          'methods'  => WP_REST_Server::DELETABLE,
+          'methods'  => \WP_REST_Server::DELETABLE,
           'callback' => array( $this, 'delete_item' ),
           // 'permission_callback' => array( $this, 'delete_item_permissions_check' ),
           'args'     => array(
@@ -66,7 +66,7 @@ class REST_Controller extends \WP_REST_Controller {
         ),
       ) );
       register_rest_route( $namespace, '/' . $base . '/schema', array(
-        'methods'         => WP_REST_Server::READABLE,
+        'methods'         => \WP_REST_Server::READABLE,
         'callback'        => array( $this, 'get_public_item_schema' ),
       ) );
     }
@@ -75,8 +75,8 @@ class REST_Controller extends \WP_REST_Controller {
   /**
    * Get a collection of items
    *
-   * @param WP_REST_Request $request Full data about the request.
-   * @return WP_Error|WP_REST_Response
+   * @param \WP_REST_Request $request Full data about the request.
+   * @return \WP_Error|\WP_REST_Response
    */
   public function get_items( $request ) {
     $items = array(); //do a query, call another class, etc
@@ -86,14 +86,14 @@ class REST_Controller extends \WP_REST_Controller {
       $data[] = $this->prepare_response_for_collection( $itemdata );
     }
 
-    return new WP_REST_Response( $data, 200 );
+    return new \WP_REST_Response( $data, 200 );
   }
 
   /**
    * Get one item from the collection
    *
-   * @param WP_REST_Request $request Full data about the request.
-   * @return WP_Error|WP_REST_Response
+   * @param \WP_REST_Request $request Full data about the request.
+   * @return \WP_Error|\WP_REST_Response
    */
   public function get_item( $request ) {
     //get parameters from request
@@ -103,17 +103,17 @@ class REST_Controller extends \WP_REST_Controller {
 
     //return a response or error based on some conditional
     if ( 1 == 1 ) {
-      return new WP_REST_Response( $data, 200 );
+      return new \WP_REST_Response( $data, 200 );
     }else{
-      return new WP_Error( 'code', __( 'message', 'text-domain' ) );
+      return new \WP_Error( 'code', __( 'message', 'text-domain' ) );
     }
   }
 
   /**
    * Create one item from the collection
    *
-   * @param WP_REST_Request $request Full data about the request.
-   * @return WP_Error|WP_REST_Request
+   * @param \WP_REST_Request $request Full data about the request.
+   * @return \WP_Error|\WP_REST_Request
    */
   public function create_item( $request ) {
 
@@ -122,11 +122,11 @@ class REST_Controller extends \WP_REST_Controller {
     if ( function_exists( 'slug_some_function_to_create_item')  ) {
       $data = slug_some_function_to_create_item( $item );
       if ( is_array( $data ) ) {
-        return new WP_REST_Response( $data, 200 );
+        return new \WP_REST_Response( $data, 200 );
       }
     }
 
-    return new WP_Error( 'cant-create', __( 'message', 'text-domain'), array( 'status' => 500 ) );
+    return new \WP_Error( 'cant-create', __( 'message', 'text-domain'), array( 'status' => 500 ) );
 
 
   }
@@ -134,8 +134,8 @@ class REST_Controller extends \WP_REST_Controller {
   /**
    * Update one item from the collection
    *
-   * @param WP_REST_Request $request Full data about the request.
-   * @return WP_Error|WP_REST_Request
+   * @param \WP_REST_Request $request Full data about the request.
+   * @return \WP_Error|\WP_REST_Request
    */
   public function update_item( $request ) {
     $item = $this->prepare_item_for_database( $request );
@@ -143,19 +143,19 @@ class REST_Controller extends \WP_REST_Controller {
     if ( function_exists( 'slug_some_function_to_update_item')  ) {
       $data = slug_some_function_to_update_item( $item );
       if ( is_array( $data ) ) {
-        return new WP_REST_Response( $data, 200 );
+        return new \WP_REST_Response( $data, 200 );
       }
     }
 
-    return new WP_Error( 'cant-update', __( 'message', 'text-domain'), array( 'status' => 500 ) );
+    return new \WP_Error( 'cant-update', __( 'message', 'text-domain'), array( 'status' => 500 ) );
 
   }
 
   /**
    * Delete one item from the collection
    *
-   * @param WP_REST_Request $request Full data about the request.
-   * @return WP_Error|WP_REST_Request
+   * @param \WP_REST_Request $request Full data about the request.
+   * @return \WP_Error|\WP_REST_Request
    */
   public function delete_item( $request ) {
     $item = $this->prepare_item_for_database( $request );
@@ -163,18 +163,18 @@ class REST_Controller extends \WP_REST_Controller {
     if ( function_exists( 'slug_some_function_to_delete_item')  ) {
       $deleted = slug_some_function_to_delete_item( $item );
       if (  $deleted  ) {
-        return new WP_REST_Response( true, 200 );
+        return new \WP_REST_Response( true, 200 );
       }
     }
 
-    return new WP_Error( 'cant-delete', __( 'message', 'text-domain'), array( 'status' => 500 ) );
+    return new \WP_Error( 'cant-delete', __( 'message', 'text-domain'), array( 'status' => 500 ) );
   }
 
   /**
    * Check if a given request has access to get items
    *
-   * @param WP_REST_Request $request Full data about the request.
-   * @return WP_Error|bool
+   * @param \WP_REST_Request $request Full data about the request.
+   * @return \WP_Error|bool
    */
   public function get_items_permissions_check( $request ) {
     //return true; <--use to make readable by all
@@ -184,8 +184,8 @@ class REST_Controller extends \WP_REST_Controller {
   /**
    * Check if a given request has access to get a specific item
    *
-   * @param WP_REST_Request $request Full data about the request.
-   * @return WP_Error|bool
+   * @param \WP_REST_Request $request Full data about the request.
+   * @return \WP_Error|bool
    */
   public function get_item_permissions_check( $request ) {
     return $this->get_items_permissions_check( $request );
@@ -194,8 +194,8 @@ class REST_Controller extends \WP_REST_Controller {
   /**
    * Check if a given request has access to create items
    *
-   * @param WP_REST_Request $request Full data about the request.
-   * @return WP_Error|bool
+   * @param \WP_REST_Request $request Full data about the request.
+   * @return \WP_Error|bool
    */
   public function create_item_permissions_check( $request ) {
     return current_user_can( 'edit_something' );
@@ -204,8 +204,8 @@ class REST_Controller extends \WP_REST_Controller {
   /**
    * Check if a given request has access to update a specific item
    *
-   * @param WP_REST_Request $request Full data about the request.
-   * @return WP_Error|bool
+   * @param \WP_REST_Request $request Full data about the request.
+   * @return \WP_Error|bool
    */
   public function update_item_permissions_check( $request ) {
     return $this->create_item_permissions_check( $request );
@@ -214,8 +214,8 @@ class REST_Controller extends \WP_REST_Controller {
   /**
    * Check if a given request has access to delete a specific item
    *
-   * @param WP_REST_Request $request Full data about the request.
-   * @return WP_Error|bool
+   * @param \WP_REST_Request $request Full data about the request.
+   * @return \WP_Error|bool
    */
   public function delete_item_permissions_check( $request ) {
     return $this->create_item_permissions_check( $request );
@@ -224,8 +224,8 @@ class REST_Controller extends \WP_REST_Controller {
   /**
    * Prepare the item for create or update operation
    *
-   * @param WP_REST_Request $request Request object
-   * @return WP_Error|object $prepared_item
+   * @param \WP_REST_Request $request Request object
+   * @return \WP_Error|object $prepared_item
    */
   protected function prepare_item_for_database( $request ) {
     return array();
@@ -235,7 +235,7 @@ class REST_Controller extends \WP_REST_Controller {
    * Prepare the item for the REST response
    *
    * @param mixed $item WordPress representation of the item.
-   * @param WP_REST_Request $request Request object.
+   * @param \WP_REST_Request $request Request object.
    * @return mixed
    */
   public function prepare_item_for_response( $item, $request ) {
