@@ -209,7 +209,7 @@ class Post_Model extends Base_Model {
     public static function read_all( $post_type, $extra_args = array() ) {
         static::init( $post_type );
         $ret = array();
-        $args = array('post_type' => $post_type, 'posts_per_page' => -1);
+        $args = array('post_type' => $post_type, 'posts_per_page' => -1, 'order' => 'ASC');
         if( array_key_exists('term', $extra_args ) ) {
             $args[static::$taxonomy] = $extra_args['term'];
             unset($extra_args['term']);
