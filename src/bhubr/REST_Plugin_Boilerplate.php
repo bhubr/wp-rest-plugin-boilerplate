@@ -33,7 +33,7 @@ class REST_Plugin_Boilerplate {
             $types = Base_Model::get_types();
             foreach($types as $type_lc => $type_definition) {
                 $type_plural = \Inflect::pluralize($type_lc);
-                $controller = new \REST_Controller();
+                $controller = new REST_Controller();
                 $controller->register_routes($type_plural);
 
                 // register_rest_route( 'myplugin/v1', "/$type_plural/(?P<id>\d+)", [
