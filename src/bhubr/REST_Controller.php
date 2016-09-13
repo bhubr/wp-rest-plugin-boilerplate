@@ -4,7 +4,7 @@ if ( ! class_exists( '\WP_REST_Controller' ) ) {
   require_once dirname( __FILE__ ) . '/vendor/class-wp-rest-controller.php';
 }
 
-class REST_Controller extends \\WP_REST_Controller {
+class REST_Controller extends \WP_REST_Controller {
   protected $bases = [];
 
   /**
