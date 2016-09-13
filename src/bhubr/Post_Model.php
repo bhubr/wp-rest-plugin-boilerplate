@@ -154,7 +154,7 @@ class Post_Model extends Base_Model {
             throw new \Exception( "Could not update post $post_id" );
         }
 
-        $terms = self::update_terms_and_meta( $post_id, $post_fields['category'], $meta_value );
+        // $terms = self::update_terms_and_meta( $post_id, $post_fields['category'], $meta_value );
 
         // Get the created post from the DB (so we can return the slug if it is different from what was asked)
         $post = get_post($post_id);
@@ -162,7 +162,7 @@ class Post_Model extends Base_Model {
         $post_data = self::get_post_fields( $post );
 
         // Populate values from the meta_value
-        $plan_data = array_merge( $post_data, $meta_value , array('cat' => $terms[0]) );
+        $plan_data = array_merge( $post_data, $meta_value); // , array('cat' => $terms[0]) );
 
         return $plan_data;
     }

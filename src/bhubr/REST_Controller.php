@@ -121,11 +121,7 @@ class REST_Controller extends \WP_REST_Controller {
    * @return \WP_Error|\WP_REST_Request
    */
   public function create_item( $request ) {
-
     // var_dump($request->get_url_params());
-    // var_dump($request->get_json_params());
-    // $item = $this->prepare_item_for_database( $request );
-
     $route_bits = explode('/', $request->get_route());
     $type_lc = \Inflect::singularize(array_pop($route_bits));
     $attributes = $request->get_json_params();
@@ -135,9 +131,8 @@ class REST_Controller extends \WP_REST_Controller {
     }
 
     return new \WP_Error( 'cant-create', __( 'message', 'text-domain'), array( 'status' => 500 ) );
-
-
   }
+
 
   /**
    * Update one item from the collection
@@ -146,13 +141,14 @@ class REST_Controller extends \WP_REST_Controller {
    * @return \WP_Error|\WP_REST_Request
    */
   public function update_item( $request ) {
-    $item = $this->prepare_item_for_database( $request );
+    $route_bits = explode('/', $request->get_route());
+    $id = (int)array_pop($route_bits); // get id
+    $type_lc = \Inflect::singularize(array_pop($route_bits));
+    $attributes = $request->get_json_params();
+    $post = Post_Model::update($type_lc, $id, $attributes);
 
-    if ( function_exists( 'slug_some_function_to_update_item')  ) {
-      $data = slug_some_function_to_update_item( $item );
-      if ( is_array( $data ) ) {
-        return new \WP_REST_Response( $data, 200 );
-      }
+    if ( is_array( $post ) ) {
+      return new \WP_REST_Response( $post, 200 );
     }
 
     return new \WP_Error( 'cant-update', __( 'message', 'text-domain'), array( 'status' => 500 ) );
