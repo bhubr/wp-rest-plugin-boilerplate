@@ -30,20 +30,20 @@ class REST_Plugin_Boilerplate {
         add_action('plugins_loaded', array(&$this, 'load_textdomains'));
         add_action('init', array(&$this, 'register_types'));
         add_action('rest_api_init', function () {
-            $type_names_lc = Base_Model::get_type_keys();
-            $type_names_plural = array_map(function($type_name_lc) {
-                return \Inflect::pluralize($type_name_lc);
-            }, $type_names_lc);
+            // $type_names_lc = Base_Model::get_type_keys();
+            // $type_names_plural = array_map(function($type_name_lc) {
+            //     return \Inflect::pluralize($type_name_lc);
+            // }, $type_names_lc);
 
-            $tax_names_lc = Base_Model::get_taxonomy_keys();
-            $tax_names_plural = array_map(function($tax_name_lc) {
-                return \Inflect::pluralize($tax_name_lc);
-            }, $tax_names_lc);
+            // $tax_names_lc = Base_Model::get_taxonomy_keys();
+            // $tax_names_plural = array_map(function($tax_name_lc) {
+            //     return \Inflect::pluralize($tax_name_lc);
+            // }, $tax_names_lc);
 
-            $bases = array_merge($type_names_plural, $tax_names_plural);
+            // $bases = array_merge($type_names_plural, $tax_names_plural);
 
             $controller = new REST_Controller();
-            $controller->set_bases($bases);
+            // $controller->set_bases($bases);
             $controller->register_routes();
         });
     }

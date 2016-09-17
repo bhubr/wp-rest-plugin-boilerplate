@@ -10,9 +10,9 @@ class REST_Controller extends \WP_REST_Controller {
   /**
    * Set base routes for each types
    */
-  public function set_bases($bases) {
-    $this->bases = $bases;
-  }
+  // public function set_bases($bases) {
+  //   $this->bases = $bases;
+  // }
 
   /**
    * Register the routes for the objects of the controller.
@@ -20,7 +20,7 @@ class REST_Controller extends \WP_REST_Controller {
   public function register_routes() {
     $version = '1';
     $namespace = 'bhubr/v' . $version;
-    foreach($this->bases as $base) {
+    foreach(Base_Model::get_rest_bases() as $base) {
       register_rest_route( $namespace, '/' . $base, array(
         array(
           'methods'         => \WP_REST_Server::READABLE,
@@ -81,7 +81,8 @@ class REST_Controller extends \WP_REST_Controller {
   public function get_items( $request ) {
     $route_bits = explode('/', $request->get_route());
     $type_lc = \Inflect::singularize(array_pop($route_bits));
-    $items = Post_Model::read_all($type_lc);
+    $rest_class = Base_Model::get_rest_route_class($type_lc);
+    $items = $rest_class::read_all($type_lc);
     $data = array();
     foreach( $items as $item ) {
       // $itemdata = $this->prepare_item_for_response( $item, $request );
@@ -101,7 +102,8 @@ class REST_Controller extends \WP_REST_Controller {
     $route_bits = explode('/', $request->get_route());
     $id = (int)array_pop($route_bits); // get id
     $type_lc = \Inflect::singularize(array_pop($route_bits));
-    $post = Post_Model::read($type_lc, $id);
+    $rest_class = Base_Model::get_rest_route_class($type_lc);
+    $post = $rest_class::read($type_lc, $id);
     if ( is_array( $post ) ) {
       return new \WP_REST_Response( $post, 200 );
     }
@@ -125,7 +127,8 @@ class REST_Controller extends \WP_REST_Controller {
     $route_bits = explode('/', $request->get_route());
     $type_lc = \Inflect::singularize(array_pop($route_bits));
     $attributes = $request->get_json_params();
-    $data = Post_Model::create($type_lc, $attributes);
+    $rest_class = Base_Model::get_rest_route_class($type_lc);
+    $data = $rest_class::create($type_lc, $attributes);
     if ( is_array( $data ) ) {
       return new \WP_REST_Response( $data, 200 );
     }
@@ -145,7 +148,8 @@ class REST_Controller extends \WP_REST_Controller {
     $id = (int)array_pop($route_bits); // get id
     $type_lc = \Inflect::singularize(array_pop($route_bits));
     $attributes = $request->get_json_params();
-    $post = Post_Model::update($type_lc, $id, $attributes);
+    $rest_class = Base_Model::get_rest_route_class($type_lc);
+    $post = $rest_class::update($type_lc, $id, $attributes);
 
     if ( is_array( $post ) ) {
       return new \WP_REST_Response( $post, 200 );
@@ -167,7 +171,8 @@ class REST_Controller extends \WP_REST_Controller {
     $route_bits = explode('/', $request->get_route());
     $id = (int)array_pop($route_bits); // get id
     $type_lc = \Inflect::singularize(array_pop($route_bits));
-    $deleted_post = Post_Model::delete($type_lc, $id);
+    $rest_class = Base_Model::get_rest_route_class($type_lc);
+    $deleted_post = $rest_class::delete($type_lc, $id);
     if ( is_array( $deleted_post ) ) {
       return new \WP_REST_Response( ['success' => true, 'deleted' => $deleted_post], 200 );
     }
