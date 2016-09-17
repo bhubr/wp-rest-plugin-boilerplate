@@ -71,7 +71,7 @@ abstract class Base_Model {
 
         self::$types['post'][$singular_lc] = $fields; 
         self::$rest_bases[] = $plural_lc;
-        self::$rest_classes[$singular_lc] = 'Post_Model';
+        self::$rest_classes[$singular_lc] = '\bhubr\Post_Model';
 
         register_post_type($singular_lc, $args);
     }
@@ -92,7 +92,7 @@ abstract class Base_Model {
 
         self::$types['taxonomy'][$singular_lc] = $fields; 
         self::$rest_bases[] = $plural_lc;
-        self::$rest_classes[$singular_lc] = 'Term_Model';
+        self::$rest_classes[$singular_lc] = '\bhubr\Term_Model';
 
         register_taxonomy( $singular_lc, $type_lc, $args );
     }
