@@ -9,7 +9,7 @@
 /**
  * Sample test case.
  */
-class Base_Model_Test extends WP_UnitTestCase {
+class Test_Base_Model extends WP_UnitTestCase {
 
     function setUp() {
         bhubr\Base_Model::register_type('pouet', 'Pouet', ['fields' => ['foo', 'bar']]);

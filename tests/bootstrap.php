@@ -19,6 +19,8 @@ define('SRC_DIR', dirname( dirname( __FILE__ ) ) . '/src/bhubr');
  */
 function _manually_load_plugin() {
     require SRC_DIR . '/vendor/Inflect.php';
+    require SRC_DIR . '/REST_Plugin_Boilerplate.php';
+    require SRC_DIR . '/Model_Exception.php';
 	require SRC_DIR . '/Base_Model.php';
     require SRC_DIR . '/Post_Model.php';
     require SRC_DIR . '/Term_Model.php';
