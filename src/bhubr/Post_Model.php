@@ -308,19 +308,13 @@ class Post_Model extends Base_Model {
         $posts = get_posts( array_merge( $args, $extra_args ) );
         foreach( $posts as $post ) {
             $post_data = self::get_post_fields( $post );
-            $terms = wp_get_post_terms( $post->ID, static::$taxonomy );
-            if( is_wp_error( $terms ) ) {
-                throw new \Exception( 'WP Error: ' . $terms->get_error_message() );
-            }
+            $post_terms = self::get_object_terms($post_type, $post->ID);
             $meta_value = get_post_meta( $post->ID, static::$meta_key, true );
             $thumb_id = get_post_meta( $post->ID, '_thumbnail_id', true );
             if( $thumb_id ) {
                 $meta_value['_thumbnail_src'] = wp_get_attachment_thumb_url( $thumb_id );
             }
-            $post_data = array_merge( $post_data, $meta_value ? $meta_value : array() );
-            if( !empty( $terms ) ) {
-                $post_data['cat'] = $terms[0]->term_id;
-            }
+            $post_data = array_merge( $post_data, $meta_value ? $meta_value : array(), $post_terms );
             $ret[] = $post_data;
         }
         return $ret;

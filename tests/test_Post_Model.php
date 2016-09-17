@@ -94,4 +94,26 @@ class Test_Post_Model extends WP_UnitTestCase {
         $this->assertEquals(null, get_post(4));
     }
 
+    /**
+     * Test creating and reading a model with terms
+     */
+    function test_read_all_with_terms() {
+        $cat1 = bhubr\Term_Model::create('foo_cat', ['name' => 'Foo cat A', 'a' => 'A', 'b' => 'B']);
+        $cat2 = bhubr\Term_Model::create('foo_cat', ['name' => 'Foo cat B', 'a' => 'A', 'b' => 'B']);
+        $tag1 = bhubr\Term_Model::create('foo_tag', ['name' => 'Foo tag C', 'a' => 'A', 'b' => 'B']);
+        $tag2 = bhubr\Term_Model::create('foo_tag', ['name' => 'Foo tag A', 'a' => 'A', 'b' => 'B']);
+        $tag3 = bhubr\Term_Model::create('foo_tag', ['name' => 'Foo tag B', 'a' => 'A', 'b' => 'B']);
+        $model1 = bhubr\Post_Model::create('foo', ['name' => 'Foo Biz', 'foo_cat' => $cat1['id'], 'foo_tags' => [$tag1['id'], $tag2['id']]]);
+        $model2 = bhubr\Post_Model::create('foo', ['name' => 'Foo Bar', 'foo_cat' => $cat2['id'], 'foo_tags' => [$tag2['id']]]);
+        $model3 = bhubr\Post_Model::create('foo', ['name' => 'Foo Woo', 'foo_cat' => $cat2['id'], 'foo_tags' => [$tag3['id']]]);
+
+        $all_models = bhubr\Post_Model::read_all('foo');
+        $this->assertEquals([
+            ['id' => 3, 'name' => 'Pouet 1', 'slug' => 'pouet-1', 'baz' => 'poop', 'bee' => 'poy', 'boo' => 'yap', 'foo_cat' => null, 'foo_tags' => []],
+            ['id' => 5, 'name' => 'Foo Biz', 'slug' => 'foo-biz', 'foo_cat' => $cat1['id'], 'foo_tags' => [$tag2['id'], $tag1['id']]],
+            ['id' => 6, 'name' => 'Foo Bar', 'slug' => 'foo-bar', 'foo_cat' => $cat2['id'], 'foo_tags' => [$tag2['id']]],
+            ['id' => 7, 'name' => 'Foo Woo', 'slug' => 'foo-woo', 'foo_cat' => $cat2['id'], 'foo_tags' => [$tag3['id']]],
+        ], $all_models);
+    }
+
 }
