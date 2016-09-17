@@ -89,6 +89,9 @@ class Test_Post_Model extends WP_UnitTestCase {
         ];
         $this->assertEquals($expected_tags2, $updated_model['foo_tags']);
         $this->assertEquals($expected_model2, $updated_model);
+
+        bhubr\Post_Model::delete('foo', 4);
+        $this->assertEquals(null, get_post(4));
     }
 
 }

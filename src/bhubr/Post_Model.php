@@ -93,6 +93,34 @@ class Post_Model extends Base_Model {
         return $terms;
     }
 
+    // public static function delete_object_terms($post_type, $post_id) {
+    //     $terms = [];
+    //     $post_terms = null;
+    //     $taxonomies_p = array_map(function($tax_name_s) {
+    //         return \Inflect::pluralize($tax_name_s);
+    //     }, static::$taxonomies);
+    //     foreach(static::$type_fields as $field) {
+    //         echo "$post_id $field\n";
+    //         if (($pos_in_tax_s = array_search($field, static::$taxonomies)) !== false) {
+    //             echo "SINGLE $field\n";
+    //             $post_terms = wp_get_object_terms( $post_id, $field );
+    //             var_dump($post_terms);
+    //             if (empty($post_terms)) continue;
+    //         }
+    //         else if (($pos_in_tax_p = array_search($field, $taxonomies_p)) !== false) {
+    //             $tax_name_s = static::$taxonomies[$pos_in_tax_p];
+    //             echo "PLURAL $field => $tax_name_s\n";
+    //             $post_terms = wp_get_object_terms( $post_id, $tax_name_s );
+    //             var_dump($post_terms);
+    //         }
+    //         else continue;
+    //         $term_ids = array_map(function($term) { return $term->term_id; }, $post_terms);
+    //         wp_remove_object_terms($post_id, $term_ids, $field);
+
+    //     }
+    //     return $terms;
+    // }
+
     /**
      * Create plan
      */
@@ -238,10 +266,6 @@ class Post_Model extends Base_Model {
     public static function delete( $post_type, $post_id ) {
         static::init( $post_type );
         $deleted_post = wp_delete_post( $post_id, true );
-        // foreach(static::$taxonomies as $taxonomy) {
-        //     wp_remove_object_terms($post_id);
-        // }
-        
         if( false === $deleted_post ) {
             throw new \Exception( "Post $post_id could not be deleted" );
         }
