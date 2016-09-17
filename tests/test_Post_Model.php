@@ -66,18 +66,29 @@ class Test_Post_Model extends WP_UnitTestCase {
     /**
      * Test creating and reading a model with terms
      */
-    function test_create_and_read_with_terms() {
-        $cat = bhubr\Term_Model::create('foo_cat', ['name' => 'Foo cat 1', 'a' => 'A', 'b' => 'B']);
-        $cat = bhubr\Term_Model::create('foo_tag', ['name' => 'Foo tag 1', 'a' => 'A', 'b' => 'B']);
-        $cat = bhubr\Term_Model::create('foo_tag', ['name' => 'Foo tag 2', 'a' => 'A', 'b' => 'B']);
-        $model = bhubr\Post_Model::create('foo', ['name' => 'Pouet 2', 'foo_cat' => 2, 'foo_tags' => [3, 4]]);
+    function test_create_read_update_delete_with_terms() {
+        $cat1 = bhubr\Term_Model::create('foo_cat', ['name' => 'Foo cat 1', 'a' => 'A', 'b' => 'B']);
+        $cat2 = bhubr\Term_Model::create('foo_cat', ['name' => 'Foo cat 2', 'a' => 'A', 'b' => 'B']);
+        $tag1 = bhubr\Term_Model::create('foo_tag', ['name' => 'Foo tag 1', 'a' => 'A', 'b' => 'B']);
+        $tag2 = bhubr\Term_Model::create('foo_tag', ['name' => 'Foo tag 2', 'a' => 'A', 'b' => 'B']);
+        $tag3 = bhubr\Term_Model::create('foo_tag', ['name' => 'Foo tag 3', 'a' => 'A', 'b' => 'B']);
+        $model = bhubr\Post_Model::create('foo', ['name' => 'Pouet 2', 'foo_cat' => $cat1['id'], 'foo_tags' => [$tag1['id'], $tag2['id']]]);
 
         $expected_model = [
-            'id' => 4, 'name' => 'Pouet 2', 'slug' => 'pouet-2', 'foo_cat' => 2, 'foo_tags' => [3, 4]
+            'id' => 4, 'name' => 'Pouet 2', 'slug' => 'pouet-2', 'foo_cat' => $cat1['id'], 'foo_tags' => [$tag1['id'], $tag2['id']]
         ];
         $this->assertEquals($expected_model, $model);
-        $read_model = bhubr\Post_Model::read('foo', 4);
+        $read_model = bhubr\Post_Model::read('foo', $model['id']);
         $this->assertEquals($expected_model, $read_model);
+
+
+        $expected_tags2 = [$tag1['id'], $tag3['id']];
+        $updated_model = bhubr\Post_Model::update('foo', 4, ['name' => 'Pouet 2 updated', 'foo_cat' => $cat2['id'], 'foo_tags' => $expected_tags2]);
+        $expected_model2 = [
+            'id' => 4, 'name' => 'Pouet 2 updated', 'slug' => 'pouet-2', 'foo_cat' => $cat2['id'], 'foo_tags' => $expected_tags2
+        ];
+        $this->assertEquals($expected_tags2, $updated_model['foo_tags']);
+        $this->assertEquals($expected_model2, $updated_model);
     }
 
 }

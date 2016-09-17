@@ -74,7 +74,7 @@ class Term_Model extends Base_Model {
             throw new \Exception("Could not add meta for term $term_id");
         }
 
-        $term_fields['term_id'] = $term_id;
+        $term_fields['id'] = $term_id;
         $term_fields = array_merge( $term_fields, $meta_value );
         return $term_fields;
     }

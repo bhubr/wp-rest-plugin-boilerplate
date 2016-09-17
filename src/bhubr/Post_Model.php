@@ -113,21 +113,12 @@ class Post_Model extends Base_Model {
 
         // Insert post
         $post_id = wp_insert_post( $post_fields, true );
-
-        $post_fields['ID'] = $post_id;
-        if( is_wp_error( $post_id ) ) {
+        if( $wp_error = is_wp_error( $post_id ) ) {
             throw new \Exception( 'WP Error: ' . $post_id->get_error_message() );
         }
-        if (array_key_exists('__terms__', $post_fields)){
-            $terms = $post_fields['__terms__'];
-            unset($post_fields['__terms__']);
-            foreach($terms as $taxonomy => $term_ids) {
-                $terms = self::update_terms($post_id, $taxonomy, $term_ids);
-                if( $wp_error = is_wp_error( $post_id ) ) {
-                    throw new \Exception( 'WP Error: ' . $post_id->get_error_message() );
-                }
-            }
-        }
+
+        $post_fields['ID'] = $post_id;
+        self::update_terms( $post_id, $post_fields );
         self::update_meta( $post_id, $meta_value );
 
         // Get the created post from the DB (so we can return the slug if it is different from what was asked)
@@ -142,16 +133,25 @@ class Post_Model extends Base_Model {
     }
 
 
-    public static function update_terms( $post_id, $taxonomy, $term_ids) {
-        // Set terms
-        $terms = wp_set_object_terms( $post_id, $term_ids, $taxonomy, false );
-        if( is_wp_error( $terms ) ) {
-            throw new \Exception( 'WP Error: ' . $terms->get_error_message() );
+    public static function update_terms( $post_id, $post_fields) {
+        $output_terms = [];
+        if (array_key_exists('__terms__', $post_fields)) {
+            $term_data = $post_fields['__terms__'];
+            unset($post_fields['__terms__']);
+            foreach($term_data as $taxonomy => $term_ids) {
+                // Set terms
+                $terms = wp_set_object_terms( $post_id, $term_ids, $taxonomy, false );
+                if( is_wp_error( $terms ) ) {
+                    throw new \Exception( 'WP Error: ' . $terms->get_error_message() );
+                }
+                else if( empty( $terms ) ) {
+                    throw new \Exception("Could not set terms for post $post_id");
+                }
+
+                $output_terms[$taxonomy] = $terms;
+            }
         }
-        else if( empty( $terms ) ) {
-            throw new \Exception("Could not set terms for post $post_id");
-        }
-        return $terms;
+        return $output_terms;
     }
 
     public static function update_meta( $post_id, $meta_value ) {
@@ -197,7 +197,7 @@ class Post_Model extends Base_Model {
     /**
      * Update plan
      */
-    public static function update( $post_type, $post_id, $json = null ) {
+    public static function update( $post_type, $post_id, $payload ) {
         static::init( $post_type );
 
         if( is_object( $post_id) || intval( $post_id ) === 0 ) {
@@ -205,7 +205,7 @@ class Post_Model extends Base_Model {
         }
 
         // Parse JSON payload
-        $post_fields = self::from_json( $json );
+        $post_fields = self::extract_payload_taxonomies($post_type, $payload);
         $post_fields['ID'] = $post_id;
         $meta_value = $post_fields['__meta__'];
 
@@ -217,15 +217,17 @@ class Post_Model extends Base_Model {
         }
 
         // $terms = self::update_terms_and_meta( $post_id, $post_fields['category'], $meta_value );
+        self::update_terms( $post_id, $post_fields );
         self::update_meta( $post_id, $meta_value );
 
         // Get the created post from the DB (so we can return the slug if it is different from what was asked)
         $post = get_post($post_id);
 
         $post_data = self::get_post_fields( $post );
+        $post_terms = self::get_object_terms($post_type, $post_id);
 
         // Populate values from the meta_value
-        $plan_data = array_merge( $post_data, $meta_value); // , array('cat' => $terms[0]) );
+        $plan_data = array_merge( $post_data, $meta_value, $post_terms );
 
         return $plan_data;
     }
@@ -236,6 +238,10 @@ class Post_Model extends Base_Model {
     public static function delete( $post_type, $post_id ) {
         static::init( $post_type );
         $deleted_post = wp_delete_post( $post_id, true );
+        // foreach(static::$taxonomies as $taxonomy) {
+        //     wp_remove_object_terms($post_id);
+        // }
+        
         if( false === $deleted_post ) {
             throw new \Exception( "Post $post_id could not be deleted" );
         }
