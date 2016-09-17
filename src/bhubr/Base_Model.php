@@ -38,13 +38,14 @@ abstract class Base_Model {
     ];
 
     protected static $rest_bases = [];
+    protected static $rest_classes = [];
 
     protected static $menu_pos = 40;
 
     public static function register_type($singular_lc, $name_s, $type_def) {
         $fields = $type_def['fields'];
         $name = \Inflect::pluralize($name_s);
-        // $plural_lc = \Inflect::pluralize($singular_lc);
+        $plural_lc = \Inflect::pluralize($singular_lc);
         $args = [
             'name' => $name,
             'labels' => [
@@ -69,14 +70,15 @@ abstract class Base_Model {
         ];
 
         self::$types['post'][$singular_lc] = $fields; 
-        self::$rest_bases[$singular_lc] = 'Post_Model';
+        self::$rest_bases[] = $plural_lc;
+        self::$rest_classes[$singular_lc] = 'Post_Model';
 
         register_post_type($singular_lc, $args);
     }
 
     public static function register_taxonomy($singular_lc, $name_s, $type_lc, $fields) {
         $name = \Inflect::pluralize($name_s);
-        // $plural_lc = \Inflect::pluralize($singular_lc);
+        $plural_lc = \Inflect::pluralize($singular_lc);
         $args = [
             'labels' => [
                 'name' => $name,
@@ -89,7 +91,8 @@ abstract class Base_Model {
         ];
 
         self::$types['taxonomy'][$singular_lc] = $fields; 
-        self::$rest_bases[$singular_lc] = 'Term_Model';
+        self::$rest_bases[] = $plural_lc;
+        self::$rest_classes[$singular_lc] = 'Term_Model';
 
         register_taxonomy( $singular_lc, $type_lc, $args );
     }
@@ -118,11 +121,11 @@ abstract class Base_Model {
     }
 
     public static function get_rest_bases() {
-        return array_keys(self::$rest_bases);
+        return self::$rest_bases;
     }
 
     public static function get_rest_route_class($singular_lc) {
-        return self::$rest_bases[$singular_lc];
+        return self::$rest_classes[$singular_lc];
     }
 
 
