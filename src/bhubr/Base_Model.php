@@ -98,8 +98,16 @@ abstract class Base_Model {
         return self::$types['post'];
     }
 
+    public static function get_type_keys() {
+        return array_keys(self::$types['post']);
+    }
+
     public static function get_taxonomies() {
         return self::$types['taxonomy'];
+    }
+
+    public static function get_taxonomy_keys() {
+        return array_keys(self::$types['taxonomy']);
     }
 
     /**

@@ -38,29 +38,6 @@ class REST_Plugin_Boilerplate {
             $controller = new REST_Controller();
             $controller->set_bases($type_names_plural);
             $controller->register_routes();
-            foreach($types as $type_lc => $type_definition) {
-
-                // register_rest_route( 'myplugin/v1', "/$type_plural/(?P<id>\d+)", [
-                //     'methods' => 'GET',
-                //     'callback' => function($data) use($type_lc) {
-                //         $post_id = $data['id'];
-                //         return Post_Model::read($type_lc, $post_id);
-                //     },
-                // ], [
-                //     'methods' => 'DELETE',
-                //     'callback' => function($data) use($type_lc) {
-                //         $post_id = $data['id'];
-                //         return Post_Model::delete($type_lc, $post_id);
-                //     },
-                // ] );
-                // register_rest_route( 'myplugin/v1', "/$type_plural", array(
-                //     'methods' => 'POST',
-                //     'callback' => function(\WP_REST_Request $request) use($type_lc) {
-                //         $data = $request->get_json_params();
-                //         return Post_Model::create($type_lc, $data);
-                //     },
-                // ) );
-            }
         });
     }
 
@@ -105,7 +82,7 @@ class REST_Plugin_Boilerplate {
 
 
     /**
-     * Create meta table form pricing categories on plugin activation
+     * Create meta table on plugin activation
      * @global type $wpdb
      */
     function create_term_meta_tables($plugin_name) {
@@ -130,7 +107,7 @@ class REST_Plugin_Boilerplate {
                 if (!empty ($wpdb->collate))
                     $charset_collate .= " COLLATE {$wpdb->collate}";
                 // Prepare sql
-                $sql = "CREATE TABLE {$table_name} (
+                $sql = "CREATE TABLE $table_name (
                     meta_id bigint(20) NOT NULL AUTO_INCREMENT,
                     {$taxonomy}_id bigint(20) NOT NULL default 0,
 
@@ -139,6 +116,35 @@ class REST_Plugin_Boilerplate {
 
                     UNIQUE KEY meta_id (meta_id)
                 ) {$charset_collate};";
+
+                require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+                dbDelta($sql);
+            }
+        }
+    }
+
+    /**
+     * Delete meta table on plugin delete
+     * @global type $wpdb
+     */
+    function delete_term_meta_tables($plugin_name) {
+        global $wpdb;
+        $types = $this->registered_plugins[$plugin_name]['types'];
+        foreach($types as $type_lc => $type_def) {
+            if (! array_key_exists('taxonomies', $type_def)) continue;
+            $taxonomies = array_keys($type_def['taxonomies']);
+
+            // Exit if type has no associated taxonomy
+            foreach($taxonomies as $taxonomy) {
+                // if( !$has_meta ) continue;
+                $tax_meta_name = $taxonomy . 'meta';
+                $table_name = $wpdb->prefix . $tax_meta_name;
+
+                // Return if table exists
+                if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name) {
+                    return;
+                }
+                $sql = "DROP TABLE $table_name";
 
                 require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
                 dbDelta($sql);

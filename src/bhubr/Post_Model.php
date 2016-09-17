@@ -43,6 +43,12 @@ class Post_Model extends Base_Model {
      */
     public static function create( $post_type, $payload ) {
 
+        $registered_post_types = self::get_type_keys();
+        if (! array_search($post_type, $registered_post_types)) {
+            $msg = sprintf("Unknown post type: %s (registered types: %s)", $post_type, implode(', ', $registered_post_types));
+            throw new Model_Exception($msg);
+        }
+
         $base_fields = array(
             'post_type' => $post_type,
             'post_status' => 'publish'
