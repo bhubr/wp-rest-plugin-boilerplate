@@ -155,6 +155,7 @@ class Post_Model extends Base_Model {
         }
 
         // $terms = self::update_terms_and_meta( $post_id, $post_fields['category'], $meta_value );
+        self::update_meta( $post_id, $meta_value );
 
         // Get the created post from the DB (so we can return the slug if it is different from what was asked)
         $post = get_post($post_id);
