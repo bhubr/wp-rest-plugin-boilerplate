@@ -18,6 +18,9 @@ class Post_Model extends Base_Model {
     // Taxonomy associated to post type
     static $taxonomy;
 
+    static $type_fields = null;
+    static $taxonomies = null;
+
     // Name of the meta field
     static $meta_key = '__meta__';
 
@@ -29,25 +32,72 @@ class Post_Model extends Base_Model {
     private function __construct( $data ) {
         // Don't use
         throw new \Exception('Dont use');
-        //$this->data = $data;
     }
 
     public static function init( $post_type ) {
-        $taxonomies = get_object_taxonomies( $post_type );
-        static::$taxonomy = $taxonomies[0];
-        // static::$meta_key = "_{$post_type}_meta";
+        $registered_post_types = self::get_type_keys();
+        if (! array_search($post_type, $registered_post_types)) {
+            $msg = sprintf("Unknown post type: %s (registered types: %s)", $post_type, implode(', ', $registered_post_types));
+            throw new Model_Exception($msg);
+        }
+
+        static::$type_fields = Base_Model::get_types()[$post_type];
+        static::$taxonomies = get_object_taxonomies( $post_type );
+    }
+
+    public static function extract_payload_taxonomies($post_type, $payload) {
+        $post_fields = self::from_json($payload);
+        $post_fields['__terms__'] = [];
+        $taxonomies_s = get_object_taxonomies($post_type);
+        $taxonomies_p = array_map(function($tax_name_s) {
+            return \Inflect::pluralize($tax_name_s);
+        }, $taxonomies_s);
+        foreach($post_fields['__meta__'] as $k => $v) {
+            if (($pos_in_tax_s = array_search($k, $taxonomies_s)) !== false) {
+                if (!is_int($v)) throw new Model_Exception("Value for singular $k ID should be an integer");
+                $post_fields['__terms__'][$k] = (int)$v;
+                unset($post_fields['__meta__'][$k]);
+            }
+            else if (($pos_in_tax_p = array_search($k, $taxonomies_p)) !== false) {
+                $tax_name_s = $taxonomies_s[$pos_in_tax_p];
+                if (!is_array($v)) throw new Model_Exception("Value for plural $tax_name_s IDs should be an array of integers");
+                $post_fields['__terms__'][$tax_name_s] = array_map(function($v_cast) {
+                    return (int)$v_cast;
+                }, $v);
+                unset($post_fields['__meta__'][$k]);
+            }
+        }
+        return $post_fields;
+    }
+
+    public static function get_object_terms($post_type, $post_id) {
+        $terms = [];
+        $taxonomies_p = array_map(function($tax_name_s) {
+            return \Inflect::pluralize($tax_name_s);
+        }, static::$taxonomies);
+        foreach(static::$type_fields as $field) {
+            if (($pos_in_tax_s = array_search($field, static::$taxonomies)) !== false) {
+                $post_terms = wp_get_object_terms( $post_id, $field );
+                if (! empty($post_terms)) {
+                    $unique_term = array_pop($post_terms);
+                    $terms[$field] = $unique_term->term_id;
+                }
+                else $terms[$field] = null;
+            }
+            else if (($pos_in_tax_p = array_search($field, $taxonomies_p)) !== false) {
+                $tax_name_s = static::$taxonomies[$pos_in_tax_p];
+                $post_terms = wp_get_object_terms( $post_id, $tax_name_s );
+                $terms[$field] = !empty($post_terms) ? array_map(function($term) { return $term->term_id; }, $post_terms) : [];
+            }
+        }
+        return $terms;
     }
 
     /**
      * Create plan
      */
     public static function create( $post_type, $payload ) {
-
-        $registered_post_types = self::get_type_keys();
-        if (! array_search($post_type, $registered_post_types)) {
-            $msg = sprintf("Unknown post type: %s (registered types: %s)", $post_type, implode(', ', $registered_post_types));
-            throw new Model_Exception($msg);
-        }
+        static::init( $post_type );
 
         $base_fields = array(
             'post_type' => $post_type,
@@ -55,11 +105,10 @@ class Post_Model extends Base_Model {
         );
 
         // Parse JSON payload
-        $post_fields = array_merge( $base_fields, self::from_json( $payload ) );
-        // Extract meta values and remove them from post fields
+        $post_fields = array_merge( $base_fields, self::extract_payload_taxonomies($post_type, $payload) );
+        // Extract meta values, remove them and ID from post fields
         $meta_value = $post_fields['__meta__'];
         unset($post_fields['__meta__']);
-        // Create: remove ID field if exists
         unset($post_fields['ID']);
 
         // Insert post
@@ -69,26 +118,33 @@ class Post_Model extends Base_Model {
         if( is_wp_error( $post_id ) ) {
             throw new \Exception( 'WP Error: ' . $post_id->get_error_message() );
         }
-
-        if (array_key_exists('term', $post_fields)){
-            $terms = self::update_terms($post_id, $post_fields['term']);
+        if (array_key_exists('__terms__', $post_fields)){
+            $terms = $post_fields['__terms__'];
+            unset($post_fields['__terms__']);
+            foreach($terms as $taxonomy => $term_ids) {
+                $terms = self::update_terms($post_id, $taxonomy, $term_ids);
+                if( $wp_error = is_wp_error( $post_id ) ) {
+                    throw new \Exception( 'WP Error: ' . $post_id->get_error_message() );
+                }
+            }
         }
         self::update_meta( $post_id, $meta_value );
 
         // Get the created post from the DB (so we can return the slug if it is different from what was asked)
         $post = get_post($post_id);
         $post_data = self::get_post_fields( $post );
+        $post_terms = self::get_object_terms($post_type, $post_id);
 
         // Populate values from the meta_value
-        $plan_data = array_merge( $post_data, $meta_value ); // , array('cat' => $terms[0]) );
+        $model = array_merge( $post_data, $meta_value, $post_terms );
 
-        return  $plan_data;
+        return $model;
     }
 
 
-    public static function update_terms( $post_id, $category) {
+    public static function update_terms( $post_id, $taxonomy, $term_ids) {
         // Set terms
-        $terms = wp_set_post_terms( $post_id, array($plan_category), static::$taxonomy, false );
+        $terms = wp_set_object_terms( $post_id, $term_ids, $taxonomy, false );
         if( is_wp_error( $terms ) ) {
             throw new \Exception( 'WP Error: ' . $terms->get_error_message() );
         }
@@ -196,16 +252,14 @@ class Post_Model extends Base_Model {
             throw new \Exception("Post with id=$post_id was not found");
         }
         $post_data = self::get_post_fields( $post );
-        // $terms = wp_get_post_terms( $post_id, static::$taxonomy );
-        // if( is_wp_error( $terms ) ) {
-        //     throw new \Exception( 'WP Error: ' . $terms->get_error_message() );
-        // }
+        $post_terms = self::get_object_terms($post_type, $post_id);
+
         $meta_value = get_post_meta( $post_id, static::$meta_key, true );
         $thumb_id = get_post_meta( $post_id, '_thumbnail_id', true );
         if( $thumb_id ) {
             $meta_value['_thumbnail_src'] = wp_get_attachment_thumb_url( $thumb_id );
         }
-        $data = array_merge( $post_data, $meta_value ? $meta_value : array() ); //, array('cat' => $terms[0]->term_id) );
+        $data = array_merge( $post_data, $meta_value ? $meta_value : array(), $post_terms );
         return $data;
         //return new PortfolioModel( $plan_data );
     }

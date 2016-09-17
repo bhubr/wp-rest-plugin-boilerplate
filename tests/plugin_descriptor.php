@@ -3,7 +3,7 @@ return [
     'types' => [
         'foo' => [  // key is type name (singular, lower-case)
             'name_s'   => 'Foo',  // label (singular)
-            'fields'   => ['foo_type', 'foo_number'],
+            'fields'   => ['foo_type', 'foo_number', 'foo_cat', 'foo_tags'],
             'taxonomies' => [
                 'foo_cat' => [
                     'name_s' => 'Foo Cat',

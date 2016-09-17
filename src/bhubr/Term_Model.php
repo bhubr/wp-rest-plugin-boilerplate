@@ -46,12 +46,12 @@ class Term_Model extends Base_Model {
     /**
      * Create cat
      */
-    public static function create( $taxonomy, $json = null ) {
+    public static function create( $taxonomy, $payload = null ) {
 
         self::init( $taxonomy );
 
         // Parse JSON payload
-        $term_fields = self::from_json( $json );
+        $term_fields = self::from_json( $payload );
 
         // regex for slug with suffix: '/[\d\w\-]+\-(\d+)$/'
         if( !array_key_exists('slug', $term_fields) ) {
@@ -69,8 +69,7 @@ class Term_Model extends Base_Model {
             throw new \Exception( 'WP Error: ' . $term_id->get_error_message() );
         }
         $term_id = $term_id['term_id'];
-        $success = add_metadata ( static::$taxonomy, $term_id, static::$meta_key, $meta_value, true );
-
+        $success = add_term_meta ($term_id, '__meta__', $meta_value, true);
         if( !$success ) {
             throw new \Exception("Could not add meta for term $term_id");
         }
@@ -97,9 +96,9 @@ class Term_Model extends Base_Model {
         $meta_value = $term_fields['__meta__'];
         unset($term_fields['__meta__']);
 
-        $existing_meta = get_metadata(static::$taxonomy, $term_id, static::$meta_key, true);
+        $existing_meta = get_metadata(static::$taxonomy, $term_id, '__meta__', true);
         if( $existing_meta !== $meta_value ) {
-            $success = update_metadata ( static::$taxonomy, $term_id, static::$meta_key, $meta_value );
+            $success = update_metadata ( static::$taxonomy, $term_id, '__meta__', $meta_value );
             if( !$success ) {
                 throw new \Exception("Could not update meta for term $term_id");
             }

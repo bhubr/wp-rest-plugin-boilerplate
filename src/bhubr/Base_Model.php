@@ -194,18 +194,6 @@ abstract class Base_Model {
         }
         $map_fields['__meta__'] = $extra_fields;
 
-        // if( !is_null( static::$extra_fields ) ) {
-        //     $extra_arr = array();
-        //     foreach( static::$extra_fields as $f ) {
-        //         $extra_arr[$f] = htmlentities($payload->$f); //addslashes($payload->$f);
-        //     }
-        //     //var_dump($extra_arr);
-        //     $map_fields['__meta__'] = $extra_arr;
-        //     // no need to encode it, will be serialized by add_post_meta
-        //     //$map_fields['__meta__'] = json_encode($extra_arr);
-        // }
-
-
         return $map_fields;
     }
 
