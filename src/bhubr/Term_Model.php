@@ -5,7 +5,7 @@ class Term_Model extends Base_Model {
 
     static $id_key = 'term_id';
     // Accepted fields
-    static $map_fields = array('id' => 'term_id', 'slug', 'name');
+    static $map_fields = array('id' => 'term_id', 'slug', 'name', 'description');
     static $required_fields = array('name');
 
     // Extra fields (encoded as JSON into post_content)
@@ -96,9 +96,9 @@ class Term_Model extends Base_Model {
         $meta_value = $term_fields['__meta__'];
         unset($term_fields['__meta__']);
 
-        $existing_meta = get_metadata(static::$taxonomy, $term_id, '__meta__', true);
+        $existing_meta = get_term_meta($term_id, '__meta__', true);
         if( $existing_meta !== $meta_value ) {
-            $success = update_metadata ( static::$taxonomy, $term_id, '__meta__', $meta_value );
+            $success = update_term_meta (  $term_id, '__meta__', $meta_value );
             if( !$success ) {
                 throw new \Exception("Could not update meta for term $term_id");
             }
@@ -106,10 +106,12 @@ class Term_Model extends Base_Model {
         }
 
         // Update term
-        $result = wp_update_term( $term_id, static::$taxonomy, $term_fields );
+        $result = wp_update_term( $term_id, $taxonomy, $term_fields );
         if( is_wp_error( $result ) ) {
             throw new \Exception( 'WP Error: ' . $result->get_error_message() );
         }
+
+        $term_fields['id'] = $term_id;
 
         // Overwrite old data
         return array_merge( $term_fields, $meta_value );
@@ -140,14 +142,15 @@ class Term_Model extends Base_Model {
         if( $term === false ) {
             throw new \Exception("term with id=$term_id was not found");
         }
-        $meta_value = get_metadata(static::$taxonomy, $term_id, static::$meta_key, true);
+        $meta_value = get_term_meta($term_id, '__meta__', true);
         if( empty( $meta_value ) ) {
             $meta_value = array();
         }
         $term_fields = array(
-            'term_id' => $term->term_id,
+            'id' => $term->term_id,
             'slug' => $term->slug,
-            'name' => $term->name
+            'name' => $term->name,
+            'description' => $term->description
         );
         return array_merge( $term_fields, $meta_value ? $meta_value : array() );
     }
@@ -162,11 +165,12 @@ class Term_Model extends Base_Model {
         }
         $terms_with_metas = array();
         foreach( $terms as $term ) {
-            $meta_value = get_metadata(static::$taxonomy, $term->term_id, static::$meta_key, true);
+            $meta_value = get_term_meta($term->term_id, '__meta__', true);
             $term_fields = array(
-                'term_id' => $term->term_id,
+                'id' => $term->term_id,
                 'slug' => $term->slug,
-                'name' => $term->name
+                'name' => $term->name,
+                'description' => $term->description
             );
             $terms_with_metas[] = array_merge( $term_fields, $meta_value ? $meta_value : array() );
         }
