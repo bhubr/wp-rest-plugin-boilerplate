@@ -28,15 +28,15 @@ class Test_Post_Model extends WP_UnitTestCase {
         bhubr\Base_Model::register_type('dumbmany2many', 'Dumbmany2many', ['fields' => ['dumb_str']]);
         do_action('init');
         // $this->rpb->create_term_meta_tables('wprbp-test-suite');
+        global $wpdb;
+        $table = $wpdb->prefix . 'rpb_many_to_many';
+
+        $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+        $res = $mysqli->query("TRUNCATE TABLE $table");
     }
 
     function tearDown() {
         // $this->rpb->delete_term_meta_tables('wprbp-test-suite');
-        global $wpdb;
-        $table = $wpdb->prefix . 'rpb_many_to_many';
-
-        // $res = $wpdb->delete( $table, ['id > 1' => ''] );
-        // var_dump($res);
     }
 
     /**
@@ -235,8 +235,22 @@ class Test_Post_Model extends WP_UnitTestCase {
         // var_dump($dumbmany2manies);
 
         $dummy = bhubr\Dummy::read($dummy_id);
+        $dummy2 = bhubr\Dummy::read($dummy2_id);
+        $dummy3 = bhubr\Dummy::read($dummy3_id);
+        $dumbm2m1 = bhubr\Dumbmany2many::read($dumbm2m1['id']);
+        $dumbm2m2 = bhubr\Dumbmany2many::read($dumbm2m2['id']);
+        $dumbm2m3 = bhubr\Dumbmany2many::read($dumbm2m3['id']);
+        $dumbm2m4 = bhubr\Dumbmany2many::read($dumbm2m4['id']);
         // var_dump($dummy);
         $this->assertEquals([$dumbm2m1['id'], $dumbm2m3['id']], $dummy['dumbmany2manies']);
+        $this->assertEquals([$dumbm2m2['id'], $dumbm2m4['id']], $dummy2['dumbmany2manies']);
+        $this->assertEquals([$dumbm2m3['id'], $dumbm2m4['id']], $dummy3['dumbmany2manies']);
+        $this->assertEquals([$dumbm2m3['id'], $dumbm2m4['id']], $dummy3['dumbmany2manies']);
+
+        $this->assertEquals([$dummy['id']], $dumbm2m1['dummies']);
+        $this->assertEquals([$dummy2['id']], $dumbm2m2['dummies']);
+        $this->assertEquals([$dummy['id'], $dummy3['id']], $dumbm2m3['dummies']);
+        $this->assertEquals([$dummy2['id'], $dummy3['id']], $dumbm2m4['dummies']);
 
         // $this->assertEquals($dummy['dumbass_id'], $dumbass_id);
         // $this->assertTrue(array_key_exists('dumbmanies', $dummy), 'Dummy object has no "dumbmanies" key');
