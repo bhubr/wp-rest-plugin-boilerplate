@@ -1,6 +1,8 @@
 <?php
 namespace bhubr;
 
+use Underscore\Underscore as __;
+
 class Post_Model extends Base_Model {
 
     // Name of the primary object key in Backbone.js app
@@ -25,6 +27,12 @@ class Post_Model extends Base_Model {
     static $meta_key = '__meta__';
 
     static $real_metas = array( '_thumbnail_id' );
+
+    const RELATION_ONE_TO_ONE = 1;
+    const RELATION_ONE_TO_MANY = 2;
+    const RELATION_MANY_TO_MANY = 3;
+
+    static $cache = [];
 
     /**
      * Private constructor because we don't want an instance to be created if creation fails.
@@ -290,8 +298,106 @@ class Post_Model extends Base_Model {
         return (array)$deleted_post;
     }
 
-    public static function read($payload) {
-        return static::_read(static::$singular, $payload);
+    public static function add_to_cache($singular, $object) {
+        if (! array_key_exists($singular, self::$cache)) self::$cache[$singular] = [];
+        self::$cache[$singular][$object['id']] = $object;
+    }
+
+    public static function get_from_cache($singular, $object_id) {
+        $is_in_cache = array_key_exists($singular, self::$cache) &&
+            array_key_exists($object_id, self::$cache[$singular]);
+        return $is_in_cache ? self::$cache[$singular][$object_id] : null;
+    }
+
+    public static function read($post_id, $fetch_relations = true) {
+        echo get_called_class() . '::' . __FUNCTION__ . "($post_id)\n";
+        if ($cached_object = self::get_from_cache(static::$singular, $post_id)) {
+            $object = $cached_object;
+        }
+        else {
+            $object = static::_read(static::$singular, $post_id);
+            self::add_to_cache(static::$singular, $object);
+        }
+        if (! $fetch_relations) return $object;
+
+        foreach(static::$relations as $field => $relation_descriptor) {
+            echo "\nGET relation for " . static::$singular . " => $field\n";
+            var_dump($relation_descriptor);
+            $object[$field] = self::get_relation($object, $relation_descriptor);
+        }
+        return $object;
+    }
+
+    /*public static function parse_relation_descriptor($relation_descriptor) {
+        $desc_bits = explode(':', $relation_descriptor);
+        $rel_class = 'bhubr\\' . $desc_bits[0];
+        $rel_type = $desc_bits[1];
+        // return [
+        //     'class' => $rel_class,
+        //     'type'  => $rel_type
+        // ];
+    }*/
+
+    public static function get_relation_type($this_rel_type, $reverse_rel_type) {
+        if(
+            ($this_rel_type === 'has_one' && $reverse_rel_type === 'belongs_to') ||
+            ($reverse_rel_type === 'has_one' && $this_rel_type === 'belongs_to')
+        ) {
+            return self::RELATION_ONE_TO_ONE;
+        }
+        else if($this_rel_type === 'has_many' && $reverse_rel_type === 'belongs_to') {
+            return self::RELATION_ONE_TO_MANY;
+        }
+        else throw new \Exception("NOT IMPLEMENTED for $this_rel_type, $reverse_rel_type\n");
+    }
+
+    public static function get_relation($object, $relation_descriptor) {
+        // $descriptor = self::parse_relation_descriptor($relation_descriptor);
+        $desc_bits = explode(':', $relation_descriptor);
+        $this_rel_class = 'bhubr\\' . $desc_bits[0];
+        $this_rel_type = $desc_bits[1];
+        $rel_class_relations = $this_rel_class::$relations;
+        // Look for belongs to
+        if(array_key_exists(static::$singular, $rel_class_relations)) {
+            $reverse_relation_desc = $rel_class_relations[static::$singular];
+            $rev_desc_bits = explode(':', $reverse_relation_desc);
+            $rev_rel_class = 'bhubr\\' . $rev_desc_bits[0];
+            $rev_rel_type = $rev_desc_bits[1];
+
+            // $reverse_descriptor = self::parse_relation_descriptor($reverse_relation_desc);
+        }
+        // echo "\n\n--- Relations ---\n";
+        // var_dump($desc_bits);
+        // var_dump($rev_desc_bits);
+
+        $relation_type = static::get_relation_type($this_rel_type, $rev_rel_type);
+        var_dump("This rel class: " . $this_rel_class);
+        switch($relation_type) {
+            case self::RELATION_ONE_TO_ONE:
+                $foreign_key = $this_rel_class::$singular . '_id';
+                // var_dump("Called class: " . get_called_class());
+                // var_dump($object);
+                // var_dump($foreign_key);
+                if(! array_key_exists($foreign_key, $object)) return null;
+                // else "Object " . $object['id'] . " has fk $foreign_key\n";
+                $related_obj = $this_rel_class::read($object[$foreign_key], false);
+                // echo "\n#### RELATED OBJ\n";
+                // var_dump($related_obj);
+                return $related_obj;
+                break;
+            case self::RELATION_ONE_TO_MANY:
+                $primary_key = static::$singular . '_id';
+                $related_objs = $this_rel_class::read_all([
+                'where' => ['field' => $primary_key, 'value' => $object['id']]
+                ]); // $object[$foreign_key]
+                return __::pluck($related_objs, 'id');
+                // throw new \Exception("RELATION_ONE_TO_MANY not implemented\n");
+                break;
+            case self::RELATION_MANY_TO_MANY:
+                throw new \Exception("RELATION_MANY_TO_MANY not implemented\n");
+                break;
+        }
+
     }
 
     /**
@@ -316,6 +422,11 @@ class Post_Model extends Base_Model {
         //return new PortfolioModel( $plan_data );
     }
 
+    public static function read_all($extra_args = array()) {
+        var_dump(static::$singular);
+        return static::_read_all(static::$singular, $extra_args);
+    }
+
     /**
      * Fetch all
      */
@@ -338,6 +449,13 @@ class Post_Model extends Base_Model {
             }
             $post_data = array_merge( $post_data, $meta_value ? $meta_value : array(), $post_terms );
             $ret[] = $post_data;
+        }
+        if ($extra_args && array_key_exists('where', $extra_args)) {
+            $where = $extra_args['where'];
+            // var_dump($where);
+            $ret = __::filter($ret, function($item) use($where) {
+                return $item[$where['field']] === $where['value'];
+            });
         }
         return $ret;
     }

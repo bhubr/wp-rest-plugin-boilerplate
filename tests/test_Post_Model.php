@@ -7,6 +7,9 @@
  */
 
 require 'inc/Dummy.php';
+require 'inc/Dumbass.php';
+require 'inc/Dumbmany.php';
+
 /**
  * Sample test case.
  */
@@ -19,6 +22,8 @@ class Test_Post_Model extends WP_UnitTestCase {
         $this->rpb = bhubr\REST_Plugin_Boilerplate::get_instance(realpath(__DIR__ . '/..'));
         $this->rpb->register_plugin('wprbp-test-suite', $plugin_descriptor);
         bhubr\Base_Model::register_type('dummy', 'Dummy', ['fields' => ['type', 'status', 'dummy_int', 'dummy_str']]);
+        bhubr\Base_Model::register_type('dumbass', 'Dumbass', ['fields' => ['dumb_str']]);
+        bhubr\Base_Model::register_type('dumbmany', 'Dumbmany', ['fields' => ['dumb_str']]);
         do_action('init');
         // $this->rpb->create_term_meta_tables('wprbp-test-suite');
     }
@@ -141,6 +146,53 @@ class Test_Post_Model extends WP_UnitTestCase {
         $dummy1deleted = bhubr\Dummy::delete($dummy1id);
         // var_dump($dummy1deleted);
         $this->assertEquals($dummy1deleted['ID'], $dummy1id);
+    }
+
+    /**
+     * Test one-to-one relationship
+     */
+    // function test_relationships_one_to_one() {
+    //     $dummy = bhubr\Dummy::create(['type' => 'toto', 'status' => 'new', 'dummy_int' => 1, 'dummy_str' => 'Hello there!']);
+    //     $dummy_id = $dummy['id'];
+    //     $dumbass = bhubr\Dumbass::create(['dummy_id' => $dummy_id, 'dumb_str' => 'Hello there!']);
+    //     $dumbass_id = $dumbass['id'];
+    //     $this->assertEquals($dumbass['dummy_id'], $dummy_id);
+    //     // TODO: should be done automagically
+    //     $dummy_upd = bhubr\Dummy::update($dummy_id, ['dumbass_id' => $dumbass_id]);
+    //     $this->assertEquals($dummy_upd['dumbass_id'], $dumbass_id);
+    // }
+
+    /**
+     * Test one-to-many relationship
+     */
+    function test_relationships_one_to_many() {
+        // Create main object of type Dummy
+        $dummy = bhubr\Dummy::create(['type' => 'toto', 'status' => 'new', 'dummy_int' => 1, 'dummy_str' => 'Hello there!']);
+        $dummy_id = $dummy['id'];
+
+        // Create one-to-one relationship with Dumbass object
+        $dumbass = bhubr\Dumbass::create(['dummy_id' => $dummy_id, 'dumb_str' => 'Hello there!']);
+        $dumbass_id = $dumbass['id'];
+        $dummy_upd = bhubr\Dummy::update($dummy_id, ['dumbass_id' => $dumbass_id]);
+
+        // Create one-to-many relationship with Dumbmany objects
+        $dumbmany1 = bhubr\Dumbmany::create(['dummy_id' => $dummy_id, 'dumb_str' => 'Hello there!']);
+        $dumbmany2 = bhubr\Dumbmany::create(['dummy_id' => $dummy_id, 'dumb_str' => 'Howdy there!']);
+        $dumbmany3 = bhubr\Dumbmany::create(['dummy_id' => $dummy_id, 'dumb_str' => 'Hello world!']);
+        $dumbmany1_id = $dumbmany1['id'];
+        $dumbmany2_id = $dumbmany2['id'];
+        $dumbmany3_id = $dumbmany3['id'];
+        $dumbmanies = bhubr\Dumbmany::read_all();
+        echo "\n\n#### Dumbmanies\n";
+        var_dump($dumbmanies);
+        $this->assertEquals(3, count($dumbmanies));
+        // $this->assertEquals($dumbass['dummy_id'], $dummy_id);
+        // $this->assertEquals($dummy_upd['dumbass_id'], $dumbass_id);
+
+        $dummy = bhubr\Dummy::read($dummy_id);
+        $this->assertEquals($dummy['dumbass_id'], $dumbass_id);
+        $this->assertTrue(array_key_exists('dumbmanies', $dummy), 'Dummy object has no "dumbmanies" key');
+        $this->assertEquals($dummy['dumbmanies'], [$dumbmany1_id, $dumbmany2_id, $dumbmany3_id]);
     }
 
 }

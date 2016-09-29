@@ -1,6 +1,7 @@
 <?php
 namespace bhubr;
 require_once 'vendor/Inflect.php';
+require_once realpath(dirname(__FILE__) . '/../../vendor/autoload.php');
 
 define('WPRBP_LANG_DIR', realpath(__DIR__ . '/../../languages'));
 
