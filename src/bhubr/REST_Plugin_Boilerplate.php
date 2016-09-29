@@ -89,6 +89,36 @@ class REST_Plugin_Boilerplate {
 
 
     /**
+     * Create association with meta table
+     * @global type $wpdb
+     */
+    function create_assoc_with_meta_table() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'rpb_many_to_many';
+        // Return if table exists
+        if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name) {
+            return;
+        }
+        if (!empty ($wpdb->charset))
+            $charset_collate = "DEFAULT CHARACTER SET {$wpdb->charset}";
+        if (!empty ($wpdb->collate))
+            $charset_collate .= " COLLATE {$wpdb->collate}";
+            // Prepare sql
+            $sql = "CREATE TABLE $table_name (
+                id bigint(20) NOT NULL AUTO_INCREMENT,
+                object1_id bigint(20) NOT NULL,
+                object2_id bigint(20) NOT NULL,
+                rel_type ENUM('post_post', 'post_term', 'term_post', 'term_term'),
+                meta_value longtext DEFAULT NULL,
+
+                UNIQUE KEY id (id)
+            ) {$charset_collate};";
+
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+    }
+
+    /**
      * Create meta table on plugin activation
      * @global type $wpdb
      */

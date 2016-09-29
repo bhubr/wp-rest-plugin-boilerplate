@@ -12,7 +12,10 @@
 class Test_Base_Model extends WP_UnitTestCase {
 
     function setUp() {
+        $this->rpb = bhubr\REST_Plugin_Boilerplate::get_instance(realpath(__DIR__ . '/..'));
+        $this->rpb->create_assoc_with_meta_table();
         bhubr\Base_Model::register_type('pouet', 'Pouet', ['fields' => ['foo', 'bar']]);
+        bhubr\Base_Model::register_type('pouet', 'Foo', ['fields' => ['foo', 'bar']]);
         bhubr\Base_Model::register_taxonomy('pouetax', 'Pouetaxonomy', 'pouet', ['baz', 'boo']);
     }
 

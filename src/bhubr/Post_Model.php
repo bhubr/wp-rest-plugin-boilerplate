@@ -121,10 +121,14 @@ class Post_Model extends Base_Model {
     //     return $terms;
     // }
 
+    public static function create($payload) {
+        return static::_create(static::$singular, $payload);
+    }
+
     /**
      * Create plan
      */
-    public static function create( $post_type, $payload ) {
+    public static function _create( $post_type, $payload ) {
         static::init( $post_type );
 
         $base_fields = array(
@@ -172,9 +176,9 @@ class Post_Model extends Base_Model {
                 if( is_wp_error( $terms ) ) {
                     throw new \Exception( 'WP Error: ' . $terms->get_error_message() );
                 }
-                else if( empty( $terms ) ) {
-                    throw new \Exception("Could not set terms for post $post_id");
-                }
+                // else if( empty( $terms ) ) {
+                //     throw new \Exception("Could not set terms for post $post_id");
+                // }
 
                 $output_terms[$taxonomy] = $terms;
             }
@@ -186,7 +190,6 @@ class Post_Model extends Base_Model {
 
         // Update metadata
         $current_meta_value = get_post_meta( $post_id, static::$meta_key, true );
-
         if( $meta_value === $current_meta_value ) {
             return;
         }
@@ -195,6 +198,13 @@ class Post_Model extends Base_Model {
                 $meta_v = $meta_value[$meta_key];
                 unset( $meta_value[$meta_key] );
                 $success = update_post_meta ( $post_id, $meta_key, $meta_v );
+            }
+        }
+        if (! empty($current_meta_value)) {
+            foreach($current_meta_value as $key => $val) {
+                if(!array_key_exists($key, $meta_value)) {
+                    $meta_value[$key] = $val;
+                }
             }
         }
         // If we're here, the submitted meta differs from the current value
@@ -222,10 +232,14 @@ class Post_Model extends Base_Model {
     }
 
 
+    public static function update($post_id, $payload) {
+        return static::_update(static::$singular, $post_id, $payload);
+    }
+
     /**
      * Update plan
      */
-    public static function update( $post_type, $post_id, $payload ) {
+    public static function _update( $post_type, $post_id, $payload ) {
         static::init( $post_type );
 
         if( is_object( $post_id) || intval( $post_id ) === 0 ) {
@@ -260,10 +274,14 @@ class Post_Model extends Base_Model {
         return $plan_data;
     }
 
+    public static function delete($post_id) {
+        return static::_delete(static::$singular, $post_id);
+    }
+
     /**
-     * Delete plan
+     * Delete model
      */
-    public static function delete( $post_type, $post_id ) {
+    public static function _delete( $post_type, $post_id ) {
         static::init( $post_type );
         $deleted_post = wp_delete_post( $post_id, true );
         if( false === $deleted_post ) {
@@ -272,10 +290,14 @@ class Post_Model extends Base_Model {
         return (array)$deleted_post;
     }
 
+    public static function read($payload) {
+        return static::_read(static::$singular, $payload);
+    }
+
     /**
      * Fetch plan
      */
-    public static function read( $post_type, $post_id ) {
+    public static function _read( $post_type, $post_id ) {
         static::init( $post_type );
         $post = get_post( $post_id );
         if( $post === null ) {
@@ -297,7 +319,7 @@ class Post_Model extends Base_Model {
     /**
      * Fetch all
      */
-    public static function read_all( $post_type, $extra_args = array() ) {
+    public static function _read_all( $post_type, $extra_args = array() ) {
         static::init( $post_type );
         $ret = array();
         $args = array('post_type' => $post_type, 'posts_per_page' => -1, 'order' => 'ASC');

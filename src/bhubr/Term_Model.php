@@ -46,7 +46,7 @@ class Term_Model extends Base_Model {
     /**
      * Create cat
      */
-    public static function create( $taxonomy, $payload = null ) {
+    public static function _create( $taxonomy, $payload = null ) {
 
         self::init( $taxonomy );
 
@@ -82,7 +82,7 @@ class Term_Model extends Base_Model {
     /**
      * Update cat
      */
-    public static function update( $taxonomy, $term_id, $json = null ) {
+    public static function _update( $taxonomy, $term_id, $json = null ) {
 
         self::init( $taxonomy );
 
@@ -120,7 +120,7 @@ class Term_Model extends Base_Model {
     /**
      * Delete cat
      */
-    public static function delete( $taxonomy, $term_id ) {
+    public static function _delete( $taxonomy, $term_id ) {
         self::init( $taxonomy );
 
         $result = wp_delete_term( $term_id, static::$taxonomy );
@@ -136,7 +136,7 @@ class Term_Model extends Base_Model {
     /**
      * Get cat
      */
-    public static function read( $taxonomy, $term_id ) {
+    public static function _read( $taxonomy, $term_id ) {
         self::init( $taxonomy );
         $term = get_term_by( 'term_id', $term_id, static::$taxonomy );
         if( $term === false ) {
@@ -157,7 +157,7 @@ class Term_Model extends Base_Model {
     /**
      * Get cat
      */
-    public static function read_all( $taxonomy, $hide_empty = false ) {
+    public static function _read_all( $taxonomy, $hide_empty = false ) {
         self::init( $taxonomy );
         $terms = get_terms( static::$taxonomy, array( 'hide_empty' => $hide_empty ) );
         if( is_wp_error( $terms ) ) {
