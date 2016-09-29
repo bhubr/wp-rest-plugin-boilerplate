@@ -32,6 +32,11 @@ class Test_Post_Model extends WP_UnitTestCase {
 
     function tearDown() {
         // $this->rpb->delete_term_meta_tables('wprbp-test-suite');
+        global $wpdb;
+        $table = $wpdb->prefix . 'rpb_many_to_many';
+
+        // $res = $wpdb->delete( $table, ['id > 1' => ''] );
+        // var_dump($res);
     }
 
     /**
@@ -196,7 +201,7 @@ class Test_Post_Model extends WP_UnitTestCase {
         $dummy = bhubr\Dummy::read($dummy_id);
         $this->assertEquals($dummy['dumbass_id'], $dumbass_id);
         $this->assertTrue(array_key_exists('dumbmanies', $dummy), 'Dummy object has no "dumbmanies" key');
-        $this->assertEquals($dummy['dumbmanies'], [$dumbmany1_id, $dumbmany2_id, $dumbmany3_id]);
+        $this->assertEquals([$dumbmany1_id, $dumbmany2_id, $dumbmany3_id], $dummy['dumbmanies']);
 
     }
 
@@ -226,11 +231,16 @@ class Test_Post_Model extends WP_UnitTestCase {
         $dumbm2m2 = bhubr\Dumbmany2many::create(['dumb_str' => 'Howdy there!', 'dummies' => [$dummy2_id]]);
         $dumbm2m3 = bhubr\Dumbmany2many::create(['dumb_str' => 'How are you?', 'dummies' => [$dummy_id, $dummy3_id]]);
         $dumbm2m4 = bhubr\Dumbmany2many::create(['dumb_str' => 'Welcome home!', 'dummies' => [$dummy2_id, $dummy3_id]]);
+        $dumbmany2manies = bhubr\Dumbmany2many::read_all();
+        // var_dump($dumbmany2manies);
 
         $dummy = bhubr\Dummy::read($dummy_id);
-        $this->assertEquals($dummy['dumbass_id'], $dumbass_id);
-        $this->assertTrue(array_key_exists('dumbmanies', $dummy), 'Dummy object has no "dumbmanies" key');
-        $this->assertEquals($dummy['dumbmanies'], [$dumbmany1_id, $dumbmany2_id, $dumbmany3_id]);
+        // var_dump($dummy);
+        $this->assertEquals([$dumbm2m1['id'], $dumbm2m3['id']], $dummy['dumbmany2manies']);
+
+        // $this->assertEquals($dummy['dumbass_id'], $dumbass_id);
+        // $this->assertTrue(array_key_exists('dumbmanies', $dummy), 'Dummy object has no "dumbmanies" key');
+        // $this->assertEquals($dummy['dumbmanies'], [$dumbmany1_id, $dumbmany2_id, $dumbmany3_id]);
 
     }
 
