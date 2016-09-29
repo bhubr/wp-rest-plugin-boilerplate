@@ -310,7 +310,7 @@ class Post_Model extends Base_Model {
     }
 
     public static function read($post_id, $fetch_relations = true) {
-        echo get_called_class() . '::' . __FUNCTION__ . "($post_id)\n";
+        // echo get_called_class() . '::' . __FUNCTION__ . "($post_id)\n";
         if ($cached_object = self::get_from_cache(static::$singular, $post_id)) {
             $object = $cached_object;
         }
@@ -321,8 +321,8 @@ class Post_Model extends Base_Model {
         if (! $fetch_relations) return $object;
 
         foreach(static::$relations as $field => $relation_descriptor) {
-            echo "\nGET relation for " . static::$singular . " => $field\n";
-            var_dump($relation_descriptor);
+            // echo "\nGET relation for " . static::$singular . " => $field\n";
+            // var_dump($relation_descriptor);
             $object[$field] = self::get_relation($object, $relation_descriptor);
         }
         return $object;
@@ -363,15 +363,19 @@ class Post_Model extends Base_Model {
             $rev_desc_bits = explode(':', $reverse_relation_desc);
             $rev_rel_class = 'bhubr\\' . $rev_desc_bits[0];
             $rev_rel_type = $rev_desc_bits[1];
-
-            // $reverse_descriptor = self::parse_relation_descriptor($reverse_relation_desc);
+        }
+        if(array_key_exists(static::$plural, $rel_class_relations)) {
+            $reverse_relation_desc = $rel_class_relations[static::$plural];
+            $rev_desc_bits = explode(':', $reverse_relation_desc);
+            $rev_rel_class = 'bhubr\\' . $rev_desc_bits[0];
+            $rev_rel_type = $rev_desc_bits[1];
         }
         // echo "\n\n--- Relations ---\n";
         // var_dump($desc_bits);
         // var_dump($rev_desc_bits);
 
         $relation_type = static::get_relation_type($this_rel_type, $rev_rel_type);
-        var_dump("This rel class: " . $this_rel_class);
+        // var_dump("This rel class: " . $this_rel_class);
         switch($relation_type) {
             case self::RELATION_ONE_TO_ONE:
                 $foreign_key = $this_rel_class::$singular . '_id';
@@ -423,7 +427,7 @@ class Post_Model extends Base_Model {
     }
 
     public static function read_all($extra_args = array()) {
-        var_dump(static::$singular);
+        // var_dump(static::$singular);
         return static::_read_all(static::$singular, $extra_args);
     }
 
@@ -433,6 +437,18 @@ class Post_Model extends Base_Model {
     public static function _read_all( $post_type, $extra_args = array() ) {
         static::init( $post_type );
         $ret = array();
+        // try {
+        //     echo "\n #### " . __FUNCTION__ . "#1\n";
+        //     throw new \Exception("\n #### " . __FUNCTION__ . "#1\n");
+        // } catch(\Exception $e) {
+        //     $index = 0;
+        //     array_map(function($item) use($index) {
+        //         // var_dump($item);
+        //         if (!isset($item['file'])) return;
+        //         echo $index++ . " " . $item['file'] . " " . $item['line'] . "\n";
+        //     }, $e->getTrace());
+        // }
+        
         $args = array('post_type' => $post_type, 'posts_per_page' => -1, 'order' => 'ASC');
         if( array_key_exists('term', $extra_args ) ) {
             $args[static::$taxonomy] = $extra_args['term'];
@@ -451,12 +467,18 @@ class Post_Model extends Base_Model {
             $ret[] = $post_data;
         }
         if ($extra_args && array_key_exists('where', $extra_args)) {
+            // var_dump("\n### PROCESSING WHERE\n");
             $where = $extra_args['where'];
+            // var_dump($ret);
             // var_dump($where);
-            $ret = __::filter($ret, function($item) use($where) {
+            // echo "\n #### " . __FUNCTION__ . "#5a\n";
+            return __::filter($ret, function($item) use($where) {
+                // echo "\n" . __FUNCTION__ . ":filter " . $item['id'] . ' ' . ($item[$where['field']] === $where['value'] ? 'PASS' : 'REJECT') . "\n";
+                // var_dump($item);
                 return $item[$where['field']] === $where['value'];
             });
         }
+        // echo "\n #### " . __FUNCTION__ . "#5b\n";
         return $ret;
     }
 }
