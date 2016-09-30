@@ -50,8 +50,8 @@ abstract class Base_Model {
 
     static $cache = [];
 
-    public static function register_type($singular_lc, $name_s, $type_def) {
-        $fields = $type_def['fields'];
+    public static function register_type($singular_lc, $name_s, $fields) {
+        // $fields = $type_def['fields'];
         $name = \Inflect::pluralize($name_s);
         $plural_lc = \Inflect::pluralize($singular_lc);
         $args = [

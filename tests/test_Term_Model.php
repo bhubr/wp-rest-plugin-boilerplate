@@ -6,11 +6,11 @@
  * @package Sandbox_Plugin
  */
 
-require_once 'inc/Dummy.php';
-require 'inc/DummyTerm.php';
-require 'inc/Termone.php';
-require 'inc/Termany.php';
-require 'inc/Termany2many.php';
+// require_once 'inc/Dummy.php';
+// require 'inc/DummyTerm.php';
+// require 'inc/Termone.php';
+// require 'inc/Termany.php';
+// require 'inc/Termany2many.php';
 
 /**
  * Sample test case.
@@ -20,15 +20,16 @@ class Test_Term_Model extends WP_UnitTestCase {
     protected $rpb;
 
     function setUp() {
-        $plugin_descriptor = require 'plugin_descriptor.php';
+        // $plugin_descriptor = require 'plugin_descriptor.php';
         $this->rpb = bhubr\REST_Plugin_Boilerplate::get_instance(realpath(__DIR__ . '/..'));
-        $this->rpb->register_plugin('wprbp-test-suite', $plugin_descriptor);
+        // $this->rpb->register_plugin('wprbp-test-suite', $plugin_descriptor);
+        $this->rpb->register_plugin('wprbp-test-suite', __DIR__);
 
-        bhubr\Base_Model::register_type('dummy', 'Dummy', ['fields' => ['type', 'status', 'dummy_int', 'dummy_str']]);
-        bhubr\Base_Model::register_taxonomy('dummyterm', 'DummyTerm', 'dummy', ['fields' => ['type', 'status', 'dummy_int', 'dummy_str']]);
-        bhubr\Base_Model::register_taxonomy('termone', 'Termone', 'dummy', ['fields' => ['dumb_str']]);
-        bhubr\Base_Model::register_taxonomy('termany', 'Termany', 'dummy', ['fields' => ['dumb_str']]);
-        bhubr\Base_Model::register_taxonomy('termany2many', 'Termany2many', 'dummy', ['fields' => ['dumb_str']]);
+        // bhubr\Base_Model::register_type('dummy', 'Dummy', ['fields' => ['type', 'status', 'dummy_int', 'dummy_str']]);
+        // bhubr\Base_Model::register_taxonomy('dummyterm', 'DummyTerm', 'dummy', ['fields' => ['type', 'status', 'dummy_int', 'dummy_str']]);
+        // bhubr\Base_Model::register_taxonomy('termone', 'Termone', 'dummy', ['fields' => ['dumb_str']]);
+        // bhubr\Base_Model::register_taxonomy('termany', 'Termany', 'dummy', ['fields' => ['dumb_str']]);
+        // bhubr\Base_Model::register_taxonomy('termany2many', 'Termany2many', 'dummy', ['fields' => ['dumb_str']]);
         do_action('init');
         // $this->rpb->create_term_meta_tables('wprbp-test-suite');
         global $wpdb;

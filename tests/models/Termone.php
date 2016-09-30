@@ -1,10 +1,16 @@
 <?php
 namespace bhubr;
 
-class Termany extends Term_Model {
+class Termone extends Term_Model {
     static $type = 'term';
-    static $singular = 'termany';
-    static $plural = 'termanies';
+    static $post_type = 'dummy';
+
+    static $singular = 'termone';
+    static $plural = 'termones';
+
+    static $name_s = 'Termone';
+    static $name_p = 'Termones';
+
     static $fields = [
         'dumb_str'  => 'string',
         'dummyterm_id'  => 'DummyTerm:belongs_to'
@@ -12,4 +18,5 @@ class Termany extends Term_Model {
     static $relations = [
         'dummyterm'    => 'DummyTerm:belongs_to'
     ];
+
 }

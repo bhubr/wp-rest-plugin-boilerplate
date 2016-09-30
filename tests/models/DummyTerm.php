@@ -3,8 +3,14 @@ namespace bhubr;
 
 class DummyTerm extends Term_Model {
     static $type = 'term';
+    static $post_type = 'dummy';
+
     static $singular = 'dummyterm';
     static $plural = 'dummyterms';
+
+    static $name_s = 'DummyTerm';
+    static $name_p = 'DummyTerms';
+
     static $fields = [
         'type'          => 'string',
         'status'        => 'string',

@@ -3,8 +3,13 @@ namespace bhubr;
 
 class Dummy extends Post_Model {
     static $type = 'post';
+
     static $singular = 'dummy';
     static $plural = 'dummies';
+
+    static $name_s = 'Dummy';
+    static $name_p = 'Dummies';
+
     static $fields = [
         'type'          => 'string',
         'status'        => 'string',
