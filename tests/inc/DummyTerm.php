@@ -15,7 +15,8 @@ class DummyTerm extends Term_Model {
     static $relations = [
         'termone'        => 'Termone:has_one',
         'termanies'      => 'Termany:has_many',
-        'termany2manies' => 'Termany2many:has_many'
+        'termany2manies' => 'Termany2many:has_many',
+        'dummies'        => 'Dummy:has_many'
     ];
 
 }

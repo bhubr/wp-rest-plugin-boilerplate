@@ -15,7 +15,8 @@ class Dummy extends Post_Model {
     static $relations = [
         'dumbass'    => 'Dumbass:has_one',
         'dumbmanies' => 'Dumbmany:has_many',
-        'dumbmany2manies' => 'Dumbmany2many:has_many'
+        'dumbmany2manies' => 'Dumbmany2many:has_many',
+        'dummyterms' => 'DummyTerm:has_many'
     ];
 
 }
