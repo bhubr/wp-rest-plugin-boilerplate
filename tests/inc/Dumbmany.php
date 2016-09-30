@@ -2,6 +2,7 @@
 namespace bhubr;
 
 class Dumbmany extends Post_Model {
+    static $type = 'post';
     static $singular = 'dumbmany';
     static $plural = 'dumbmanies';
     static $fields = [

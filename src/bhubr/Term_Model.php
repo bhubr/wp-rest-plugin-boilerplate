@@ -1,12 +1,12 @@
 <?php
 namespace bhubr;
 
-class Term_Model extends Base_Model {
+class Term_Model extends Base_Model implements Model {
 
     static $id_key = 'term_id';
     // Accepted fields
     static $map_fields = array('id' => 'term_id', 'slug', 'name', 'description');
-    static $required_fields = array('name');
+    static $required_fields = []; //array('name');
 
     // Extra fields (encoded as JSON into post_content)
     //static $extra_fields = array('price', 'currency', 'description');
@@ -53,9 +53,10 @@ class Term_Model extends Base_Model {
         // Parse JSON payload
         $term_fields = self::from_json( $payload );
 
+        $name = array_key_exists('name', $term_fields) ? $term_fields['name'] : $taxonomy . "-term-" . base_convert(time(), 10, 36);
         // regex for slug with suffix: '/[\d\w\-]+\-(\d+)$/'
         if( !array_key_exists('slug', $term_fields) ) {
-            $term_fields['slug'] = sanitize_title_with_dashes($term_fields['name']);
+            $term_fields['slug'] = sanitize_title_with_dashes($name);
         }
 
         $term_fields['slug'] = static::get_slug( $term_fields['slug'] );
@@ -64,7 +65,7 @@ class Term_Model extends Base_Model {
         unset($term_fields['term_id']);
         
         // Insert term
-        $term_id = wp_insert_term( $term_fields['name'], static::$taxonomy, $term_fields );
+        $term_id = wp_insert_term( $name, $taxonomy, $term_fields );
         if( is_wp_error( $term_id ) ) {
             throw new \Exception( 'WP Error: ' . $term_id->get_error_message() );
         }
@@ -92,7 +93,10 @@ class Term_Model extends Base_Model {
         }
 
         $term_fields = self::from_json( $json );
-        $term_fields['slug'] = static::get_slug( $term_fields['slug'], $term_id );
+        if(array_key_exists('slug', $term_fields)) {
+            $term_fields['slug'] = static::get_slug( $term_fields['slug'], $term_id );
+        }
+        
         $meta_value = $term_fields['__meta__'];
         unset($term_fields['__meta__']);
 
@@ -157,9 +161,10 @@ class Term_Model extends Base_Model {
     /**
      * Get cat
      */
-    public static function _read_all( $taxonomy, $hide_empty = false ) {
+    public static function _read_all( $taxonomy, $extra_args = array() ) {
         self::init( $taxonomy );
-        $terms = get_terms( static::$taxonomy, array( 'hide_empty' => $hide_empty ) );
+        $hide_empty = array_key_exists('hide_empty', $extra_args) && $extra_args['hide_empty'] === true;
+        $terms = get_terms( $taxonomy, array( 'hide_empty' => $hide_empty ) );
         if( is_wp_error( $terms ) ) {
             throw new \Exception("No terms where found in this taxonomy: $taxonomy");
         }

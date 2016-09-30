@@ -3,7 +3,7 @@ namespace bhubr;
 
 use Underscore\Underscore as __;
 
-class Post_Model extends Base_Model {
+class Post_Model extends Base_Model implements Model {
 
     // Name of the primary object key in Backbone.js app
     static $id_key = 'id';
@@ -27,12 +27,6 @@ class Post_Model extends Base_Model {
     static $meta_key = '__meta__';
 
     static $real_metas = array( '_thumbnail_id' );
-
-    const RELATION_ONE_TO_ONE = 'ONE_TO_ONE';
-    const RELATION_ONE_TO_MANY = 'ONE_TO_MANY';
-    const RELATION_MANY_TO_MANY = 'MANY_TO_MANY';
-
-    static $cache = [];
 
     /**
      * Private constructor because we don't want an instance to be created if creation fails.
@@ -128,74 +122,6 @@ class Post_Model extends Base_Model {
     //     }
     //     return $terms;
     // }
-
-    public static function update_object_relations($object, $payload) {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'rpb_many_to_many';
-        $object_id = $object['id'];
-        $post_fields = self::from_json($payload);
-        foreach(static::$relations as $field => $relation_descriptor) {
-            if(array_key_exists($field, $payload)) echo "\n #### " . get_called_class() . "::" . __FUNCTION__ . "   =>  FOUND $field in payload\n";
-            else continue;
-            // var_dump($payload[$field]);
-            $desc_bits = explode(':', $relation_descriptor);
-            $this_rel_class = 'bhubr\\' . $desc_bits[0];
-            $this_rel_type = $desc_bits[1];
-            $rel_class_relations = $this_rel_class::$relations;
-            // var_dump($desc_bits);
-
-            // Look for belongs to
-            // TODO: REMOVE DUP CODE
-            if(array_key_exists(static::$singular, $rel_class_relations)) {
-                $reverse_relation_desc = $rel_class_relations[static::$singular];
-                $rev_desc_bits = explode(':', $reverse_relation_desc);
-                $rev_rel_class = 'bhubr\\' . $rev_desc_bits[0];
-                $rev_rel_type = $rev_desc_bits[1];
-            }
-            if(array_key_exists(static::$plural, $rel_class_relations)) {
-                $reverse_relation_desc = $rel_class_relations[static::$plural];
-                $rev_desc_bits = explode(':', $reverse_relation_desc);
-                $rev_rel_class = 'bhubr\\' . $rev_desc_bits[0];
-                $rev_rel_type = $rev_desc_bits[1];
-            }
-            // var_dump($rev_desc_bits);
-            $relation_type = static::get_relation_type($this_rel_type, $rev_rel_type);
-            // if ($this_rel_class < $rev_rel_class) {
-            //     echo "this $this_rel_class < that $rev_rel_class\n";
-            // }
-            // else {
-            //     echo "this $this_rel_class > that $rev_rel_class\n";
-
-            // }
-            $this_first = $this_rel_class > $rev_rel_class;
-            switch($relation_type) {
-                case self::RELATION_MANY_TO_MANY:
-                    // throw new \Exception("Update object relationships: Not implemented for: $relation_type");
-                    foreach($payload[$field] as $k => $relatee_id) {
-                        // echo "$v\n";
-                        $data = [
-                            'rel_type'   => 'post_post',
-                            'object1_id' => $this_first ? $object_id : $relatee_id,
-                            'object2_id' => $this_first ? $relatee_id : $object_id
-                        ];
-                        var_dump($data);
-                        $wpdb->insert( 
-                            $table_name, $data, ['%s', '%d', '%d']
-                        );
-                    }
-                    break;
-                default:
-                    throw new \Exception("Update object relationships: Not implemented for: $relation_type");
-            }
-        }
-    }
-
-    public static function create($payload) {
-        $object = static::_create(static::$singular, $payload);
-        $relations = self::update_object_relations($object, $payload);
-
-        return $object;
-    }
 
     /**
      * Create plan
@@ -305,14 +231,6 @@ class Post_Model extends Base_Model {
 
 
     /**
-     * Update object
-     */
-    public static function update($post_id, $payload) {
-        return static::_update(static::$singular, $post_id, $payload);
-    }
-
-
-    /**
      * Internal update object
      */
     public static function _update( $post_type, $post_id, $payload ) {
@@ -352,14 +270,6 @@ class Post_Model extends Base_Model {
 
 
     /**
-     * Delete model
-     */
-    public static function delete($post_id) {
-        return static::_delete(static::$singular, $post_id);
-    }
-
-
-    /**
      * Internal delete model
      */
     public static function _delete( $post_type, $post_id ) {
@@ -371,134 +281,6 @@ class Post_Model extends Base_Model {
         return (array)$deleted_post;
     }
 
-
-    /**
-     * Add read model to cache
-     */
-    public static function add_to_cache($singular, $object) {
-        if (! array_key_exists($singular, self::$cache)) self::$cache[$singular] = [];
-        self::$cache[$singular][$object['id']] = $object;
-    }
-
-
-    /**
-     * Get model from cache
-     */
-    public static function get_from_cache($singular, $object_id) {
-        $is_in_cache = array_key_exists($singular, self::$cache) &&
-            array_key_exists($object_id, self::$cache[$singular]);
-        return $is_in_cache ? self::$cache[$singular][$object_id] : null;
-    }
-
-
-    /**
-     * Read unique model
-     */
-    public static function read($post_id, $fetch_relations = true) {
-        if ($cached_object = self::get_from_cache(static::$singular, $post_id)) {
-            $object = $cached_object;
-        }
-        else {
-            $object = static::_read(static::$singular, $post_id);
-            self::add_to_cache(static::$singular, $object);
-        }
-        if (! $fetch_relations) return $object;
-
-        foreach(static::$relations as $field => $relation_descriptor) {
-            $object[$field] = self::get_relation($object, $relation_descriptor);
-        }
-        return $object;
-    }
-
-
-    /**
-     * Get relation type from object - related object relation types
-     */
-    public static function get_relation_type($this_rel_type, $reverse_rel_type) {
-        if(
-            ($this_rel_type === 'has_one' && $reverse_rel_type === 'belongs_to') ||
-            ($reverse_rel_type === 'has_one' && $this_rel_type === 'belongs_to')
-        ) {
-            return self::RELATION_ONE_TO_ONE;
-        }
-        else if($this_rel_type === 'has_many' && $reverse_rel_type === 'belongs_to') {
-            return self::RELATION_ONE_TO_MANY;
-        }
-        else if($this_rel_type === 'has_many' && $reverse_rel_type === 'has_many') {
-            return self::RELATION_MANY_TO_MANY;
-        }
-        else throw new \Exception("NOT IMPLEMENTED for $this_rel_type, $reverse_rel_type\n");
-    }
-
-
-    /**
-     * Get related objects for object and given relation
-     */
-    public static function get_relation($object, $relation_descriptor) {
-        $object_id = $object['id'];
-        $desc_bits = explode(':', $relation_descriptor);
-        $this_rel_class = 'bhubr\\' . $desc_bits[0];
-        $this_rel_type = $desc_bits[1];
-        $rel_class_relations = $this_rel_class::$relations;
-        // Look for belongs to
-        // TODO: REMOVE DUP CODE
-        if(array_key_exists(static::$singular, $rel_class_relations)) {
-            $reverse_relation_desc = $rel_class_relations[static::$singular];
-            $rev_desc_bits = explode(':', $reverse_relation_desc);
-            $rev_rel_class = 'bhubr\\' . $rev_desc_bits[0];
-            $rev_rel_type = $rev_desc_bits[1];
-        }
-        if(array_key_exists(static::$plural, $rel_class_relations)) {
-            $reverse_relation_desc = $rel_class_relations[static::$plural];
-            $rev_desc_bits = explode(':', $reverse_relation_desc);
-            $rev_rel_class = 'bhubr\\' . $rev_desc_bits[0];
-            $rev_rel_type = $rev_desc_bits[1];
-        }
-        $relation_type = static::get_relation_type($this_rel_type, $rev_rel_type);
-        switch($relation_type) {
-            case self::RELATION_ONE_TO_ONE:
-                $foreign_key = $this_rel_class::$singular . '_id';
-                if(! array_key_exists($foreign_key, $object)) return null;
-                return $this_rel_class::read($object[$foreign_key], false);
-                break;
-            case self::RELATION_ONE_TO_MANY:
-                $primary_key = static::$singular . '_id';
-                $related_objs = $this_rel_class::read_all([
-                    'where' => [
-                        'field' => $primary_key,
-                        'value' => $object['id']
-                    ]
-                ]);
-                return __::pluck($related_objs, 'id');
-                // throw new \Exception("RELATION_ONE_TO_MANY not implemented\n");
-                break;
-            case self::RELATION_MANY_TO_MANY:
-                global $wpdb;
-                $table_name = $wpdb->prefix . 'rpb_many_to_many';
-
-                // throw new \Exception("RELATION_MANY_TO_MANY not implemented\n");
-                $this_first = $this_rel_class > $rev_rel_class;
-                // throw new \Exception("Update object relationships: Not implemented for: $relation_type");
-                // foreach($payload[$field] as $k => $relatee_id) {
-                    // echo "$v\n";
-                    // $data = [
-                    //     'rel_type'   => 'post_post',
-                    //     'object1_id' => $this_first ? $object_id : $relatee_id,
-                    //     'object2_id' => $this_first ? $relatee_id : $object_id
-                    // ];
-                    // var_dump($object);
-                    $where_id = $this_first ? 'object1_id' : 'object2_id';
-                    $relatee_id = $this_first ? 'object2_id' : 'object1_id';
-                    $res = $wpdb->get_results( 
-                        "SELECT * FROM $table_name WHERE $where_id = $object_id", ARRAY_A
-                    );
-                    return __::pluck($res, $relatee_id);
-                    // var_dump($res);
-                // }
-                break;
-        }
-
-    }
 
     /**
      * Fetch object
@@ -520,13 +302,6 @@ class Post_Model extends Base_Model {
         $data = array_merge( $post_data, $meta_value ? $meta_value : array(), $post_terms );
         return $data;
         //return new PortfolioModel( $plan_data );
-    }
-
-    /**
-     * Fetch all objects
-     */
-    public static function read_all($extra_args = array()) {
-        return static::_read_all(static::$singular, $extra_args);
     }
 
     /**
@@ -563,18 +338,6 @@ class Post_Model extends Base_Model {
             }
             $post_data = array_merge( $post_data, $meta_value ? $meta_value : array(), $post_terms );
             $ret[] = $post_data;
-        }
-        if ($extra_args && array_key_exists('where', $extra_args)) {
-            // var_dump("\n### PROCESSING WHERE\n");
-            $where = $extra_args['where'];
-            // var_dump($ret);
-            // var_dump($where);
-            // echo "\n #### " . __FUNCTION__ . "#5a\n";
-            return __::filter($ret, function($item) use($where) {
-                // echo "\n" . __FUNCTION__ . ":filter " . $item['id'] . ' ' . ($item[$where['field']] === $where['value'] ? 'PASS' : 'REJECT') . "\n";
-                // var_dump($item);
-                return $item[$where['field']] === $where['value'];
-            });
         }
         // echo "\n #### " . __FUNCTION__ . "#5b\n";
         return $ret;

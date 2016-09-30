@@ -2,6 +2,7 @@
 namespace bhubr;
 
 class Dummy extends Post_Model {
+    static $type = 'post';
     static $singular = 'dummy';
     static $plural = 'dummies';
     static $fields = [

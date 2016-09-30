@@ -6,7 +6,7 @@
  * @package Sandbox_Plugin
  */
 
-require 'inc/Dummy.php';
+require_once 'inc/Dummy.php';
 require 'inc/Dumbass.php';
 require 'inc/Dumbmany.php';
 require 'inc/Dumbmany2many.php';
@@ -158,36 +158,36 @@ class Test_Post_Model extends WP_UnitTestCase {
     /**
      * Test one-to-one relationship
      */
-    // function test_relationships_one_to_one() {
-    //     $dummy = bhubr\Dummy::create(['type' => 'toto', 'status' => 'new', 'dummy_int' => 1, 'dummy_str' => 'Hello there!']);
-    //     $dummy_id = $dummy['id'];
-    //     $dumbass = bhubr\Dumbass::create(['dummy_id' => $dummy_id, 'dumb_str' => 'Hello there!']);
-    //     $dumbass_id = $dumbass['id'];
-    //     $this->assertEquals($dumbass['dummy_id'], $dummy_id);
-    //     // TODO: should be done automagically
-    //     $dummy_upd = bhubr\Dummy::update($dummy_id, ['dumbass_id' => $dumbass_id]);
-    //     $this->assertEquals($dummy_upd['dumbass_id'], $dumbass_id);
-    // }
+    function test_relationships_one_to_one() {
+        $dummy = bhubr\Dummy::create(['name' => 'Test 121 Dummy #1', 'type' => 'toto', 'status' => 'new', 'dummy_int' => 1, 'dummy_str' => 'Hello there!']);
+        $dummy_id = $dummy['id'];
+        $dumbass = bhubr\Dumbass::create(['name' => 'Test 121 Dumbass #1', 'dummy_id' => $dummy_id, 'dumb_str' => 'Hello there!']);
+        $dumbass_id = $dumbass['id'];
+        $this->assertEquals($dumbass['dummy_id'], $dummy_id);
+        // TODO: should be done automagically
+        $dummy_upd = bhubr\Dummy::update($dummy_id, ['dumbass_id' => $dumbass_id]);
+        $this->assertEquals($dummy_upd['dumbass_id'], $dumbass_id);
+    }
 
     /**
      * Test one-to-many relationship
      */
     function test_relationships_one_to_many() {
         // Create main object of type Dummy
-        $dummy = bhubr\Dummy::create(['type' => 'toto', 'status' => 'new', 'dummy_int' => 1, 'dummy_str' => 'Hello there!']);
-        $dummy2 = bhubr\Dummy::create(['type' => 'tata', 'status' => 'new', 'dummy_int' => 2, 'dummy_str' => 'Howdy there!']);
+        $dummy = bhubr\Dummy::create(['name' => 'Test 12m Dummy #1', 'type' => 'toto', 'status' => 'new', 'dummy_int' => 1, 'dummy_str' => 'Hello there!']);
+        $dummy2 = bhubr\Dummy::create(['name' => 'Test 12m Dummy #2', 'type' => 'tata', 'status' => 'new', 'dummy_int' => 2, 'dummy_str' => 'Howdy there!']);
         $dummy_id = $dummy['id'];
 
         // Create one-to-one relationship with Dumbass object
-        $dumbass = bhubr\Dumbass::create(['dummy_id' => $dummy_id, 'dumb_str' => 'Hello there!']);
+        $dumbass = bhubr\Dumbass::create(['name' => 'Test 12m Dumbass #1', 'dummy_id' => $dummy_id, 'dumb_str' => 'Hello there!']);
         $dumbass_id = $dumbass['id'];
         $dummy_upd = bhubr\Dummy::update($dummy_id, ['dumbass_id' => $dumbass_id]);
 
         // Create one-to-many relationship with Dumbmany objects
-        $dumbmany1 = bhubr\Dumbmany::create(['dummy_id' => $dummy_id, 'dumb_str' => 'Hello there!']);
-        $dumbmany2 = bhubr\Dumbmany::create(['dummy_id' => $dummy_id, 'dumb_str' => 'Howdy there!']);
-        $dumbmany3 = bhubr\Dumbmany::create(['dummy_id' => $dummy_id, 'dumb_str' => 'Hello world!']);
-        $dumbmany4 = bhubr\Dumbmany::create(['dummy_id' => $dummy2['id'], 'dumb_str' => 'Hello world!']);
+        $dumbmany1 = bhubr\Dumbmany::create(['name' => 'Test 12m Dumbmany #1', 'dummy_id' => $dummy_id, 'dumb_str' => 'Hello there!']);
+        $dumbmany2 = bhubr\Dumbmany::create(['name' => 'Test 12m Dumbmany #2', 'dummy_id' => $dummy_id, 'dumb_str' => 'Howdy there!']);
+        $dumbmany3 = bhubr\Dumbmany::create(['name' => 'Test 12m Dumbmany #3', 'dummy_id' => $dummy_id, 'dumb_str' => 'Hello world!']);
+        $dumbmany4 = bhubr\Dumbmany::create(['name' => 'Test 12m Dumbmany #4', 'dummy_id' => $dummy2['id'], 'dumb_str' => 'Hello world!']);
         $dumbmany1_id = $dumbmany1['id'];
         $dumbmany2_id = $dumbmany2['id'];
         $dumbmany3_id = $dumbmany3['id'];
@@ -210,27 +210,27 @@ class Test_Post_Model extends WP_UnitTestCase {
      */
     function test_relationships_many_to_many() {
         // Create main object of type Dummy
-        $dummy = bhubr\Dummy::create(['type' => 'toto', 'status' => 'new', 'dummy_int' => 1, 'dummy_str' => 'Hello there!']);
-        $dummy2 = bhubr\Dummy::create(['type' => 'tata', 'status' => 'new', 'dummy_int' => 2, 'dummy_str' => 'Howdy there!']);
-        $dummy3 = bhubr\Dummy::create(['type' => 'tutu', 'status' => 'new', 'dummy_int' => 3, 'dummy_str' => 'Hi there!']);
+        $dummy = bhubr\Dummy::create(['name' => 'Test m2m Dummy #1', 'type' => 'toto', 'status' => 'new', 'dummy_int' => 1, 'dummy_str' => 'Hello there!']);
+        $dummy2 = bhubr\Dummy::create(['name' => 'Test m2m Dummy #2', 'type' => 'tata', 'status' => 'new', 'dummy_int' => 2, 'dummy_str' => 'Howdy there!']);
+        $dummy3 = bhubr\Dummy::create(['name' => 'Test m2m Dummy #3', 'type' => 'tutu', 'status' => 'new', 'dummy_int' => 3, 'dummy_str' => 'Hi there!']);
         $dummy_id = $dummy['id'];
         $dummy2_id = $dummy2['id'];
         $dummy3_id = $dummy3['id'];
 
         // Create one-to-one relationship with Dumbass object
-        $dumbass = bhubr\Dumbass::create(['dummy_id' => $dummy_id, 'dumb_str' => 'Hello there!']);
+        $dumbass = bhubr\Dumbass::create(['name' => 'Test m2m Dumbass #1', 'dummy_id' => $dummy_id, 'dumb_str' => 'Hello there!']);
         $dumbass_id = $dumbass['id'];
         $dummy_upd = bhubr\Dummy::update($dummy_id, ['dumbass_id' => $dumbass_id]);
 
         // Create one-to-many relationship with Dumbmany objects
-        $dumbmany1 = bhubr\Dumbmany::create(['dummy_id' => $dummy_id, 'dumb_str' => 'Hello there!']);
-        $dumbmany2 = bhubr\Dumbmany::create(['dummy_id' => $dummy_id, 'dumb_str' => 'Howdy there!']);
+        $dumbmany1 = bhubr\Dumbmany::create(['name' => 'Test m2m Dumbmany #1', 'dummy_id' => $dummy_id, 'dumb_str' => 'Hello there!']);
+        $dumbmany2 = bhubr\Dumbmany::create(['name' => 'Test m2m Dumbmany #2', 'dummy_id' => $dummy_id, 'dumb_str' => 'Howdy there!']);
 
         // Create many-to-many relationship with Dumbmany2many objects
-        $dumbm2m1 = bhubr\Dumbmany2many::create(['dumb_str' => 'Hello there!', 'dummies' => [$dummy_id]]);
-        $dumbm2m2 = bhubr\Dumbmany2many::create(['dumb_str' => 'Howdy there!', 'dummies' => [$dummy2_id]]);
-        $dumbm2m3 = bhubr\Dumbmany2many::create(['dumb_str' => 'How are you?', 'dummies' => [$dummy_id, $dummy3_id]]);
-        $dumbm2m4 = bhubr\Dumbmany2many::create(['dumb_str' => 'Welcome home!', 'dummies' => [$dummy2_id, $dummy3_id]]);
+        $dumbm2m1 = bhubr\Dumbmany2many::create(['name' => 'Test m2m Dumb m2m #1', 'dumb_str' => 'Hello there!', 'dummies' => [$dummy_id]]);
+        $dumbm2m2 = bhubr\Dumbmany2many::create(['name' => 'Test m2m Dumb m2m #2', 'dumb_str' => 'Howdy there!', 'dummies' => [$dummy2_id]]);
+        $dumbm2m3 = bhubr\Dumbmany2many::create(['name' => 'Test m2m Dumb m2m #3', 'dumb_str' => 'How are you?', 'dummies' => [$dummy_id, $dummy3_id]]);
+        $dumbm2m4 = bhubr\Dumbmany2many::create(['name' => 'Test m2m Dumb m2m #4', 'dumb_str' => 'Welcome home!', 'dummies' => [$dummy2_id, $dummy3_id]]);
         $dumbmany2manies = bhubr\Dumbmany2many::read_all();
         // var_dump($dumbmany2manies);
 
