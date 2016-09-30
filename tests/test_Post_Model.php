@@ -20,7 +20,7 @@ class Test_Post_Model extends WP_UnitTestCase {
 
     function setUp() {
         // $plugin_descriptor = require 'plugin_descriptor.php';
-        $this->rpb = bhubr\REST_Plugin_Boilerplate::get_instance(realpath(__DIR__ . '/..'));
+        $this->rpb = bhubr\REST_Plugin_Boilerplate::get_instance();
         // $this->rpb->register_plugin('wprbp-test-suite', $plugin_descriptor);
         $this->rpb->register_plugin('wprbp-test-suite', __DIR__);
         // bhubr\Base_Model::register_type('dummy', 'Dummy', ['fields' => ['type', 'status', 'dummy_int', 'dummy_str']]);

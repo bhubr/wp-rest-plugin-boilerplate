@@ -3,7 +3,6 @@ namespace bhubr;
 
 class Dumbmany extends Post_Model {
     static $type = 'post';
-    static $post_type = 'dummy';
 
     static $singular = 'dumbmany';
     static $plural = 'dumbmanies';

@@ -50,8 +50,11 @@ abstract class Base_Model {
 
     static $cache = [];
 
-    public static function register_type($singular_lc, $name_s, $fields) {
-        // $fields = $type_def['fields'];
+    public static function register_type($class_name) {
+        $singular_lc = $class_name::$singular;
+        $name_s      = $class_name::$name_s;
+        $fields      = array_keys($class_name::$fields);
+
         $name = \Inflect::pluralize($name_s);
         $plural_lc = \Inflect::pluralize($singular_lc);
         $args = [
@@ -79,12 +82,16 @@ abstract class Base_Model {
 
         self::$types['post'][$singular_lc] = $fields; 
         self::$rest_bases[] = $plural_lc;
-        self::$rest_classes[$singular_lc] = '\bhubr\Post_Model';
+        self::$rest_classes[$singular_lc] = $class_name;
 
         register_post_type($singular_lc, $args);
     }
 
-    public static function register_taxonomy($singular_lc, $name_s, $type_lc, $fields) {
+    public static function register_taxonomy($class_name) {
+        $type_lc     = $class_name::$post_type;
+        $singular_lc = $class_name::$singular;
+        $name_s      = $class_name::$name_s;
+        $fields      = array_keys($class_name::$fields);
         $name = \Inflect::pluralize($name_s);
         $plural_lc = \Inflect::pluralize($singular_lc);
         $args = [
@@ -100,7 +107,7 @@ abstract class Base_Model {
 
         self::$types['taxonomy'][$singular_lc] = $fields; 
         self::$rest_bases[] = $plural_lc;
-        self::$rest_classes[$singular_lc] = '\bhubr\Term_Model';
+        self::$rest_classes[$singular_lc] = $class_name;
 
         register_taxonomy( $singular_lc, $type_lc, $args );
     }
@@ -165,16 +172,17 @@ abstract class Base_Model {
         $object_id = $object['id'];
         $post_fields = self::from_json($payload);
         foreach(static::$relations as $field => $relation_descriptor) {
-            if(array_key_exists($field, $payload)) echo "\n #### " . get_called_class() . "::" . __FUNCTION__ . "   =>  FOUND $field in payload\n";
-            else continue;
+            if(! array_key_exists($field, $payload)) continue;
+            // if(array_key_exists($field, $payload)) echo "\n #### " . get_called_class() . "::" . __FUNCTION__ . "   =>  FOUND $field in payload\n";
+            // else continue;
 
-            echo "\n #### " . get_called_class() . "::" . __FUNCTION__ . " " . static::$type . " \n";
+            // echo "\n #### " . get_called_class() . "::" . __FUNCTION__ . " " . static::$type . " \n";
             // var_dump($payload[$field]);
             $desc_bits = explode(':', $relation_descriptor);
             $this_rel_class = 'bhubr\\' . $desc_bits[0];
             $this_rel_type = $desc_bits[1];
             $rel_class_relations = $this_rel_class::$relations;
-            echo "\n #### " . get_called_class() . "::" . __FUNCTION__ . " " . $this_rel_class::$type . " \n";
+            // echo "\n #### " . get_called_class() . "::" . __FUNCTION__ . " " . $this_rel_class::$type . " \n";
             // var_dump($desc_bits);
 
             // Look for belongs to
@@ -219,7 +227,6 @@ abstract class Base_Model {
                                 'object2_id' => $object_id
                             ];
                         }
-                        var_dump($data);
                         $wpdb->insert($table_name, $data, ['%s', '%d', '%d']);
                     }
                     break;
@@ -353,7 +360,7 @@ abstract class Base_Model {
                     ]
                 ]);
                 // var_dump($related_objs);
-                return __::pluck($related_objs, 'id');
+                return array_map(function($item) { return (int)$item['id']; }, $related_objs);
                 // throw new \Exception("RELATION_ONE_TO_MANY not implemented\n");
                 break;
             case self::RELATION_MANY_TO_MANY:
@@ -378,7 +385,7 @@ abstract class Base_Model {
                     $res = $wpdb->get_results(
                         "SELECT * FROM $table_name WHERE rel_type='$where_type' AND $where_id = $object_id", ARRAY_A
                     );
-                    return __::pluck($res, $relatee_id);
+                    return array_map(function($item) use($relatee_id) { return (int)$item[$relatee_id]; }, $res);
                     // var_dump($res);
                 // }
                 break;
@@ -395,13 +402,27 @@ abstract class Base_Model {
         // echo "\n ### READ_ALL filtering\n";
         // var_dump($objects);
         // var_dump($extra_args);
-        if (! $extra_args || ! array_key_exists('where', $extra_args)) return $objects;
+        if ($extra_args && array_key_exists('where', $extra_args)) {
 
-        $where = $extra_args['where'];
-        // var_dump($where);
-        return __::filter($objects, function($item) use($where) {
-            return $item[$where['field']] === $where['value'];
-        });
+            $where = $extra_args['where'];
+            // var_dump($where);
+            $objects = __::filter($objects, function($item) use($where) {
+                return $item[$where['field']] === $where['value'];
+            });
+        }
+        // if (! $extra_args || ! array_key_exists('fetch_relations', $extra_args) || ! $extra_args['fetch_relations']) {
+        //     return $objects;
+        // }
+
+        $objects = array_map(function($object) {
+            foreach(static::$relations as $field => $relation_descriptor) {
+                $object[$field] = self::get_relation($object, $relation_descriptor);
+                return $object;
+            }
+            // var_dump($object);
+        }, $objects);
+
+        return $objects;
     }
 
 

@@ -82,7 +82,7 @@ class REST_Controller extends \WP_REST_Controller {
     $route_bits = explode('/', $request->get_route());
     $type_lc = \Inflect::singularize(array_pop($route_bits));
     $rest_class = Base_Model::get_rest_route_class($type_lc);
-    $items = $rest_class::_read_all($type_lc);
+    $items = $rest_class::read_all();
     $data = array();
     foreach( $items as $item ) {
       // $itemdata = $this->prepare_item_for_response( $item, $request );
@@ -103,7 +103,7 @@ class REST_Controller extends \WP_REST_Controller {
     $id = (int)array_pop($route_bits); // get id
     $type_lc = \Inflect::singularize(array_pop($route_bits));
     $rest_class = Base_Model::get_rest_route_class($type_lc);
-    $post = $rest_class::_read($type_lc, $id);
+    $post = $rest_class::read($id);
     if ( is_array( $post ) ) {
       return new \WP_REST_Response( $post, 200 );
     }
@@ -128,7 +128,7 @@ class REST_Controller extends \WP_REST_Controller {
     $type_lc = \Inflect::singularize(array_pop($route_bits));
     $attributes = $request->get_json_params();
     $rest_class = Base_Model::get_rest_route_class($type_lc);
-    $data = $rest_class::_create($type_lc, $attributes);
+    $data = $rest_class::create($attributes);
     if ( is_array( $data ) ) {
       return new \WP_REST_Response( $data, 200 );
     }

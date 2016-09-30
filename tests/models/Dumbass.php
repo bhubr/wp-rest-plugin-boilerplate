@@ -3,7 +3,7 @@ namespace bhubr;
 
 class Dumbass extends Post_Model {
     static $type = 'post';
-    static $post_type = 'dummy';
+
     static $singular = 'dumbass';
     static $plural = 'dumbasses';
 

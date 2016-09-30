@@ -77,20 +77,21 @@ class REST_Plugin_Boilerplate {
                 require_once $file;
                 $class_name = 'bhubr\\' . basename($file, '.php');
                 $name_slc = $class_name::$singular;
-                $models[$class_name::$type][$name_slc] = [
-                    'name_s' => $class_name::$name_s,
-                    'fields' => $class_name::$fields
-                ];
-                if ($class_name::$type === 'term') {
-                    $models[$class_name::$type][$name_slc]['post_type'] = $class_name::$post_type;
-                }
+                $models[$class_name::$type][] = $class_name;
+                // $models[$class_name::$type][$name_slc] = [
+                //     'name_s' => $class_name::$name_s,
+                //     'fields' => $class_name::$fields
+                // ];
+                // if ($class_name::$type === 'term') {
+                //     $models[$class_name::$type][$name_slc]['post_type'] = ::$post_type;
+                // }
             }
         }
-        foreach ($models['post'] as $name_slc => $post_model) {
-            Base_Model::register_type($name_slc, $post_model['name_s'], array_keys($post_model['fields']));
+        foreach ($models['post'] as $class_name) {
+            Base_Model::register_type($class_name);
         }
-        foreach ($models['term'] as $name_slc => $term_model) {
-            Base_Model::register_taxonomy($name_slc, $term_model['name_s'], $term_model['post_type'], array_keys($term_model['fields']));
+        foreach ($models['term'] as $class_name) {
+            Base_Model::register_taxonomy($class_name);
         }
     }
 
@@ -144,70 +145,70 @@ class REST_Plugin_Boilerplate {
      * Create meta table on plugin activation
      * @global type $wpdb
      */
-    function create_term_meta_tables($plugin_name) {
-        global $wpdb;
-        $types = $this->registered_plugins[$plugin_name]['types'];
-        foreach($types as $type_lc => $type_def) {
-            if (! array_key_exists('taxonomies', $type_def)) continue;
-            $taxonomies = array_keys($type_def['taxonomies']);
+    // function create_term_meta_tables($plugin_name) {
+    //     global $wpdb;
+    //     $types = $this->registered_plugins[$plugin_name]['types'];
+    //     foreach($types as $type_lc => $type_def) {
+    //         if (! array_key_exists('taxonomies', $type_def)) continue;
+    //         $taxonomies = array_keys($type_def['taxonomies']);
 
-            // Exit if type has no associated taxonomy
-            foreach($taxonomies as $taxonomy) {
-                // if( !$has_meta ) continue;
-                $tax_meta_name = $taxonomy . 'meta';
-                $table_name = $wpdb->prefix . $tax_meta_name;
+    //         // Exit if type has no associated taxonomy
+    //         foreach($taxonomies as $taxonomy) {
+    //             // if( !$has_meta ) continue;
+    //             $tax_meta_name = $taxonomy . 'meta';
+    //             $table_name = $wpdb->prefix . $tax_meta_name;
 
-                // Return if table exists
-                if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name) {
-                    return;
-                }
-                if (!empty ($wpdb->charset))
-                    $charset_collate = "DEFAULT CHARACTER SET {$wpdb->charset}";
-                if (!empty ($wpdb->collate))
-                    $charset_collate .= " COLLATE {$wpdb->collate}";
-                // Prepare sql
-                $sql = "CREATE TABLE $table_name (
-                    meta_id bigint(20) NOT NULL AUTO_INCREMENT,
-                    {$taxonomy}_id bigint(20) NOT NULL default 0,
+    //             // Return if table exists
+    //             if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name) {
+    //                 return;
+    //             }
+    //             if (!empty ($wpdb->charset))
+    //                 $charset_collate = "DEFAULT CHARACTER SET {$wpdb->charset}";
+    //             if (!empty ($wpdb->collate))
+    //                 $charset_collate .= " COLLATE {$wpdb->collate}";
+    //             // Prepare sql
+    //             $sql = "CREATE TABLE $table_name (
+    //                 meta_id bigint(20) NOT NULL AUTO_INCREMENT,
+    //                 {$taxonomy}_id bigint(20) NOT NULL default 0,
 
-                    meta_key varchar(255) DEFAULT NULL,
-                    meta_value longtext DEFAULT NULL,
+    //                 meta_key varchar(255) DEFAULT NULL,
+    //                 meta_value longtext DEFAULT NULL,
 
-                    UNIQUE KEY meta_id (meta_id)
-                ) {$charset_collate};";
+    //                 UNIQUE KEY meta_id (meta_id)
+    //             ) {$charset_collate};";
 
-                require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-                dbDelta($sql);
-            }
-        }
-    }
+    //             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    //             dbDelta($sql);
+    //         }
+    //     }
+    // }
 
     /**
      * Delete meta table on plugin delete
      * @global type $wpdb
      */
-    function delete_term_meta_tables($plugin_name) {
-        global $wpdb;
-        $types = $this->registered_plugins[$plugin_name]['types'];
-        foreach($types as $type_lc => $type_def) {
-            if (! array_key_exists('taxonomies', $type_def)) continue;
-            $taxonomies = array_keys($type_def['taxonomies']);
+    // function delete_term_meta_tables($plugin_name) {
+    //     global $wpdb;
+    //     $types = $this->registered_plugins[$plugin_name]['types'];
+    //     foreach($types as $type_lc => $type_def) {
+    //         if (! array_key_exists('taxonomies', $type_def)) continue;
+    //         $taxonomies = array_keys($type_def['taxonomies']);
 
-            // Exit if type has no associated taxonomy
-            foreach($taxonomies as $taxonomy) {
-                // if( !$has_meta ) continue;
-                $tax_meta_name = $taxonomy . 'meta';
-                $table_name = $wpdb->prefix . $tax_meta_name;
+    //         // Exit if type has no associated taxonomy
+    //         foreach($taxonomies as $taxonomy) {
+    //             // if( !$has_meta ) continue;
+    //             $tax_meta_name = $taxonomy . 'meta';
+    //             $table_name = $wpdb->prefix . $tax_meta_name;
 
-                // Return if table exists
-                if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name) {
-                    return;
-                }
-                $sql = "DROP TABLE $table_name";
+    //             // Return if table exists
+    //             if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name) {
+    //                 return;
+    //             }
+    //             $sql = "DROP TABLE $table_name";
 
-                require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-                dbDelta($sql);
-            }
-        }
-    }
+    //             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    //             dbDelta($sql);
+    //         }
+    //     }
+    // }
 }
