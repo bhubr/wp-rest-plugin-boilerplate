@@ -87,7 +87,7 @@ class Test_Post_Model extends WP_UnitTestCase {
         $tag1 = bhubr\Term_Model::_create('foo_tag', ['name' => 'Foo tag 1', 'a' => 'A', 'b' => 'B']);
         $tag2 = bhubr\Term_Model::_create('foo_tag', ['name' => 'Foo tag 2', 'a' => 'A', 'b' => 'B']);
         $tag3 = bhubr\Term_Model::_create('foo_tag', ['name' => 'Foo tag 3', 'a' => 'A', 'b' => 'B']);
-        $model = bhubr\Post_Model::_create('foo', ['name' => 'Pouet 2', 'foo_cat' => $cat1['id'], 'foo_tags' => [$tag1['id'], $tag2['id']]]);
+        $model = bhubr\Foo::create(['name' => 'Pouet 2', 'foo_cat' => $cat1['id'], 'foo_tags' => [$tag1['id'], $tag2['id']]]);
 
         $expected_model = [
             'id' => 4, 'name' => 'Pouet 2', 'slug' => 'pouet-2', 'foo_cat' => $cat1['id'], 'foo_tags' => [$tag1['id'], $tag2['id']]
