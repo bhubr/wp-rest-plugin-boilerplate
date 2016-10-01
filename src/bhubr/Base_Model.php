@@ -32,6 +32,10 @@ use Underscore\Underscore as __;
  * parent. In the first case a _thumbnail_id meta_key with the attachment id as value is added to the post
  * In the 2nd case attachments are created
  */
+
+/**
+ * Big rework for new version...
+ */
 abstract class Base_Model {
 
     protected static $types = [
@@ -415,12 +419,11 @@ abstract class Base_Model {
                 return $item[$where['field']] === $where['value'];
             });
         }
-
         $objects = array_map(function($object) {
             foreach(static::$relations as $field => $relation_descriptor) {
                 $object[$field] = self::get_relation($object, $relation_descriptor);
-                return $object;
             }
+            return $object;
         }, $objects);
 
         return $objects;
