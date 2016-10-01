@@ -167,27 +167,22 @@ abstract class Base_Model {
 
     public static function update_object_relations($object, $payload) {
         global $wpdb;
-        $table_name = $wpdb->prefix . 'rpb_many_to_many';
+        $pivot_table = $wpdb->prefix . 'rpb_many_to_many';
         // echo __FUNCTION__ . "\n";
         // var_dump($object);
         $object_id = $object['id'];
         $post_fields = self::from_json($payload);
         foreach(static::$relations as $field => $relation_descriptor) {
             if(! array_key_exists($field, $payload)) continue;
-            // if(array_key_exists($field, $payload)) echo "\n #### " . get_called_class() . "::" . __FUNCTION__ . "   =>  FOUND $field in payload\n";
-            // else continue;
 
-            // echo "\n #### " . get_called_class() . "::" . __FUNCTION__ . " " . static::$type . " \n";
-            // var_dump($payload[$field]);
             $desc_bits = explode(':', $relation_descriptor);
             $this_rel_class = 'bhubr\\' . $desc_bits[0];
             $this_rel_type = $desc_bits[1];
             $rel_class_relations = $this_rel_class::$relations;
-            // echo "\n #### " . get_called_class() . "::" . __FUNCTION__ . " " . $this_rel_class::$type . " \n";
-            // var_dump($desc_bits);
 
             // Look for belongs to
             // TODO: REMOVE DUP CODE
+            // ESPECIALLY... We probably don't need to get reverse relation class... since it's THIS object's class!!
             if(array_key_exists(static::$singular, $rel_class_relations)) {
                 $reverse_relation_desc = $rel_class_relations[static::$singular];
                 $rev_desc_bits = explode(':', $reverse_relation_desc);
@@ -202,35 +197,100 @@ abstract class Base_Model {
             }
             // var_dump($rev_desc_bits);
             $relation_type = static::get_relation_type($this_rel_type, $rev_rel_type);
-            // if ($this_rel_class < $rev_rel_class) {
-            //     echo "this $this_rel_class < that $rev_rel_class\n";
-            // }
-            // else {
-            //     echo "this $this_rel_class > that $rev_rel_class\n";
-
-            // }
             $this_first = $this_rel_class > $rev_rel_class;
+            $where_id = $this_first ? 'object1_id' : 'object2_id';
+            $relatee_id = $this_first ? 'object2_id' : 'object1_id';
+            $where_type = $this_first ? static::$type . '_' . $this_rel_class::$type : $this_rel_class::$type . '_' . static::$type;
+
             switch($relation_type) {
                 case self::RELATION_MANY_TO_MANY:
                     echo self::RELATION_MANY_TO_MANY . "\n";
                     // throw new \Exception("Update object relationships: Not implemented for: $relation_type");
-                    foreach($payload[$field] as $k => $relatee_id) {
-                        echo "obj id: $object_id, rel id: $relatee_id\n";
-                        if ($this_first) {
-                            $data = [
-                                'rel_type'   => static::$type . '_' . $this_rel_class::$type,
-                                'object1_id' => $object_id,
-                                'object2_id' => $relatee_id
+                    /*
+                     * How it works
+                     * 0. setup
+                     * 1. fetch entries related to object id, using either object1_id or object2_id
+                     * 2. for each entry:
+                     *      - if in payload then don't add it (remove it from payload)
+                     *      - if not in payload then it should be removed
+                     * 3. add remaining payload entries
+                     */
+
+                    // 0. setup arrays
+                    $new_relatee_ids = $payload[$field];
+                    $existing_relatee_ids = [];
+                    // $relations_to_add = [];
+                    // $relations_to_remove = [];
+
+                    // 1. fetch entries related to object id
+                    $existing_relations = $wpdb->get_results(
+                        "SELECT * FROM $pivot_table WHERE rel_type='$where_type' AND $where_id = $object_id", ARRAY_A
+                    );
+                    //$existing_ids = array_map(function($item) use($relatee_id) { return (int)$item[$relatee_id]; }, $existing_relations);
+                    //array_map(function($item) use($where_id, $object_id, $relatee_id, $where_type) {
+                    foreach($existing_relations as $item) {
+                        $relatee_obj_id = (int)$item[$relatee_id];
+                        if (($id_index = array_search($relatee_obj_id, $new_relatee_ids)) === false) {
+                            $where = [
+                                'rel_type'  => $where_type,
+                                $where_id   => $object_id,
+                                $relatee_id => $relatee_obj_id
                             ];
+                            $res = $wpdb->delete( $pivot_table, $where, $where_format = null );
+                            echo ($res ? "Delete SUCCESS" : "Delete ERROR") . "\n";
                         }
                         else {
-                            $data = [
-                                'rel_type'   => $this_rel_class::$type . '_' . static::$type,
-                                'object1_id' => $relatee_id,
-                                'object2_id' => $object_id
-                            ];
+                            echo "exisiting relatee ID to keep, but remove from payload: $relatee_obj_id\n";
+                            unset($new_relatee_ids[$id_index]);
                         }
-                        $wpdb->insert($table_name, $data, ['%s', '%d', '%d']);
+                    }
+
+                    echo "payload before removal\n";
+                    var_dump($new_relatee_ids);
+                    // foreach($existing_relatee_ids as $id) {
+                        // if (($id_index = array_search($id, $new_relatee_ids)) === false) {
+                        //     echo "relatee ID to remove from DB: $id\n";
+                        //     $relations_to_remove[] = $id;
+                        // }
+                        // if (($id_index = array_search($id, $new_relatee_ids)) !== false) {
+                    // }
+                    echo "Existing relations\n";
+                    var_dump($existing_relations);
+                    // echo "Existing relation ids\n";
+                    // var_dump($existing_ids);
+                    echo "payload after removal\n";
+                    var_dump($new_relatee_ids);
+                    echo "removal query\n";
+
+                    // $wpdb->delete( $table, $where, $where_format = null );
+
+                    foreach($new_relatee_ids as $k => $relatee_obj_id) {
+
+                        // echo "relatee ID to ADD to DB... obj id: $object_id, rel id: $relatee_obj_id\n";
+                        $data = [
+                            'rel_type'   => static::$type . '_' . $this_rel_class::$type,
+                            $where_id    => $object_id,
+                            $relatee_id  => $relatee_obj_id
+                        ];
+                        // var_dump($data);
+
+                        // if ($this_first) {
+                        //     $data = [
+                        //         'rel_type'   => static::$type . '_' . $this_rel_class::$type,
+                        //         'object1_id' => $object_id,
+                        //         'object2_id' => $relatee_id
+                        //     ];
+                        //     // $where_id = 'object1_id';
+                        // }
+                        // else {
+                        //     $data = [
+                        //         'rel_type'   => $this_rel_class::$type . '_' . static::$type,
+                        //         'object1_id' => $relatee_id,
+                        //         'object2_id' => $object_id
+                        //     ];
+                        //     // $where_id = 'object2_id';
+                        // }
+                        $wpdb->insert($pivot_table, $data, ['%s', '%d', '%d']);
                     }
                     break;
                 default:
