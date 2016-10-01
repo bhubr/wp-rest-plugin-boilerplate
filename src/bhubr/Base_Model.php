@@ -212,8 +212,10 @@ abstract class Base_Model {
             $this_first = $this_rel_class > $rev_rel_class;
             switch($relation_type) {
                 case self::RELATION_MANY_TO_MANY:
+                    echo self::RELATION_MANY_TO_MANY . "\n";
                     // throw new \Exception("Update object relationships: Not implemented for: $relation_type");
                     foreach($payload[$field] as $k => $relatee_id) {
+                        echo "obj id: $object_id, rel id: $relatee_id\n";
                         if ($this_first) {
                             $data = [
                                 'rel_type'   => static::$type . '_' . $this_rel_class::$type,
@@ -248,7 +250,9 @@ abstract class Base_Model {
      * Update object
      */
     public static function update($object_id, $payload) {
-        return static::_update(static::$singular, $object_id, $payload);
+        $object = static::_update(static::$singular, $object_id, $payload);
+        $relations = self::update_object_relations($object, $payload);
+        return $object;
     }
 
 
@@ -291,8 +295,6 @@ abstract class Base_Model {
             self::add_to_cache(static::$singular, $object);
         }
         if (! $fetch_relations) return $object;
-// echo "\n#### " . __FUNCTION__ . " $post_id\n";
-// var_dump(static::$relations);
         foreach(static::$relations as $field => $relation_descriptor) {
             $object[$field] = self::get_relation($object, $relation_descriptor);
         }
@@ -370,28 +372,14 @@ abstract class Base_Model {
             case self::RELATION_MANY_TO_MANY:
                 global $wpdb;
                 $table_name = $wpdb->prefix . 'rpb_many_to_many';
-
-                // throw new \Exception("RELATION_MANY_TO_MANY not implemented\n");
                 $this_first = $this_rel_class > $rev_rel_class;
-                // throw new \Exception("Update object relationships: Not implemented for: $relation_type");
-                // foreach($payload[$field] as $k => $relatee_id) {
-                    // echo "$v\n";
-                    // $data = [
-                    //     'rel_type'   => 'post_post',
-                    //     'object1_id' => $this_first ? $object_id : $relatee_id,
-                    //     'object2_id' => $this_first ? $relatee_id : $object_id
-                    // ];
-                    // var_dump($object);
-                    $where_type = $this_first ? static::$type . '_' . $this_rel_class::$type : $this_rel_class::$type . '_' . static::$type;
-                    $where_id = $this_first ? 'object1_id' : 'object2_id';
-                    $relatee_id = $this_first ? 'object2_id' : 'object1_id';
-                    // var_dump("SELECT * FROM $table_name WHERE rel_type='$where_type' AND $where_id = $object_id");
-                    $res = $wpdb->get_results(
-                        "SELECT * FROM $table_name WHERE rel_type='$where_type' AND $where_id = $object_id", ARRAY_A
-                    );
-                    return array_map(function($item) use($relatee_id) { return (int)$item[$relatee_id]; }, $res);
-                    // var_dump($res);
-                // }
+                $where_type = $this_first ? static::$type . '_' . $this_rel_class::$type : $this_rel_class::$type . '_' . static::$type;
+                $where_id = $this_first ? 'object1_id' : 'object2_id';
+                $relatee_id = $this_first ? 'object2_id' : 'object1_id';
+                $res = $wpdb->get_results(
+                    "SELECT * FROM $table_name WHERE rel_type='$where_type' AND $where_id = $object_id", ARRAY_A
+                );
+                return array_map(function($item) use($relatee_id) { return (int)$item[$relatee_id]; }, $res);
                 break;
         }
 
@@ -403,27 +391,18 @@ abstract class Base_Model {
      */
     public static function read_all($extra_args = array()) {
         $objects = static::_read_all(static::$singular, $extra_args);
-        // echo "\n ### READ_ALL filtering\n";
-        // var_dump($objects);
-        // var_dump($extra_args);
         if ($extra_args && array_key_exists('where', $extra_args)) {
-
             $where = $extra_args['where'];
-            // var_dump($where);
             $objects = __::filter($objects, function($item) use($where) {
                 return $item[$where['field']] === $where['value'];
             });
         }
-        // if (! $extra_args || ! array_key_exists('fetch_relations', $extra_args) || ! $extra_args['fetch_relations']) {
-        //     return $objects;
-        // }
 
         $objects = array_map(function($object) {
             foreach(static::$relations as $field => $relation_descriptor) {
                 $object[$field] = self::get_relation($object, $relation_descriptor);
                 return $object;
             }
-            // var_dump($object);
         }, $objects);
 
         return $objects;
