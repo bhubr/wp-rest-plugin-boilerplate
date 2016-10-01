@@ -46,6 +46,7 @@ abstract class Base_Model {
 
     const RELATION_ONE_TO_ONE = 'ONE_TO_ONE';
     const RELATION_ONE_TO_MANY = 'ONE_TO_MANY';
+    const RELATION_MANY_TO_ONE = 'MANY_TO_ONE';
     const RELATION_MANY_TO_MANY = 'MANY_TO_MANY';
 
     static $cache = [];
@@ -312,6 +313,9 @@ abstract class Base_Model {
         else if($this_rel_type === 'has_many' && $reverse_rel_type === 'belongs_to') {
             return self::RELATION_ONE_TO_MANY;
         }
+        else if($this_rel_type === 'belongs_to' && $reverse_rel_type === 'has_many') {
+            return self::RELATION_MANY_TO_ONE;
+        }
         else if($this_rel_type === 'has_many' && $reverse_rel_type === 'has_many') {
             return self::RELATION_MANY_TO_MANY;
         }
@@ -350,18 +354,18 @@ abstract class Base_Model {
                 return $this_rel_class::read($object[$foreign_key], false);
                 break;
             case self::RELATION_ONE_TO_MANY:
-                // var_dump('get_relation ' . self::RELATION_ONE_TO_MANY . "\n");
                 $primary_key = static::$singular . '_id';
-                // echo "primary_key: $primary_key\n";
                 $related_objs = $this_rel_class::read_all([
                     'where' => [
                         'field' => $primary_key,
                         'value' => $object['id']
                     ]
                 ]);
-                // var_dump($related_objs);
                 return array_map(function($item) { return (int)$item['id']; }, $related_objs);
-                // throw new \Exception("RELATION_ONE_TO_MANY not implemented\n");
+                break;
+            case self::RELATION_MANY_TO_ONE:
+                $primary_key = $this_rel_class::$singular . '_id';
+                return $this_rel_class::read($object[$primary_key], false);
                 break;
             case self::RELATION_MANY_TO_MANY:
                 global $wpdb;

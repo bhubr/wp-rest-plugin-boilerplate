@@ -248,11 +248,13 @@ class Test_Post_Model extends WP_UnitTestCase {
         $this->assertEquals([$dumbm2m3['id'], $dumbm2m4['id']], $dummy3['dumbmany2manies']);
         $this->assertEquals([$dumbm2m3['id'], $dumbm2m4['id']], $dummy3['dumbmany2manies']);
 
-        $this->assertEquals([$dummy['id']], $dumbm2m1['dummies']);
-        $this->assertEquals([$dummy2['id']], $dumbm2m2['dummies']);
-        $this->assertEquals([$dummy['id'], $dummy3['id']], $dumbm2m3['dummies']);
-        $this->assertEquals([$dummy2['id'], $dummy3['id']], $dumbm2m4['dummies']);
+        $this->assertEquals([$dummy_id], $dumbm2m1['dummies']);
+        $this->assertEquals([$dummy2_id], $dumbm2m2['dummies']);
+        $this->assertEquals([$dummy_id, $dummy3_id], $dumbm2m3['dummies']);
+        $this->assertEquals([$dummy2_id, $dummy3_id], $dumbm2m4['dummies']);
 
+        bhubr\Dumbmany2many::update($dumbm2m1['id'], ['name' => 'Test m2m Dumb m2m #1', 'dumb_str' => 'Hello there!', 'dummies' => [$dummy2_id, $dummy3_id]]);
+        $this->assertEquals([$dummy2_id, $dummy3_id], $dumbm2m1['dummies']);
         // $this->assertEquals($dummy['dumbass_id'], $dumbass_id);
         // $this->assertTrue(array_key_exists('dumbmanies', $dummy), 'Dummy object has no "dumbmanies" key');
         // $this->assertEquals($dummy['dumbmanies'], [$dumbmany1_id, $dumbmany2_id, $dumbmany3_id]);
