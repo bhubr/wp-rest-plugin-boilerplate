@@ -204,32 +204,29 @@ abstract class Base_Model {
 
             switch($relation_type) {
                 case self::RELATION_MANY_TO_MANY:
-                    echo self::RELATION_MANY_TO_MANY . "\n";
-                    // throw new \Exception("Update object relationships: Not implemented for: $relation_type");
                     /*
                      * How it works
                      * 0. setup
                      * 1. fetch entries related to object id, using either object1_id or object2_id
                      * 2. for each entry:
-                     *      - if in payload then don't add it (remove it from payload)
-                     *      - if not in payload then it should be removed
-                     * 3. add remaining payload entries
+                     *      a. if not in payload then it should be removed
+                     *      b. if in payload then don't add it (remove it from payload)
+                     * 3. insert remaining payload entries
                      */
 
                     // 0. setup arrays
                     $new_relatee_ids = $payload[$field];
                     $existing_relatee_ids = [];
-                    // $relations_to_add = [];
-                    // $relations_to_remove = [];
 
                     // 1. fetch entries related to object id
                     $existing_relations = $wpdb->get_results(
                         "SELECT * FROM $pivot_table WHERE rel_type='$where_type' AND $where_id = $object_id", ARRAY_A
                     );
-                    //$existing_ids = array_map(function($item) use($relatee_id) { return (int)$item[$relatee_id]; }, $existing_relations);
-                    //array_map(function($item) use($where_id, $object_id, $relatee_id, $where_type) {
+
+                    // 2. iterate entries
                     foreach($existing_relations as $item) {
                         $relatee_obj_id = (int)$item[$relatee_id];
+                        // a. remove from db if not in payload
                         if (($id_index = array_search($relatee_obj_id, $new_relatee_ids)) === false) {
                             $where = [
                                 'rel_type'  => $where_type,
@@ -237,59 +234,20 @@ abstract class Base_Model {
                                 $relatee_id => $relatee_obj_id
                             ];
                             $res = $wpdb->delete( $pivot_table, $where, $where_format = null );
-                            echo ($res ? "Delete SUCCESS" : "Delete ERROR") . "\n";
                         }
+                        // b. remove from payload
                         else {
-                            echo "exisiting relatee ID to keep, but remove from payload: $relatee_obj_id\n";
                             unset($new_relatee_ids[$id_index]);
                         }
                     }
 
-                    echo "payload before removal\n";
-                    var_dump($new_relatee_ids);
-                    // foreach($existing_relatee_ids as $id) {
-                        // if (($id_index = array_search($id, $new_relatee_ids)) === false) {
-                        //     echo "relatee ID to remove from DB: $id\n";
-                        //     $relations_to_remove[] = $id;
-                        // }
-                        // if (($id_index = array_search($id, $new_relatee_ids)) !== false) {
-                    // }
-                    echo "Existing relations\n";
-                    var_dump($existing_relations);
-                    // echo "Existing relation ids\n";
-                    // var_dump($existing_ids);
-                    echo "payload after removal\n";
-                    var_dump($new_relatee_ids);
-                    echo "removal query\n";
-
-                    // $wpdb->delete( $table, $where, $where_format = null );
-
+                    // 3. insert remaining entries
                     foreach($new_relatee_ids as $k => $relatee_obj_id) {
-
-                        // echo "relatee ID to ADD to DB... obj id: $object_id, rel id: $relatee_obj_id\n";
                         $data = [
                             'rel_type'   => static::$type . '_' . $this_rel_class::$type,
                             $where_id    => $object_id,
                             $relatee_id  => $relatee_obj_id
                         ];
-                        // var_dump($data);
-
-                        // if ($this_first) {
-                        //     $data = [
-                        //         'rel_type'   => static::$type . '_' . $this_rel_class::$type,
-                        //         'object1_id' => $object_id,
-                        //         'object2_id' => $relatee_id
-                        //     ];
-                        //     // $where_id = 'object1_id';
-                        // }
-                        // else {
-                        //     $data = [
-                        //         'rel_type'   => $this_rel_class::$type . '_' . static::$type,
-                        //         'object1_id' => $relatee_id,
-                        //         'object2_id' => $object_id
-                        //     ];
-                        //     // $where_id = 'object2_id';
-                        // }
                         $wpdb->insert($pivot_table, $data, ['%s', '%d', '%d']);
                     }
                     break;

@@ -253,23 +253,26 @@ class Test_Post_Model extends WP_UnitTestCase {
         $this->assertEquals([$dummy_id, $dummy3_id], $dumbm2m3['dummies']);
         $this->assertEquals([$dummy2_id, $dummy3_id], $dumbm2m4['dummies']);
 
-        $dumbm2m4upd = bhubr\Dumbmany2many::update($dumbm2m4['id'], ['dummies' => [$dummy_id, $dummy2_id]]);
-        echo "dm2m4 id: " . $dumbm2m4['id'] . "\n";
 
+        // Setup last part of the test (expected relatees of Dumbmany2many #4, after update)
         $expected_relatee_ids = [$dummy_id, $dummy2_id];
         sort($expected_relatee_ids);
+
+        // Action: update
+        $dumbm2m4upd = bhubr\Dumbmany2many::update($dumbm2m4['id'], ['dummies' => [$dummy_id, $dummy2_id]]);
+
+        // Sort relatee ids and perform assertion
         $actual_relatee_ids = $dumbm2m4upd['dummies'];
         sort($actual_relatee_ids);
         $this->assertEquals($expected_relatee_ids, $actual_relatee_ids);
 
+        // Action: re-read
         $dumbm2m4reread = bhubr\Dumbmany2many::read($dumbm2m4['id']);
+
+        // Sort relatee ids and perform assertion
         $actual_relatee_ids = $dumbm2m4upd['dummies'];
         sort($actual_relatee_ids);
         $this->assertEquals($expected_relatee_ids, $actual_relatee_ids);
-        // $this->assertEquals($dummy['dumbass_id'], $dumbass_id);
-        // $this->assertTrue(array_key_exists('dumbmanies', $dummy), 'Dummy object has no "dumbmanies" key');
-        // $this->assertEquals($dummy['dumbmanies'], [$dumbmany1_id, $dumbmany2_id, $dumbmany3_id]);
-
     }
 
 }
