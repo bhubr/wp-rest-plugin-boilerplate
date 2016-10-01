@@ -149,7 +149,7 @@ class REST_Controller extends \WP_REST_Controller {
     $type_lc = \Inflect::singularize(array_pop($route_bits));
     $attributes = $request->get_json_params();
     $rest_class = Base_Model::get_rest_route_class($type_lc);
-    $post = $rest_class::_update($type_lc, $id, $attributes);
+    $post = $rest_class::update($id, $attributes);
 
     if ( is_array( $post ) ) {
       return new \WP_REST_Response( $post, 200 );
