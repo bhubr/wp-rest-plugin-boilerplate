@@ -72,7 +72,7 @@ class Test_Payload_Format_Simple extends WP_UnitTestCase {
      * @expectedException Exception
      * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_IS_SINGULAR
      */
-    function test_nok_relationship_expects_singular_item() {
+    function test_nok_relationship_expects_single_item() {
         $payload = array_merge($this->payload_ok, $this->payload_rel_singular_nok);
         $data = Payload_Format_Simple::extract_relationships($payload, $this->relationships);
     }

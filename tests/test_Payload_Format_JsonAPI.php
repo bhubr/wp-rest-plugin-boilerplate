@@ -58,6 +58,31 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
         ]
     ];
 
+    private function format_relationships($rel_descriptor, $rel_payload) {
+        $output = [];
+        foreach($rel_descriptor as $field_name => $desc) {
+            $payload_ids = $rel_payload[$field_name];
+            $rel_type = $desc['type'];
+            $data = ! is_array($payload_ids) ? ['type' => $rel_type, 'id' => $payload_ids] :
+                array_map(function($id) use($rel_type) {
+                    return ['type' => $rel_type, 'id' => $id];
+                }, $payload_ids);
+            $output[$field_name] = ['data' => $data];
+        }
+        return $output;
+    }
+
+    private function build_payload($type, $attributes, $rel_descriptor, $rel_payload) {
+        $fmt_relationships = $this->format_relationships($rel_descriptor, $rel_payload);
+        return [
+            'data' => [
+                'type'          => $type,
+                'attributes'    => $attributes,
+                'relationships' => $fmt_relationships
+            ]
+        ];
+    }
+
     function setUp() {
     }
 
@@ -74,6 +99,7 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
      * Error: several items provided for a single relationship
      * @expectedException Exception
      * @expectedExceptionCode bhubr\Payload_Format::JSONAPI_MISSING_DATA
+     * @expectedExceptionMessage Payload missing: /data
      */
     function test_nok_payload_missing_data() {
         $data = Payload_Format_JsonAPI::extract_relationships(['title' => 'cool'], $this->relationships);
@@ -87,7 +113,36 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
         $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
         $this->assertEquals([], $data['relationships']);
         $this->assertEquals($payload, $data['payload']);
+    }
 
+    /**
+     * Relationships but no data
+     * @expectedException Exception
+     * @expectedExceptionCode bhubr\Payload_Format::JSONAPI_MISSING_DATA
+     * @expectedExceptionMessage Payload missing: /data/relationships/relatee/data
+     */
+    function test_ok_payload_data_relationship_nodata() {
+        $payload = [
+            'data' => [
+                'attributes' => ['title' => 'cool'],
+                'relationships' => [
+                    'relatee' => []
+                ]
+            ]
+        ];
+        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
+    }
+
+    /**
+     * Error: several items provided for a single relationship
+     * @expectedException Exception
+     * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_IS_SINGULAR
+     */
+    function test_nok_relationship_expects_single_item() {
+        $payload = $this->build_payload('dummy_type', $this->payload_ok, $this->relationships, $this->payload_rel_singular_nok);
+        var_dump($payload);
+        // $payload = array_merge($this->payload_ok, $this->payload_rel_plural_nok);
+        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
     }
 
     /**
@@ -95,10 +150,12 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
      * @expectedException Exception
      * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_IS_PLURAL
      */
-    // function test_nok_relationship_expects_several_items() {
-    //     $payload = array_merge($this->payload_ok, $this->payload_rel_plural_nok);
-    //     $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
-    // }
+    function test_nok_relationship_expects_several_items() {
+        $payload = $this->build_payload('dummy_type', $this->payload_ok, $this->relationships, $this->payload_rel_plural_nok);
+        var_dump($payload);
+        // $payload = array_merge($this->payload_ok, $this->payload_rel_plural_nok);
+        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
+    }
 
     /**
      * OK: valid relationships provided
