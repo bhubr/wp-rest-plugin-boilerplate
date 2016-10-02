@@ -58,6 +58,22 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
         ]
     ];
 
+    private $json_payload_ok = '{"data":{"type":"photos","attributes":{"title":"Ember Hamster","src":"http://example.com/images/productivity.png"},"relationships":{"photographer":{"data":{"type":"people","id":"9"}},"tags":{"data":[{"type":"tags","id":"2"},{"type":"tags","id":"3"}]}}}}';
+    private $json_payload_rel_s_nok_type = '{"data":{"type":"photos","attributes":{"title":"Ember Hamster","src":"http://example.com/images/productivity.png"},"relationships":{"photographer":{"data":{"type":"peeepl","id":"9"}}}}}';
+    private $json_payload_rel_s_nok_num = '{"data":{"type":"photos","attributes":{"title":"Ember Hamster","src":"http://example.com/images/productivity.png"},"relationships":{"photographer":{"data":[{"type":"people","id":"9"}]}}}}';
+    private $json_payload_rel_p_nok_num = '{"data":{"type":"photos","attributes":{"title":"Ember Hamster","src":"http://example.com/images/productivity.png"},"relationships":{"photographer":{"data":{"type":"people","id":"9"}},"tags":{"data":{"type":"tags","id":"2"}}}}}';
+    private $json_payload_ok_norel = '{"data":{"type":"photos","attributes":{"title":"Ember Hamster","src":"http://example.com/images/productivity.png"}}}';
+    private $json_relationships = [
+        'photographer' => [
+            'type'   => 'people',
+            'plural' => false
+        ],
+        'tags' => [
+            'type'   => 'tags',
+            'plural' => true
+        ]
+    ];
+
     private function format_relationships($rel_descriptor, $rel_payload) {
         $output = [];
         foreach($rel_descriptor as $field_name => $desc) {
@@ -164,7 +180,6 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
      */
     function test_nok_relationship_expects_several_items() {
         $payload = $this->build_payload('dummy_type', $this->payload_ok, $this->relationships, $this->payload_rel_plural_nok);
-        var_dump($payload);
         // $payload = array_merge($this->payload_ok, $this->payload_rel_plural_nok);
         $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
     }
@@ -172,12 +187,54 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
     /**
      * OK: valid relationships provided
      */
-    function test_extract_relationships_ok() {
+    function test_extract_relationships_ok_built_payload() {
         $payload = $this->build_payload('dummy_type', $this->payload_ok, $this->relationships, $this->payload_rel_ok);
         $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
         $this->assertEquals($this->payload_rel_ok, $data['relationships']);
         unset($payload['data']['relationships']);
         $this->assertEquals($payload, $data['payload']);
+    }
+
+    /**
+     * Error: several items provided for a single relationship
+     * @expectedException Exception
+     * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_IS_SINGULAR
+     */
+    function test_nok_json_relationship_expects_single_item() {
+        $payload = json_decode($this->json_payload_rel_s_nok_num, true);
+        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->json_relationships);
+    }
+
+    /**
+     * Error: several items provided for a single relationship
+     * @expectedException Exception
+     * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_IS_PLURAL
+     */
+    function test_nok_json_relationship_expects_several_items() {
+        $payload = json_decode($this->json_payload_rel_p_nok_num, true);
+        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->json_relationships);
+    }
+
+    /**
+     * Error: bad relation type
+     * @expectedException Exception
+     * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_BAD_TYPE
+     * @expectedExceptionMessage Relationship type mismatch (exp: people, got: peeepl)
+     */
+    function test_nok_json_relationship_single_invalid_type() {
+        $payload = json_decode($this->json_payload_rel_s_nok_type, true);
+        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->json_relationships);
+    }
+
+    /**
+     * OK: valid relationships provided
+     */
+    function test_extract_relationships_ok_json_payload() {
+        $payload = json_decode($this->json_payload_ok, true);
+        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->json_relationships);
+        $this->assertEquals([ 'photographer' => 9, 'tags' => [2, 3] ], $data['relationships']);
+        $payload_norel = json_decode($this->json_payload_ok_norel, true);
+        $this->assertEquals($payload_norel, $data['payload']);
     }
 
     /**
