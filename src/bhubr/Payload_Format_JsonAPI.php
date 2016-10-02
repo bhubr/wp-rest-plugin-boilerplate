@@ -49,6 +49,7 @@ class Payload_Format_JsonAPI implements Payload_Format_Interface {
             );
         }
         foreach($model_relationships as $relation_name => $descriptor) {
+            if (! array_key_exists($relation_name, $payload_relationships)) continue;
             $relation_item = $payload_relationships[$relation_name];
             self::fail_if_key_not_found(
                 'data',
@@ -60,13 +61,24 @@ class Payload_Format_JsonAPI implements Payload_Format_Interface {
             $relation_data = $relation_item['data'];
 
             if(! $descriptor['plural'] ) {
-                if (! array_key_exists('type', $relation_data) || ! array_key_exists('id', $relation_data)) {
+                if (is_null($relation_data)) {
+                    $extracted_data = null;
+                }
+                else if (is_array($relation_data) && empty($relation_data)) {
+                    throw new \Exception("Invalid relationship clear data: singular relationship '$relation_name' expects null, got []", Payload_Format::RELATIONSHIP_INVALID_CLEAR);
+                }
+                else if (! is_array($relation_data) || ! array_key_exists('type', $relation_data) || ! array_key_exists('id', $relation_data)) {
                     $msg = "A singular relatee id is expected for singular relationship with " . $descriptor['type'];
                     throw new \Exception($msg, Payload_Format::RELATIONSHIP_IS_SINGULAR);
                 }
-                $extracted_data = self::extract_relationship_data_single($descriptor['type'], $relation_data);
+                else {
+                    $extracted_data = self::extract_relationship_data_single($descriptor['type'], $relation_data);
+                }
             }
             else {
+                if (is_null($relation_data)) {
+                    throw new \Exception("Invalid relationship clear data: plural relationship '$relation_name' expects [], got null", Payload_Format::RELATIONSHIP_INVALID_CLEAR);
+                }
                 if(array_key_exists('type', $relation_data) || array_key_exists('id', $relation_data)) {
                     $msg = "An array of relatee ids is expected for plural relationship with " . $descriptor['type'];
                     throw new \Exception($msg, Payload_Format::RELATIONSHIP_IS_PLURAL);

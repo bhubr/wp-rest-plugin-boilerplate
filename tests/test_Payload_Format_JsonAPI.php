@@ -63,6 +63,9 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
     private $json_payload_rel_s_nok_num = '{"data":{"type":"photos","attributes":{"title":"Ember Hamster","src":"http://example.com/images/productivity.png"},"relationships":{"photographer":{"data":[{"type":"people","id":"9"}]}}}}';
     private $json_payload_rel_p_nok_num = '{"data":{"type":"photos","attributes":{"title":"Ember Hamster","src":"http://example.com/images/productivity.png"},"relationships":{"photographer":{"data":{"type":"people","id":"9"}},"tags":{"data":{"type":"tags","id":"2"}}}}}';
     private $json_payload_ok_norel = '{"data":{"type":"photos","attributes":{"title":"Ember Hamster","src":"http://example.com/images/productivity.png"}}}';
+    private $json_payload_clear_rel_ok = '{"data":{"type":"photos","attributes":{"title":"Ember Hamster","src":"http://example.com/images/productivity.png"},"relationships":{"photographer":{"data":null},"tags":{"data":[]}}}}';
+    private $json_payload_clear_rel_nok_s = '{"data":{"type":"photos","attributes":{"title":"Ember Hamster","src":"http://example.com/images/productivity.png"},"relationships":{"photographer":{"data":[]}}}}';
+    private $json_payload_clear_rel_nok_p = '{"data":{"type":"photos","attributes":{"title":"Ember Hamster","src":"http://example.com/images/productivity.png"},"relationships":{"tags":{"data":null}}}}';
     private $json_relationships = [
         'photographer' => [
             'type'   => 'people',
@@ -233,6 +236,39 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
         $payload = json_decode($this->json_payload_ok, true);
         $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->json_relationships);
         $this->assertEquals([ 'photographer' => 9, 'tags' => [2, 3] ], $data['relationships']);
+        $payload_norel = json_decode($this->json_payload_ok_norel, true);
+        $this->assertEquals($payload_norel, $data['payload']);
+    }
+
+    /**
+     * NOK: INVALID clear relationships provided
+     * @expectedException Exception
+     * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_INVALID_CLEAR
+     * @expectedExceptionMessage Invalid relationship clear data: singular relationship 'photographer' expects null, got []
+     */
+    function test_extract_clear_relationship_singular_nok_json_payload() {
+        $payload = json_decode($this->json_payload_clear_rel_nok_s, true);
+        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->json_relationships);
+    }
+
+    /**
+     * NOK: INVALID clear relationships provided
+     * @expectedException Exception
+     * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_INVALID_CLEAR
+     * @expectedExceptionMessage Invalid relationship clear data: plural relationship 'tags' expects [], got null
+     */
+    function test_extract_clear_relationship_plural_nok_json_payload() {
+        $payload = json_decode($this->json_payload_clear_rel_nok_p, true);
+        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->json_relationships);
+    }
+
+    /**
+     * OK: valid clear relationships provided
+     */
+    function test_extract_clear_relationships_ok_json_payload() {
+        $payload = json_decode($this->json_payload_clear_rel_ok, true);
+        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->json_relationships);
+        $this->assertEquals([ 'photographer' => null, 'tags' => [] ], $data['relationships']);
         $payload_norel = json_decode($this->json_payload_ok_norel, true);
         $this->assertEquals($payload_norel, $data['payload']);
     }
