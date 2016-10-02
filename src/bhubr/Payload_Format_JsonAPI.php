@@ -94,8 +94,8 @@ class Payload_Format_JsonAPI implements Payload_Format_Interface {
                 
                 // ( array_key_exists('type', $relation_data) || array_key_exists('id', $relation_data) )  
             $relationships[$relation_name] = $extracted_data;
-            unset($payload['data']['relationships'][$relation_name]);
         }
+        unset($payload['data']['relationships']);
         return [
             'relationships' => $relationships,
             'payload' => $payload

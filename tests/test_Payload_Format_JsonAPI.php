@@ -176,7 +176,8 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
         $payload = $this->build_payload('dummy_type', $this->payload_ok, $this->relationships, $this->payload_rel_ok);
         $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
         $this->assertEquals($this->payload_rel_ok, $data['relationships']);
-        // $this->assertEquals($this->payload_ok, $data['payload']);
+        unset($payload['data']['relationships']);
+        $this->assertEquals($payload, $data['payload']);
     }
 
     /**
