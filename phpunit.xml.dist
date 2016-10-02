@@ -15,13 +15,16 @@
 	>
 	<testsuites>
     <testsuite>
-      <directory prefix="test_" suffix=".php">./tests/models</directory>
+      <directory prefix="test_" suffix=".php">./tests/REST</directory>
+    </testsuite>
+    <testsuite>
+      <directory prefix="test_" suffix=".php">./tests/REST/Model</directory>
     </testsuite>
 		<testsuite>
-			<directory prefix="test_" suffix=".php">./tests/payload</directory>
+			<directory prefix="test_" suffix=".php">./tests/REST/Payload</directory>
 		</testsuite>
     <testsuite>
-      <directory prefix="test_" suffix=".php">./tests/backend</directory>
+      <directory prefix="test_" suffix=".php">./tests/REST/backend</directory>
     </testsuite>
 	</testsuites>
 </phpunit>

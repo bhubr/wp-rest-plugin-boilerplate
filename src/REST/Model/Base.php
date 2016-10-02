@@ -36,7 +36,7 @@ use Underscore\Underscore as __;
 /**
  * Big rework for new version...
  */
-abstract class Base_Model {
+abstract class Base {
 
     protected static $types = [
         'post' => [],

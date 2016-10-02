@@ -1,7 +1,7 @@
 <?php
 namespace bhubr\REST\Model;
 
-class Term_Model extends Base_Model implements Model {
+class Term extends Base implements Methods {
 
     static $id_key = 'term_id';
     // Accepted fields

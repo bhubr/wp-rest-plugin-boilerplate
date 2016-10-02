@@ -3,7 +3,7 @@ namespace bhubr\REST\Model;
 
 use Underscore\Underscore as __;
 
-abstract class Model_Registry {
+abstract class Registry {
 
     protected static $registry = [];
     protected static $type_class_map = [
@@ -15,7 +15,7 @@ abstract class Model_Registry {
      * Scan the model folder to retrieve model file names
      */
     public static function get_model_files($plugin_descriptor) {
-        $models_dir  = $plugin_descriptor['models_dir'];
+        $models_dir  = $plugin_descriptor['plugin_dir'] . DIRECTORY_SEPARATOR . $plugin_descriptor['models_dir'];
         $plugin_name = $plugin_descriptor['plugin_name'];
         if (! file_exists($models_dir)) {
             throw new \Exception("Error for plugin $plugin_name: models dir $models_dir doesn't exist");
@@ -29,7 +29,10 @@ abstract class Model_Registry {
     public static function load_model_file($file, $plugin_descriptor) {
         $required_properties = ['type', 'singular', 'plural', 'name_s', 'name_p', 'fields', 'relations'];
         require_once $file;
-        $class_name = 'bhubr\\' . basename($file, '.php');
+        $class_name = $plugin_descriptor['models_namespace'] . basename($file, '.php');
+        if (! class_exists($class_name)) {
+            throw new \Exception("Could not find class class_name in $file. Check namespacing: " . $plugin_descriptor['models_namespace']);
+        }
         foreach($required_properties as $prop) {
             if(! property_exists($class_name, $prop)) {
                 throw new \Exception("Missing property $prop in $class_name");
@@ -60,7 +63,7 @@ abstract class Model_Registry {
         self::$registry[$plural_lc] = [
             'type'         => $class_name::$type,
             'singular_lc'  => $class_name::$singular,
-            'namespace'    => $plugin_descriptor['rest_root'] . '/v' . $plugin_descriptor['rest_ver'],
+            'namespace'    => $plugin_descriptor['rest_root'] . '/v' . $plugin_descriptor['rest_version'],
             'rest_type'    => $plugin_descriptor['rest_type'],
             'class'        => $class_name
         ];
@@ -95,15 +98,18 @@ abstract class Model_Registry {
     public static function register_models_to_wordpress() {
         $registry_values = collect(array_values(self::$registry));
         $types = $registry_values->groupBy('type')->toArray();
-        foreach ($types['post'] as $descriptor) {
-            Post_Model::register_model_key($descriptor['singular_lc']);
-            self::register_wp_post_type($descriptor['class']);
+        if (array_key_exists('post', $types)) {
+            foreach ($types['post'] as $descriptor) {
+                Post::register_model_key($descriptor['singular_lc']);
+                self::register_wp_post_type($descriptor['class']);
+            }
         }
-        foreach ($types['term'] as $class_name) {
-            Term_Model::register_model_key($descriptor['singular_lc']);
-            self::register_wp_post_type($descriptor['class']);
+        if (array_key_exists('term', $types)) {
+            foreach ($types['term'] as $class_name) {
+                Term::register_model_key($descriptor['singular_lc']);
+                self::register_wp_post_type($descriptor['class']);
+            }
         }
-
     }
 
     /**
@@ -122,15 +128,15 @@ abstract class Model_Registry {
             'labels' => [
                 'name'               => $name_p,
                 'singular_name'      => $name_s,
-                'add_new'            => __("Add", "bhubr-wppc"),
-                'add_new_item'       => sprintf(__("Add %s", "bhubr-wppc"), $name_s),
-                'edit_item'          => sprintf(__("Edit %s", "bhubr-wppc"), $name_s),
-                'new_item'           => sprintf(__("New %s", "bhubr-wppc"), $name_s),
-                'all_items'          => sprintf(__("All %s", "bhubr-wppc"), $name_s),
-                'view_item'          => sprintf(__("View %s", "bhubr-wppc"), $name_s),
-                'search_items'       => sprintf(__("Search %s", "bhubr-wppc"), $name_p),
-                'not_found'          => __("Not found", "bhubr-wppc"),
-                'not_found_in_trash' => __("No item found in Trash", "bhubr-wppc"),
+                'add_new'            => __("Add", "bhubr-wprbp"),
+                'add_new_item'       => sprintf(__("Add %s", "bhubr-wprbp"), $name_s),
+                'edit_item'          => sprintf(__("Edit %s", "bhubr-wprbp"), $name_s),
+                'new_item'           => sprintf(__("New %s", "bhubr-wprbp"), $name_s),
+                'all_items'          => sprintf(__("All %s", "bhubr-wprbp"), $name_s),
+                'view_item'          => sprintf(__("View %s", "bhubr-wprbp"), $name_s),
+                'search_items'       => sprintf(__("Search %s", "bhubr-wprbp"), $name_p),
+                'not_found'          => __("Not found", "bhubr-wprbp"),
+                'not_found_in_trash' => __("No item found in Trash", "bhubr-wprbp"),
                 // 'menu_name'          => "$name_s Items", "wp_{$singular_lc}_items"
             ],
             'description'   => "$name_s Items",
@@ -167,7 +173,7 @@ abstract class Model_Registry {
         $args = [
             'labels' => [
                 'name' => $name_p,
-                'add_new_item' => sprintf(__("Add %s", "bhubr-wppc"), $name_s),
+                'add_new_item' => sprintf(__("Add %s", "bhubr-wprbp"), $name_s),
             ],
             'show_ui' => true,
             'show_tagcloud' => false,

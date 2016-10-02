@@ -1,5 +1,6 @@
 <?php
 namespace bhubr\REST;
+
 require_once realpath(dirname(__FILE__) . '/../vendor/Inflect.php');
 require_once realpath(dirname(__FILE__) . '/../../vendor/autoload.php');
 
@@ -16,7 +17,7 @@ class Plugin_Boilerplate {
     public static function get_instance()
     {
         if (is_null(self::$_instance)) {
-            self::$_instance = new REST_Plugin_Boilerplate();
+            self::$_instance = new Plugin_Boilerplate();
         }
         return self::$_instance;
     }
@@ -38,14 +39,18 @@ class Plugin_Boilerplate {
     /**
      * Register a plugin
      */
-    public function register_plugin($plugin_name, $models_dir, $rest_type = Payload_Format::JSONAPI, $rest_root = 'bhubr', $rest_version = 1) {
-        $this->registered_plugins[$plugin_name] = [
-            'plugin_name' => $plugin_name,
-            'models_dir'  => $models_dir,
-            'rest_type'   => $rest_type,
-            'rest_root'   => $rest_root,
-            'rest_ver'    => $rest_version
+    public function register_plugin($plugin_name, $plugin_dir, $options = []) {
+        $default_options = [
+            'models_dir' => 'models',
+            'models_namespace' => 'bhubr\\',
+            'rest_type' => Payload\Formatter::JSONAPI,
+            'rest_root' => 'bhubr',
+            'rest_version' => 1
         ];
+        $this->registered_plugins[$plugin_name] = array_merge([
+            'plugin_name' => $plugin_name,
+            'plugin_dir'  => $plugin_dir
+        ], $default_options, $options);
     }
 
 
@@ -54,7 +59,7 @@ class Plugin_Boilerplate {
      */
     public function register_types() {
         foreach($this->registered_plugins as $plugin_name => $plugin_descriptor) {
-            Model_Registry::load_and_register_models($plugin_descriptor);
+            Model\Registry::load_and_register_models($plugin_descriptor);
         }
     }
 
@@ -64,12 +69,14 @@ class Plugin_Boilerplate {
      */
     public function load_textdomains() {
         $locale = get_locale();
-        foreach($this->registered_plugins as $plugin_name => $plugin_def) {
-            $mo_file = $this->wp_plugins_dir . "/$plugin_name/languages/{$plugin_name}-$locale.mo";
-            if (! load_textdomain( $plugin_name, $mo_file )) return false;
-        }
         $wprpb_mo_file = WPRBP_LANG_DIR . "/wprpb-$locale.mo";
         if (! load_textdomain( 'bhubr-wprbp', $wprpb_mo_file )) return false;
+        
+        foreach($this->registered_plugins as $plugin_name => $plugin_def) {
+            $plugin_dir = $plugin_def['plugin_dir'];
+            $mo_file = "$plugin_dir/languages/{$plugin_name}-$locale.mo";
+            if (! load_textdomain( $plugin_name, $mo_file )) return false;
+        }
         return true;
     }
 

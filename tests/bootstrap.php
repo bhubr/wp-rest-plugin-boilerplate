@@ -14,8 +14,8 @@ if ( ! $_tests_dir ) {
 require_once $_tests_dir . '/includes/functions.php';
 
 define('SRC_DIR', dirname( dirname( __FILE__ ) ) . '/src/REST');
-// define('VENDOR_DIR', dirname( dirname( __FILE__ ) ) . '/src/vendor');
-define('MODELS_DIR', dirname( dirname( __FILE__ ) ) . '/tests-models');
+define('MODELS_DIR', dirname( dirname( __FILE__ ) ) . '/tests-resources/models');
+define('RESOURCES_DIR', dirname( dirname( __FILE__ ) ) . '/tests-resources');
 
 /**
  * Manually load the plugin being tested.

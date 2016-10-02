@@ -40,7 +40,7 @@ class Post extends Base implements Methods {
         $registered_post_types = static::$types;
         if (array_search($post_type, $registered_post_types) === false) {
             $msg = sprintf("Unknown post type: %s (registered types: %s)", $post_type, implode(', ', $registered_post_types));
-            throw new Model_Exception($msg);
+            throw new \Exception($msg);
         }
 
         static::$type_fields = Base_Model::get_types()[$post_type];
@@ -56,13 +56,13 @@ class Post extends Base implements Methods {
         }, $taxonomies_s);
         foreach($post_fields['__meta__'] as $k => $v) {
             if (($pos_in_tax_s = array_search($k, $taxonomies_s)) !== false) {
-                if (!is_int($v)) throw new Model_Exception("Value for singular $k ID should be an integer");
+                if (!is_int($v)) throw new \Exception("Value for singular $k ID should be an integer");
                 $post_fields['__terms__'][$k] = (int)$v;
                 unset($post_fields['__meta__'][$k]);
             }
             else if (($pos_in_tax_p = array_search($k, $taxonomies_p)) !== false) {
                 $tax_name_s = $taxonomies_s[$pos_in_tax_p];
-                if (!is_array($v)) throw new Model_Exception("Value for plural $tax_name_s IDs should be an array of integers");
+                if (!is_array($v)) throw new \Exception("Value for plural $tax_name_s IDs should be an array of integers");
                 $post_fields['__terms__'][$tax_name_s] = array_map(function($v_cast) {
                     return (int)$v_cast;
                 }, $v);

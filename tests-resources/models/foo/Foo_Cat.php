@@ -1,7 +1,8 @@
 <?php
-namespace bhubr;
+namespace foo;
+use bhubr\REST\Model\Term;
 
-class Foo_Cat extends Term_Model {
+class Foo_Cat extends Term {
     static $type = 'term';
     static $post_type = 'foo';
 
