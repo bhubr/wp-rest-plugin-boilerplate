@@ -13,19 +13,20 @@ if ( ! $_tests_dir ) {
 // Give access to tests_add_filter() function.
 require_once $_tests_dir . '/includes/functions.php';
 
-define('SRC_DIR', dirname( dirname( __FILE__ ) ) . '/src/bhubr');
+define('SRC_DIR', dirname( dirname( __FILE__ ) ) . '/src/REST');
+// define('VENDOR_DIR', dirname( dirname( __FILE__ ) ) . '/src/vendor');
 define('MODELS_DIR', dirname( dirname( __FILE__ ) ) . '/tests-models');
 
 /**
  * Manually load the plugin being tested.
  */
 function _manually_load_plugin() {
-    require SRC_DIR . '/vendor/Inflect.php';
-    require SRC_DIR . '/REST_Plugin_Boilerplate.php';
-    require SRC_DIR . '/Model_Exception.php';
-	require SRC_DIR . '/Base_Model.php';
-    require SRC_DIR . '/Post_Model.php';
-    require SRC_DIR . '/Term_Model.php';
+    // require VENDOR_DIR . '/Inflect.php';
+    require SRC_DIR . '/Plugin_Boilerplate.php';
+ //    require SRC_DIR . '/Model/Exception.php';
+	// require SRC_DIR . '/Model/Base.php';
+ //    require SRC_DIR . '/Model/Post.php';
+ //    require SRC_DIR . '/Model/Term.php';
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 

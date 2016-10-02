@@ -1,9 +1,9 @@
 <?php
-namespace bhubr;
+namespace bhubr\REST\Model;
 
 use Underscore\Underscore as __;
 
-class Post_Model extends Base_Model implements Model {
+class Post extends Base implements Methods {
 
     // Name of the primary object key in Backbone.js app
     static $id_key = 'id';

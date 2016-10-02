@@ -1,7 +1,7 @@
 <?php
-namespace bhubr;
+namespace bhubr\REST\Model;
 
-interface Model {
+interface Methods {
     public static function create($payload);
     public static function _create($type, $payload);
     public static function read($object_id);

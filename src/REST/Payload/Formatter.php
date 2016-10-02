@@ -1,7 +1,7 @@
 <?php
-namespace bhubr;
+namespace bhubr\REST\Payload;
 
-class Payload_Format {
+class Formatter {
     const SIMPLE   = '_Simple';
     const JSONAPI  = '_JsonAPI';
     const JSEND    = '_JSend';
@@ -21,7 +21,7 @@ class Payload_Format {
             $msg = "Invalid payload format $payload_format. Valid formats: ";
             throw new \Exception($msg. implode(', ', $accepted_payload_formats), self::INVALID_PAYLOAD_FORMAT);
         }
-        $strategy_class = 'bhubr\Payload_Format' . $payload_format;
+        $strategy_class = 'bhubr\Formatter' . $payload_format;
         // return $strategy_class::parse($payload, $attributes_keys, $relationships_keys);
         $result_relationships = $strategy_class::extract_relationships($payload, $model_relationships);
         $result_attributes = $strategy_class::extract_attributes($result_relationships['payload'], $model_attributes);

@@ -22,7 +22,7 @@
     },
     "autoload": {
         "psr-4": {
-            "bhubr\\": "src/bhubr/"
+            "bhubr\\REST\\": "src/"
         }
     }
 }

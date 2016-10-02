@@ -1,5 +1,5 @@
 <?php
-namespace bhubr;
+namespace bhubr\REST\Model;
 
 use Underscore\Underscore as __;
 

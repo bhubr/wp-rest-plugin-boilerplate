@@ -1,5 +1,5 @@
 <?php
-namespace bhubr;
+namespace bhubr\REST\Model;
 
 class Term_Model extends Base_Model implements Model {
 

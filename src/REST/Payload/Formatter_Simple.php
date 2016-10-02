@@ -1,7 +1,7 @@
 <?php
-namespace bhubr;
+namespace bhubr\REST\Payload;
 
-class Payload_Format_Simple extends Payload_Format_Common implements Payload_Format_Interface {
+class Formatter_Simple extends Formatter_Common implements Formatter_Interface {
     public static function extract_relationships($payload, $model_relationships) {
         $relationships = [];
         foreach($model_relationships as $relationship => $descriptor) {
@@ -9,11 +9,11 @@ class Payload_Format_Simple extends Payload_Format_Common implements Payload_For
             $values = $payload[$relationship];
             if(! $descriptor['plural'] && is_array($values)) {
                 $msg = "A singular relatee id is expected for singular relationship with " . $descriptor['type'];
-                throw new \Exception($msg, Payload_Format::RELATIONSHIP_IS_SINGULAR);
+                throw new \Exception($msg, Formatter::RELATIONSHIP_IS_SINGULAR);
             }
             else if($descriptor['plural'] && ! is_array($values)) {
                 $msg = "An array of relatee ids is expected for plural relationship with " . $descriptor['type'];
-                throw new \Exception($msg, Payload_Format::RELATIONSHIP_IS_PLURAL);
+                throw new \Exception($msg, Formatter::RELATIONSHIP_IS_PLURAL);
             }
             $relationships[$relationship] = $payload[$relationship];
             unset($payload[$relationship]);
