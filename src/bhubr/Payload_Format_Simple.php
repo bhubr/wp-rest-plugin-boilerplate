@@ -1,7 +1,7 @@
 <?php
 namespace bhubr;
 
-class Payload_Format_Simple implements Payload_Format_Interface {
+class Payload_Format_Simple extends Payload_Format_Common implements Payload_Format_Interface {
     public static function extract_relationships($payload, $model_relationships) {
         $relationships = [];
         foreach($model_relationships as $relationship => $descriptor) {
@@ -24,21 +24,39 @@ class Payload_Format_Simple implements Payload_Format_Interface {
         ];
     }
 
-    public static function extract_attributes($payload, $model_attributes) {
+    public static function check_and_extract_attributes($payload, $model_attributes) {
         $attributes = [];
-        foreach($model_attributes as $attribute) {
-            if (array_key_exists($attribute, $payload)) {
-                $attributes[$attribute] = $payload[$attribute];
-                unset($payload[$attribute]);
+        $missing = [];
+        $invalid = [];
+        foreach($model_attributes as $attribute_name => $descriptor) {
+            if (! array_key_exists($attribute_name, $payload) && $descriptor['required']) {
+                $missing[] = $attribute_name;
+                continue;
+            }
+            $attribute_value = $payload[$attribute_name];
+            unset($payload[$attribute_name]);
+            if (! self::check_type($attribute_value, $descriptor['type'])) {
+                $invalid[$attribute_name] = "Invalid attribute: not of type '" . $descriptor['type'] . "'";
+            }
+            else if( array_key_exists('validator', $descriptor) &&
+                ! self::validate($attribute_value, $descriptor['validator'])
+            ) {
+                $validator = $descriptor['validator'];
+                $invalid[$attribute_name] = "Invalid attribute: did not pass validator '$validator'";
+            }
+            else {
+                $attributes[$attribute_name] = $attribute_value;    
             }
         }
         return [
             'attributes' => $attributes,
-            'unknown' => $payload
+            'missing'    => $missing,
+            'invalid'    => $invalid,
+            'unknown'    => $payload
         ];
     }
 
-    public static function parse_and_validate($payload, $model_attributes, $model_relationships) {
+    // public static function parse_and_validate($payload, $model_attributes, $model_relationships) {
         // $attributes = [];
         // $relationships = [];
         // $unknown = [];
@@ -56,5 +74,5 @@ class Payload_Format_Simple implements Payload_Format_Interface {
         //     'relationships' => $relationships,
         //     'unknown' => $unknown
         // ];
-    }
+    // }
 }

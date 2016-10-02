@@ -66,6 +66,17 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
     private $json_payload_clear_rel_ok = '{"data":{"type":"photos","attributes":{"title":"Ember Hamster","src":"http://example.com/images/productivity.png"},"relationships":{"photographer":{"data":null},"tags":{"data":[]}}}}';
     private $json_payload_clear_rel_nok_s = '{"data":{"type":"photos","attributes":{"title":"Ember Hamster","src":"http://example.com/images/productivity.png"},"relationships":{"photographer":{"data":[]}}}}';
     private $json_payload_clear_rel_nok_p = '{"data":{"type":"photos","attributes":{"title":"Ember Hamster","src":"http://example.com/images/productivity.png"},"relationships":{"tags":{"data":null}}}}';
+    private $json_attributes = [
+        'title' => [
+            'type'     => 'string',
+            'required' => true
+        ],
+        'src' => [
+            'type'      => 'string',
+            'validator' => 'url',
+            'required'  => true
+        ]
+    ];
     private $json_relationships = [
         'photographer' => [
             'type'   => 'people',

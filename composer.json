@@ -16,7 +16,8 @@
     ],
     "require": {
         "php": ">=5.4.0",
-        "anahkiasen/underscore-php": "^2.0"
+        "anahkiasen/underscore-php": "^2.0",
+        "respect/validation": "^1.1"
     },
     "autoload": {
         "psr-4": {

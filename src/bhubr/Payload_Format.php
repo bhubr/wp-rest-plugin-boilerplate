@@ -10,6 +10,7 @@ class Payload_Format {
     const RELATIONSHIP_IS_SINGULAR = 200;
     const RELATIONSHIP_IS_PLURAL   = 201;
     const RELATIONSHIP_BAD_TYPE    = 202;
+    const RELATIONSHIP_INVALID_CLEAR = 203;
 
     const JSONAPI_MISSING_DATA            = 99;
     const JSONAPI_RELATIONSHIPS_NOT_ARRAY = 98;
@@ -30,4 +31,5 @@ class Payload_Format {
             'unknown_attrs' => $result_attributes['unknown'],
         ];
     }
+
 }

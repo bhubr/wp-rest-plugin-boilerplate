@@ -1,7 +1,7 @@
 <?php
 namespace bhubr;
 
-class Payload_Format_JsonAPI implements Payload_Format_Interface {
+class Payload_Format_JsonAPI extends Payload_Format_Common implements Payload_Format_Interface {
 
     public static function fail_if_key_not_found($key, $array, $error_source, $error_code) {
         if(! array_key_exists($key, $array)) {
@@ -94,7 +94,7 @@ class Payload_Format_JsonAPI implements Payload_Format_Interface {
         ];
     }
 
-    public static function extract_attributes($payload, $model_attributes) {
+    public static function check_and_extract_attributes($payload, $model_attributes) {
 
     }
 
