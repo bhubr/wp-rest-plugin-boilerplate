@@ -10,6 +10,9 @@ class Payload_Format {
     const RELATIONSHIP_IS_SINGULAR = 200;
     const RELATIONSHIP_IS_PLURAL   = 201;
 
+    const JSONAPI_MISSING_DATA            = 99;
+    const JSONAPI_RELATIONSHIPS_NOT_ARRAY = 98;
+
     public static function parse_and_validate($payload_format, $payload, $model_attributes, $model_relationships) {
         $accepted_payload_formats = [self::SIMPLE, self::JSONAPI, self::JSEND];
         if ( array_search($payload_format, $accepted_payload_formats ) === false) {
