@@ -16,8 +16,6 @@ class Payload_Format_Common {
         if (!array_key_exists($type, $callables)) {
             throw new Exception ("No type checker for type '$type'");
         }
-        // echo "check_type for $value\n";
-        // var_dump($callables[$type]);
         return call_user_func($callables[$type], $value);
     }
 

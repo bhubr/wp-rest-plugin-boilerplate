@@ -38,6 +38,11 @@ class Test_Payload_Format_Simple extends WP_UnitTestCase {
         'dummy_str'  => [],
         'url'        => 'notanurl@gmail.com'
     ];
+    private $payload_all_errtypes = [
+        'dummy_int'  => 55,
+        'url'        => 'notanurl@gmail.com',
+        'foobar'     => 'unknown field'
+    ];
 
     private $payload_missing = [
         'url'        => 'http://www.mydomain.com/phpmyadmin/'
@@ -137,6 +142,21 @@ class Test_Payload_Format_Simple extends WP_UnitTestCase {
             'url'       => "Invalid attribute: did not pass validator 'url'"
         ], $attrs['invalid']);
         $this->assertEquals([], $attrs['unknown']);
+    }
+
+    /**
+     * Error: extract attributes - all err types
+     */
+    function test_check_extract_attrs_nok_all_err_types() {
+        $payload = array_merge($this->payload_all_errtypes, $this->payload_rel_ok);
+        $data = Payload_Format_Simple::extract_relationships($payload, $this->relationships);
+        $attrs = Payload_Format_Simple::check_and_extract_attributes($data['payload'], $this->attributes);
+        $this->assertEquals(['dummy_int' => 55], $attrs['attributes']);
+        $this->assertEquals(['dummy_str'], $attrs['missing']);
+        $this->assertEquals([
+            'url'       => "Invalid attribute: did not pass validator 'url'"
+        ], $attrs['invalid']);
+        $this->assertEquals(['foobar' => 'unknown field'], $attrs['unknown']);
     }
 
     /**
