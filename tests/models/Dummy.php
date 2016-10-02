@@ -21,7 +21,8 @@ class Dummy extends Post_Model {
         'dumbass'    => 'Dumbass:has_one',
         'dumbmanies' => 'Dumbmany:has_many',
         'dumbmany2manies' => 'Dumbmany2many:has_many',
-        'dummyterms' => 'DummyTerm:has_many'
+        'dummyterms' => 'DummyTerm:has_many',
+        // 'prout' => 'Kikou:has_many'
     ];
 
 }

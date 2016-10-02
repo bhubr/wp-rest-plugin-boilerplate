@@ -18,6 +18,7 @@ class Test_REST_Backend extends WP_UnitTestCase {
 
         do_action( 'init' );
         do_action( 'rest_api_init' );
+
     }
 
     public function tearDown() {

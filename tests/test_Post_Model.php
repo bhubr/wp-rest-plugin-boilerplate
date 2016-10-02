@@ -18,25 +18,29 @@ class Test_Post_Model extends WP_UnitTestCase {
 
     protected $rpb;
 
-    function setUp() {
-        // $plugin_descriptor = require 'plugin_descriptor.php';
-        $this->rpb = bhubr\REST_Plugin_Boilerplate::get_instance();
-        // $this->rpb->register_plugin('wprbp-test-suite', $plugin_descriptor);
-        $this->rpb->register_plugin('wprbp-test-suite', __DIR__);
-        // bhubr\Base_Model::register_type('dummy', 'Dummy', ['fields' => ['type', 'status', 'dummy_int', 'dummy_str']]);
-        // bhubr\Base_Model::register_type('dumbass', 'Dumbass', ['fields' => ['dumb_str']]);
-        // bhubr\Base_Model::register_type('dumbmany', 'Dumbmany', ['fields' => ['dumb_str']]);
-        // bhubr\Base_Model::register_type('dumbmany2many', 'Dumbmany2many', ['fields' => ['dumb_str']]);
-        do_action('init');
-        // $this->rpb->create_term_meta_tables('wprbp-test-suite');
+    protected function createAndTruncatePivotTable() {
         global $wpdb;
-        $table = $wpdb->prefix . 'rpb_many_to_many';
+        $pivot_table = $wpdb->prefix . 'rpb_many_to_many';
+        $this->rpb->create_assoc_with_meta_table('wprbp-test-suite');
 
         $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
-        $res = $mysqli->query("TRUNCATE TABLE $table");
+        $res = $mysqli->query("TRUNCATE TABLE $pivot_table");
+        if (! $res) {
+            throw new Exception("Could not empty pivot table $pivot_table\n");
+        }
     }
 
-    function tearDown() {
+    public function setUp() {
+        $this->rpb = bhubr\REST_Plugin_Boilerplate::get_instance();
+        // $plugin_descriptor = require 'plugin_descriptor.php';
+        // $this->rpb->register_plugin('wprbp-test-suite', $plugin_descriptor);
+        $this->rpb->register_plugin('wprbp-test-suite', __DIR__);
+        do_action('init');
+        $this->createAndTruncatePivotTable();
+
+    }
+
+    public function tearDown() {
         // $this->rpb->delete_term_meta_tables('wprbp-test-suite');
     }
 

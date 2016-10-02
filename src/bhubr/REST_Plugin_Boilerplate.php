@@ -26,6 +26,7 @@ class REST_Plugin_Boilerplate {
      **/
     private function __construct()
     {
+
         // $wp_plugins_dir = realpath($plugin_dir . '/..');
         // $this->wp_plugins_dir = $wp_plugins_dir;
         add_action('plugins_loaded', array(&$this, 'load_textdomains'));

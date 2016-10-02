@@ -16,7 +16,7 @@ class Payload_Format {
     const JSONAPI_RELATIONSHIPS_NOT_ARRAY = 98;
 
     public static function parse_and_validate($payload_format, $payload, $model_attributes, $model_relationships) {
-        $accepted_payload_formats = [self::SIMPLE, self::JSONAPI, self::JSEND];
+        $accepted_payload_formats = [self::SIMPLE, self::JSONAPI]; //, self::JSEND]; JSEND not implemented
         if ( array_search($payload_format, $accepted_payload_formats ) === false) {
             $msg = "Invalid payload format $payload_format. Valid formats: ";
             throw new \Exception($msg. implode(', ', $accepted_payload_formats), self::INVALID_PAYLOAD_FORMAT);

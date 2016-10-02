@@ -89,6 +89,10 @@ abstract class Base_Model {
         self::$rest_bases[] = $plural_lc;
         self::$rest_classes[$singular_lc] = $class_name;
 
+        $wp_types_kv = get_post_types(['_builtin' => true]);
+        $wp_types = array_keys($wp_types_kv);
+        if (array_search($singular_lc, $wp_types) !== false) return;
+
         register_post_type($singular_lc, $args);
     }
 
@@ -370,6 +374,7 @@ abstract class Base_Model {
             $rev_rel_class = 'bhubr\\' . $rev_desc_bits[0];
             $rev_rel_type = $rev_desc_bits[1];
         }
+        // TODO... SI rien n'a été trouvé dans le bloc d'avant (les deux if)...
         $relation_type = static::get_relation_type($this_rel_type, $rev_rel_type);
         switch($relation_type) {
             case self::RELATION_ONE_TO_ONE:

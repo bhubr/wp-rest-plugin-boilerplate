@@ -5,6 +5,13 @@
 	convertErrorsToExceptions="true"
 	convertNoticesToExceptions="true"
 	convertWarningsToExceptions="true"
+  stopOnError="true"
+  stopOnFailure="true"
+  stopOnIncomplete="true"
+  stopOnSkipped="true"
+  strict="true"
+  syntaxCheck="true"
+  verbose="true"
 	>
 	<testsuites>
 		<testsuite>
