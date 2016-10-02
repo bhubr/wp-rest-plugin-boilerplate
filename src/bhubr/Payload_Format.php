@@ -9,6 +9,7 @@ class Payload_Format {
     const INVALID_PAYLOAD_FORMAT   = 100;
     const RELATIONSHIP_IS_SINGULAR = 200;
     const RELATIONSHIP_IS_PLURAL   = 201;
+    const RELATIONSHIP_BAD_TYPE    = 202;
 
     const JSONAPI_MISSING_DATA            = 99;
     const JSONAPI_RELATIONSHIPS_NOT_ARRAY = 98;

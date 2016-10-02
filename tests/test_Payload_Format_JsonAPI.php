@@ -140,7 +140,19 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
      */
     function test_nok_relationship_expects_single_item() {
         $payload = $this->build_payload('dummy_type', $this->payload_ok, $this->relationships, $this->payload_rel_singular_nok);
-        var_dump($payload);
+        // $payload = array_merge($this->payload_ok, $this->payload_rel_plural_nok);
+        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
+    }
+
+    /**
+     * Error: bad relation type
+     * @expectedException Exception
+     * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_BAD_TYPE
+     * @expectedExceptionMessage Relationship type mismatch (exp: a_post_type, got: invalid_post_type)
+     */
+    function test_nok_relationship_single_invalid_type() {
+        $payload = $this->build_payload('dummy_type', $this->payload_ok, $this->relationships, $this->payload_rel_ok);
+        $payload['data']['relationships']['relatee']['data']['type'] = 'invalid_post_type';
         // $payload = array_merge($this->payload_ok, $this->payload_rel_plural_nok);
         $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
     }
@@ -160,12 +172,12 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
     /**
      * OK: valid relationships provided
      */
-    // function test_extract_relationships_ok() {
-    //     $payload = array_merge($this->payload_ok, $this->payload_rel_ok);
-    //     $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
-    //     $this->assertEquals($this->payload_rel_ok, $data['relationships']);
-    //     $this->assertEquals($this->payload_ok, $data['payload']);
-    // }
+    function test_extract_relationships_ok() {
+        $payload = $this->build_payload('dummy_type', $this->payload_ok, $this->relationships, $this->payload_rel_ok);
+        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
+        $this->assertEquals($this->payload_rel_ok, $data['relationships']);
+        // $this->assertEquals($this->payload_ok, $data['payload']);
+    }
 
     /**
      * Check that payload parser works
