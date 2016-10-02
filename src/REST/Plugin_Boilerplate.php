@@ -30,7 +30,7 @@ class Plugin_Boilerplate {
         add_action('plugins_loaded', array(&$this, 'load_textdomains'));
         add_action('init', array(&$this, 'register_types'));
         add_action('rest_api_init', function () {
-            $controller = new REST_Controller();
+            $controller = new Controller();
             $controller->register_routes();
         });
     }

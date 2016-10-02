@@ -2,7 +2,7 @@
 /**
  * PHPUnit bootstrap file
  *
- * @package Sandbox_Plugin
+ * @package WP_REST_Plugin_Boilerplate
  */
 
 $_tests_dir = getenv( 'WP_TESTS_DIR' );
@@ -21,12 +21,7 @@ define('RESOURCES_DIR', dirname( dirname( __FILE__ ) ) . '/tests-resources');
  * Manually load the plugin being tested.
  */
 function _manually_load_plugin() {
-    // require VENDOR_DIR . '/Inflect.php';
     require SRC_DIR . '/Plugin_Boilerplate.php';
- //    require SRC_DIR . '/Model/Exception.php';
-	// require SRC_DIR . '/Model/Base.php';
- //    require SRC_DIR . '/Model/Post.php';
- //    require SRC_DIR . '/Model/Term.php';
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 

@@ -4,7 +4,7 @@ namespace bhubr\REST;
 use bhubr\REST\Model\Registry;
 
 if ( ! class_exists( '\WP_REST_Controller' ) ) {
-  require_once dirname( __FILE__ ) . '/vendor/class-wp-rest-controller.php';
+  require_once realpath(dirname(__FILE__) . '/../vendor/class-wp-rest-controller.php');
 }
 
 class Controller extends \WP_REST_Controller {

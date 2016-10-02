@@ -11,7 +11,7 @@ use bhubr\REST\Payload\Formatter;
 /**
  * Sample test case.
  */
-class Test_Pouet extends WP_UnitTestCase {
+class Test_Plugin_Boilerplate extends WP_UnitTestCase {
     private $rbp;
 
     /**

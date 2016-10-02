@@ -157,7 +157,7 @@ abstract class Registry {
 
         $res = register_post_type($singular_lc, $args);
         // var_dump($res);
-        var_dump(get_post_types());
+        // var_dump(get_post_types());
     }
 
     public static function register_wp_taxonomy($class_name) {
