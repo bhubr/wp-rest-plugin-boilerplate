@@ -6,8 +6,8 @@
  * @package Sandbox_Plugin
  */
 
-use bhubr\Payload_Format;
-use bhubr\Payload_Format_JsonAPI;
+use bhubr\REST\Payload\Formatter;
+use bhubr\REST\Payload\Formatter_JsonAPI;
 
 /**
  * Sample test case.
@@ -119,20 +119,20 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
     /**
      * Error: invalid payload format
      * @expectedException Exception
-     * @expectedExceptionCode bhubr\Payload_Format::INVALID_PAYLOAD_FORMAT
+     * @expectedExceptionCode bhubr\REST\Payload\Formatter::INVALID_PAYLOAD_FORMAT
      */
     function test_nok_parse_invalid_payload_format() {
-        $data = Payload_Format::parse_and_validate(-1, [], [], []);
+        $data = Formatter::parse_and_validate(-1, [], [], []);
     }
 
     /**
      * Error: several items provided for a single relationship
      * @expectedException Exception
-     * @expectedExceptionCode bhubr\Payload_Format::JSONAPI_MISSING_DATA
+     * @expectedExceptionCode bhubr\REST\Payload\Formatter::JSONAPI_MISSING_DATA
      * @expectedExceptionMessage Payload missing: /data
      */
     function test_nok_payload_missing_data() {
-        $data = Payload_Format_JsonAPI::extract_relationships(['title' => 'cool'], $this->relationships);
+        $data = Formatter_JsonAPI::extract_relationships(['title' => 'cool'], $this->relationships);
     }
 
     /**
@@ -140,7 +140,7 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
      */
     function test_ok_payload_data_no_relationships() {
         $payload = ['data' => ['attributes' => ['title' => 'cool']]];
-        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
+        $data = Formatter_JsonAPI::extract_relationships($payload, $this->relationships);
         $this->assertEquals([], $data['relationships']);
         $this->assertEquals($payload, $data['payload']);
     }
@@ -148,7 +148,7 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
     /**
      * Relationships but no data
      * @expectedException Exception
-     * @expectedExceptionCode bhubr\Payload_Format::JSONAPI_MISSING_DATA
+     * @expectedExceptionCode bhubr\REST\Payload\Formatter::JSONAPI_MISSING_DATA
      * @expectedExceptionMessage Payload missing: /data/relationships/relatee/data
      */
     function test_ok_payload_data_relationship_nodata() {
@@ -160,42 +160,42 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
                 ]
             ]
         ];
-        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
+        $data = Formatter_JsonAPI::extract_relationships($payload, $this->relationships);
     }
 
     /**
      * Error: several items provided for a single relationship
      * @expectedException Exception
-     * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_IS_SINGULAR
+     * @expectedExceptionCode bhubr\REST\Payload\Formatter::RELATIONSHIP_IS_SINGULAR
      */
     function test_nok_relationship_expects_single_item() {
         $payload = $this->build_payload('dummy_type', $this->payload_ok, $this->relationships, $this->payload_rel_singular_nok);
         // $payload = array_merge($this->payload_ok, $this->payload_rel_plural_nok);
-        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
+        $data = Formatter_JsonAPI::extract_relationships($payload, $this->relationships);
     }
 
     /**
      * Error: bad relation type
      * @expectedException Exception
-     * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_BAD_TYPE
+     * @expectedExceptionCode bhubr\REST\Payload\Formatter::RELATIONSHIP_BAD_TYPE
      * @expectedExceptionMessage Relationship type mismatch (exp: a_post_type, got: invalid_post_type)
      */
     function test_nok_relationship_single_invalid_type() {
         $payload = $this->build_payload('dummy_type', $this->payload_ok, $this->relationships, $this->payload_rel_ok);
         $payload['data']['relationships']['relatee']['data']['type'] = 'invalid_post_type';
         // $payload = array_merge($this->payload_ok, $this->payload_rel_plural_nok);
-        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
+        $data = Formatter_JsonAPI::extract_relationships($payload, $this->relationships);
     }
 
     /**
      * Error: several items provided for a single relationship
      * @expectedException Exception
-     * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_IS_PLURAL
+     * @expectedExceptionCode bhubr\REST\Payload\Formatter::RELATIONSHIP_IS_PLURAL
      */
     function test_nok_relationship_expects_several_items() {
         $payload = $this->build_payload('dummy_type', $this->payload_ok, $this->relationships, $this->payload_rel_plural_nok);
         // $payload = array_merge($this->payload_ok, $this->payload_rel_plural_nok);
-        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
+        $data = Formatter_JsonAPI::extract_relationships($payload, $this->relationships);
     }
 
     /**
@@ -203,7 +203,7 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
      */
     function test_extract_relationships_ok_built_payload() {
         $payload = $this->build_payload('dummy_type', $this->payload_ok, $this->relationships, $this->payload_rel_ok);
-        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->relationships);
+        $data = Formatter_JsonAPI::extract_relationships($payload, $this->relationships);
         $this->assertEquals($this->payload_rel_ok, $data['relationships']);
         unset($payload['data']['relationships']);
         $this->assertEquals($payload, $data['payload']);
@@ -212,32 +212,32 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
     /**
      * Error: several items provided for a single relationship
      * @expectedException Exception
-     * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_IS_SINGULAR
+     * @expectedExceptionCode bhubr\REST\Payload\Formatter::RELATIONSHIP_IS_SINGULAR
      */
     function test_nok_json_relationship_expects_single_item() {
         $payload = json_decode($this->json_payload_rel_s_nok_num, true);
-        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->json_relationships);
+        $data = Formatter_JsonAPI::extract_relationships($payload, $this->json_relationships);
     }
 
     /**
      * Error: several items provided for a single relationship
      * @expectedException Exception
-     * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_IS_PLURAL
+     * @expectedExceptionCode bhubr\REST\Payload\Formatter::RELATIONSHIP_IS_PLURAL
      */
     function test_nok_json_relationship_expects_several_items() {
         $payload = json_decode($this->json_payload_rel_p_nok_num, true);
-        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->json_relationships);
+        $data = Formatter_JsonAPI::extract_relationships($payload, $this->json_relationships);
     }
 
     /**
      * Error: bad relation type
      * @expectedException Exception
-     * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_BAD_TYPE
+     * @expectedExceptionCode bhubr\REST\Payload\Formatter::RELATIONSHIP_BAD_TYPE
      * @expectedExceptionMessage Relationship type mismatch (exp: people, got: peeepl)
      */
     function test_nok_json_relationship_single_invalid_type() {
         $payload = json_decode($this->json_payload_rel_s_nok_type, true);
-        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->json_relationships);
+        $data = Formatter_JsonAPI::extract_relationships($payload, $this->json_relationships);
     }
 
     /**
@@ -245,7 +245,7 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
      */
     function test_extract_relationships_ok_json_payload() {
         $payload = json_decode($this->json_payload_ok, true);
-        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->json_relationships);
+        $data = Formatter_JsonAPI::extract_relationships($payload, $this->json_relationships);
         $this->assertEquals([ 'photographer' => 9, 'tags' => [2, 3] ], $data['relationships']);
         $payload_norel = json_decode($this->json_payload_ok_norel, true);
         $this->assertEquals($payload_norel, $data['payload']);
@@ -254,23 +254,23 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
     /**
      * NOK: INVALID clear relationships provided
      * @expectedException Exception
-     * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_INVALID_CLEAR
+     * @expectedExceptionCode bhubr\REST\Payload\Formatter::RELATIONSHIP_INVALID_CLEAR
      * @expectedExceptionMessage Invalid relationship clear data: singular relationship 'photographer' expects null, got []
      */
     function test_extract_clear_relationship_singular_nok_json_payload() {
         $payload = json_decode($this->json_payload_clear_rel_nok_s, true);
-        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->json_relationships);
+        $data = Formatter_JsonAPI::extract_relationships($payload, $this->json_relationships);
     }
 
     /**
      * NOK: INVALID clear relationships provided
      * @expectedException Exception
-     * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_INVALID_CLEAR
+     * @expectedExceptionCode bhubr\REST\Payload\Formatter::RELATIONSHIP_INVALID_CLEAR
      * @expectedExceptionMessage Invalid relationship clear data: plural relationship 'tags' expects [], got null
      */
     function test_extract_clear_relationship_plural_nok_json_payload() {
         $payload = json_decode($this->json_payload_clear_rel_nok_p, true);
-        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->json_relationships);
+        $data = Formatter_JsonAPI::extract_relationships($payload, $this->json_relationships);
     }
 
     /**
@@ -278,7 +278,7 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
      */
     function test_extract_clear_relationships_ok_json_payload() {
         $payload = json_decode($this->json_payload_clear_rel_ok, true);
-        $data = Payload_Format_JsonAPI::extract_relationships($payload, $this->json_relationships);
+        $data = Formatter_JsonAPI::extract_relationships($payload, $this->json_relationships);
         $this->assertEquals([ 'photographer' => null, 'tags' => [] ], $data['relationships']);
         $payload_norel = json_decode($this->json_payload_ok_norel, true);
         $this->assertEquals($payload_norel, $data['payload']);
@@ -289,7 +289,7 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
      */
     function test_parse_basic() {
 
-        // $data = Payload_Format::parse_and_validate(Payload_Format::SIMPLE, $payload, $attributes_keys, $relationships_keys);
+        // $data = Formatter::parse_and_validate(Formatter::SIMPLE, $payload, $attributes_keys, $relationships_keys);
         // var_dump($data);
         // $this->assertEquals(['dummy_int' => '1', 'dummy_str' => 'Hello guys'], $data['attributes']);
         // $this->assertEquals(['relatee' => 1, 'affiliates' => [2, 3]], $data['relationships']);

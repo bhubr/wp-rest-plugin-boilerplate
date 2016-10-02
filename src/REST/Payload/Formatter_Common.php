@@ -11,7 +11,7 @@ class Formatter_Common {
     public static function check_type($value, $type) {
         $callables = [
             'integer' => 'is_int',
-            'string'  => ['bhubr\Formatter_Common', 'can_be_string']
+            'string'  => ['bhubr\REST\Payload\Formatter_Common', 'can_be_string']
         ];
         if (!array_key_exists($type, $callables)) {
             throw new Exception ("No type checker for type '$type'");

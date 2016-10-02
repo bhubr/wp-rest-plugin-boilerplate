@@ -6,8 +6,8 @@
  * @package Sandbox_Plugin
  */
 
-use bhubr\Payload_Format;
-use bhubr\Payload_Format_Simple;
+use bhubr\REST\Payload\Formatter;
+use bhubr\REST\Payload\Formatter_Simple;
 
 /**
  * Sample test case.
@@ -78,30 +78,30 @@ class Test_Payload_Format_Simple extends WP_UnitTestCase {
     /**
      * Error: invalid payload format
      * @expectedException Exception
-     * @expectedExceptionCode bhubr\Payload_Format::INVALID_PAYLOAD_FORMAT
+     * @expectedExceptionCode bhubr\REST\Payload\Formatter::INVALID_PAYLOAD_FORMAT
      */
     function test_nok_parse_invalid_payload_format() {
-        $data = Payload_Format::parse_and_validate(-1, [], [], []);
+        $data = Formatter::parse_and_validate(-1, [], [], []);
     }
 
     /**
      * Error: several items provided for a single relationship
      * @expectedException Exception
-     * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_IS_SINGULAR
+     * @expectedExceptionCode bhubr\REST\Payload\Formatter::RELATIONSHIP_IS_SINGULAR
      */
     function test_nok_relationship_expects_single_item() {
         $payload = array_merge($this->payload_ok, $this->payload_rel_singular_nok);
-        $data = Payload_Format_Simple::extract_relationships($payload, $this->relationships);
+        $data = Formatter_Simple::extract_relationships($payload, $this->relationships);
     }
 
     /**
      * Error: several items provided for a single relationship
      * @expectedException Exception
-     * @expectedExceptionCode bhubr\Payload_Format::RELATIONSHIP_IS_PLURAL
+     * @expectedExceptionCode bhubr\REST\Payload\Formatter::RELATIONSHIP_IS_PLURAL
      */
     function test_nok_relationship_expects_several_items() {
         $payload = array_merge($this->payload_ok, $this->payload_rel_plural_nok);
-        $data = Payload_Format_Simple::extract_relationships($payload, $this->relationships);
+        $data = Formatter_Simple::extract_relationships($payload, $this->relationships);
     }
 
     /**
@@ -109,7 +109,7 @@ class Test_Payload_Format_Simple extends WP_UnitTestCase {
      */
     function test_extract_relationships_ok() {
         $payload = array_merge($this->payload_ok, $this->payload_rel_ok);
-        $data = Payload_Format_Simple::extract_relationships($payload, $this->relationships);
+        $data = Formatter_Simple::extract_relationships($payload, $this->relationships);
         $this->assertEquals($this->payload_rel_ok, $data['relationships']);
         $this->assertEquals($this->payload_ok, $data['payload']);
     }
@@ -119,8 +119,8 @@ class Test_Payload_Format_Simple extends WP_UnitTestCase {
      */
     function test_check_extract_attrs_nok_missing() {
         $payload = array_merge($this->payload_missing, $this->payload_rel_ok);
-        $data = Payload_Format_Simple::extract_relationships($payload, $this->relationships);
-        $attrs = Payload_Format_Simple::check_and_extract_attributes($data['payload'], $this->attributes);
+        $data = Formatter_Simple::extract_relationships($payload, $this->relationships);
+        $attrs = Formatter_Simple::check_and_extract_attributes($data['payload'], $this->attributes);
         $this->assertEquals($this->payload_missing, $attrs['attributes']);
         $this->assertEquals(['dummy_int', 'dummy_str'], $attrs['missing']);
         $this->assertEquals([], $attrs['invalid']);
@@ -132,8 +132,8 @@ class Test_Payload_Format_Simple extends WP_UnitTestCase {
      */
     function test_check_extract_attrs_nok_invalid() {
         $payload = array_merge($this->payload_invalid, $this->payload_rel_ok);
-        $data = Payload_Format_Simple::extract_relationships($payload, $this->relationships);
-        $attrs = Payload_Format_Simple::check_and_extract_attributes($data['payload'], $this->attributes);
+        $data = Formatter_Simple::extract_relationships($payload, $this->relationships);
+        $attrs = Formatter_Simple::check_and_extract_attributes($data['payload'], $this->attributes);
         $this->assertEquals([], $attrs['attributes']);
         $this->assertEquals([], $attrs['missing']);
         $this->assertEquals([
@@ -149,8 +149,8 @@ class Test_Payload_Format_Simple extends WP_UnitTestCase {
      */
     function test_check_extract_attrs_nok_all_err_types() {
         $payload = array_merge($this->payload_all_errtypes, $this->payload_rel_ok);
-        $data = Payload_Format_Simple::extract_relationships($payload, $this->relationships);
-        $attrs = Payload_Format_Simple::check_and_extract_attributes($data['payload'], $this->attributes);
+        $data = Formatter_Simple::extract_relationships($payload, $this->relationships);
+        $attrs = Formatter_Simple::check_and_extract_attributes($data['payload'], $this->attributes);
         $this->assertEquals(['dummy_int' => 55], $attrs['attributes']);
         $this->assertEquals(['dummy_str'], $attrs['missing']);
         $this->assertEquals([
@@ -164,8 +164,8 @@ class Test_Payload_Format_Simple extends WP_UnitTestCase {
      */
     function test_check_extract_attrs_ok() {
         $payload = array_merge($this->payload_ok, $this->payload_rel_ok);
-        $data = Payload_Format_Simple::extract_relationships($payload, $this->relationships);
-        $attrs = Payload_Format_Simple::check_and_extract_attributes($data['payload'], $this->attributes);
+        $data = Formatter_Simple::extract_relationships($payload, $this->relationships);
+        $attrs = Formatter_Simple::check_and_extract_attributes($data['payload'], $this->attributes);
         $this->assertEquals($this->payload_ok, $attrs['attributes']);
         $this->assertEquals([], $attrs['unknown']);
     }
