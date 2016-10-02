@@ -31,10 +31,12 @@ class Test_Post_Model extends WP_UnitTestCase {
     }
 
     public function setUp() {
+        parent::setUp();
         $this->rpb = bhubr\REST_Plugin_Boilerplate::get_instance();
         // $plugin_descriptor = require 'plugin_descriptor.php';
         // $this->rpb->register_plugin('wprbp-test-suite', $plugin_descriptor);
-        $this->rpb->register_plugin('wprbp-test-suite', __DIR__);
+        $this->rpb->register_plugin('wprbp-test-foo', MODELS_DIR . '/foo');
+        $this->rpb->register_plugin('wprbp-test-dummy', MODELS_DIR . '/dummy');
         do_action('init');
         $this->createAndTruncatePivotTable();
 
@@ -128,7 +130,6 @@ class Test_Post_Model extends WP_UnitTestCase {
 
         $all_models = bhubr\Post_Model::_read_all('foo');
         $this->assertEquals([
-            ['id' => 3, 'name' => 'Pouet 1', 'slug' => 'pouet-1', 'baz' => 'poop', 'bee' => 'poy', 'boo' => 'yap', 'foo_cat' => null, 'foo_tags' => []],
             ['id' => 5, 'name' => 'Foo Biz', 'slug' => 'foo-biz', 'foo_cat' => $cat1['id'], 'foo_tags' => [$tag2['id'], $tag1['id']]],
             ['id' => 6, 'name' => 'Foo Bar', 'slug' => 'foo-bar', 'foo_cat' => $cat2['id'], 'foo_tags' => [$tag2['id']]],
             ['id' => 7, 'name' => 'Foo Woo', 'slug' => 'foo-woo', 'foo_cat' => $cat2['id'], 'foo_tags' => [$tag3['id']]],

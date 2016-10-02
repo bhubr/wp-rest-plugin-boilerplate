@@ -14,6 +14,8 @@ if ( ! $_tests_dir ) {
 require_once $_tests_dir . '/includes/functions.php';
 
 define('SRC_DIR', dirname( dirname( __FILE__ ) ) . '/src/bhubr');
+define('MODELS_DIR', dirname( dirname( __FILE__ ) ) . '/tests-models');
+
 /**
  * Manually load the plugin being tested.
  */

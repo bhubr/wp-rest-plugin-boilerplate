@@ -13,7 +13,8 @@ class Test_Base_Model extends WP_UnitTestCase {
 
     function setUp() {
         $this->rpb = bhubr\REST_Plugin_Boilerplate::get_instance();
-        $this->rpb->register_plugin('wprbp-test-suite', __DIR__);
+        $this->rpb->register_plugin('wprbp-test-foo', MODELS_DIR . '/foo');
+        // $this->rpb->register_plugin('wprbp-test-dummy', MODELS_DIR . '/dummy');
         do_action('init');
     }
 
@@ -25,10 +26,10 @@ class Test_Base_Model extends WP_UnitTestCase {
         $all_types = array_merge(
             $builtin_types,
             [
-              'dumbass'       => 'dumbass',
-              'dumbmany'      => 'dumbmany',
-              'dumbmany2many' => 'dumbmany2many',
-              'dummy'         => 'dummy',
+              // 'dumbass'       => 'dumbass',
+              // 'dumbmany'      => 'dumbmany',
+              // 'dumbmany2many' => 'dumbmany2many',
+              // 'dummy'         => 'dummy',
               'foo'           => 'foo',
             ]
         );
@@ -44,13 +45,12 @@ class Test_Base_Model extends WP_UnitTestCase {
         $all_taxos = array_merge(
             $builtin_taxonomies,
             [
-                'dummyterm'    => 'dummyterm',
                 'foo_cat'      => 'foo_cat',
                 'foo_tag'      => 'foo_tag',
-                'termany'      => 'termany',
-                'termany2many' => 'termany2many',
-                'termone'      => 'termone',
-
+                // 'dummyterm'    => 'dummyterm',
+                // 'termany'      => 'termany',
+                // 'termany2many' => 'termany2many',
+                // 'termone'      => 'termone',
             ]
         );
         $this->assertEquals( $all_taxos, get_taxonomies() );

@@ -26,9 +26,6 @@ class REST_Plugin_Boilerplate {
      **/
     private function __construct()
     {
-
-        // $wp_plugins_dir = realpath($plugin_dir . '/..');
-        // $this->wp_plugins_dir = $wp_plugins_dir;
         add_action('plugins_loaded', array(&$this, 'load_textdomains'));
         add_action('init', array(&$this, 'register_types'));
         add_action('rest_api_init', function () {
@@ -41,10 +38,13 @@ class REST_Plugin_Boilerplate {
     /**
      * Register a plugin
      */
-    public function register_plugin($plugin_name, $plugin_dir) {
-        // The old way... see register_types()
-        // $this->registered_plugins[$plugin_name] = $plugin_def;
-        $this->registered_plugins[$plugin_name] = $plugin_dir;
+    public function register_plugin($plugin_name, $models_dir, $rest_type = Payload_Format::JSONAPI, $rest_root = 'bhubr', $rest_version = 1) {
+        $this->registered_plugins[$plugin_name] = [
+            'models_dir' => $models_dir,
+            'rest_type'  => $rest_type,
+            'rest_root'  => $rest_root,
+            'rest_ver'   => $rest_version
+        ];
     }
 
 
@@ -52,23 +52,12 @@ class REST_Plugin_Boilerplate {
      * Register custom post types
      */
     public function register_types() {
-        // The old way. Keep it for now...
-        //foreach($this->registered_plugins as $plugin_name => $plugin_def) {
-        //    foreach($plugin_def['types'] as $name_slc => $type_def) {
-        //        $name_s = __($type_def['name_s'], $plugin_name);
-        //        Base_Model::register_type($name_slc, $name_s, $type_def);
-        //        foreach($type_def['taxonomies'] as $tax_name_slc => $tax_def) {
-        //            Base_Model::register_taxonomy($tax_name_slc, $tax_def['name_s'], $name_slc, $tax_def['fields']);
-        //         }
-        //     }
-        //}
-
         $models = [
             'post' => [],
             'term' => []
         ];
-        foreach($this->registered_plugins as $plugin_name => $plugin_dir) {
-            $models_dir = "$plugin_dir/models";
+        foreach($this->registered_plugins as $plugin_name => $plugin_descriptor) {
+            $models_dir = $plugin_descriptor['models_dir'];
             if (! file_exists($models_dir)) {
                 throw new \Exception("Error for plugin $plugin_name: models dir $models_dir doesn't exist");
             }
@@ -79,13 +68,6 @@ class REST_Plugin_Boilerplate {
                 $class_name = 'bhubr\\' . basename($file, '.php');
                 $name_slc = $class_name::$singular;
                 $models[$class_name::$type][] = $class_name;
-                // $models[$class_name::$type][$name_slc] = [
-                //     'name_s' => $class_name::$name_s,
-                //     'fields' => $class_name::$fields
-                // ];
-                // if ($class_name::$type === 'term') {
-                //     $models[$class_name::$type][$name_slc]['post_type'] = ::$post_type;
-                // }
             }
         }
         foreach ($models['post'] as $class_name) {

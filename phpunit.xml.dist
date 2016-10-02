@@ -14,8 +14,14 @@
   verbose="true"
 	>
 	<testsuites>
+    <testsuite>
+      <directory prefix="test_" suffix=".php">./tests/models</directory>
+    </testsuite>
 		<testsuite>
-			<directory prefix="test_" suffix=".php">./tests/</directory>
+			<directory prefix="test_" suffix=".php">./tests/payload</directory>
 		</testsuite>
+    <testsuite>
+      <directory prefix="test_" suffix=".php">./tests/backend</directory>
+    </testsuite>
 	</testsuites>
 </phpunit>
