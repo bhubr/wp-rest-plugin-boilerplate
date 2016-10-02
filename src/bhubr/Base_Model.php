@@ -55,46 +55,46 @@ abstract class Base_Model {
 
     static $cache = [];
 
-    public static function register_type($class_name) {
-        $singular_lc = $class_name::$singular;
-        $name_s      = $class_name::$name_s;
-        $fields      = array_keys($class_name::$fields);
+    // public static function register_type($class_name) {
+    //     $singular_lc = $class_name::$singular;
+    //     $name_s      = $class_name::$name_s;
+    //     $fields      = array_keys($class_name::$fields);
 
-        $name = \Inflect::pluralize($name_s);
-        $plural_lc = \Inflect::pluralize($singular_lc);
-        $args = [
-            'name' => $name,
-            'labels' => [
-                'name'               => $name,
-                'singular_name'      => $name_s,
-                'add_new'            => __("Add", "bhubr-wppc"),
-                'add_new_item'       => sprintf(__("Add %s", "bhubr-wppc"), $name_s),
-                'edit_item'          => sprintf(__("Edit %s", "bhubr-wppc"), $name_s),
-                'new_item'           => sprintf(__("New %s", "bhubr-wppc"), $name_s),
-                'all_items'          => sprintf(__("All %s", "bhubr-wppc"), $name_s),
-                'view_item'          => sprintf(__("View %s", "bhubr-wppc"), $name_s),
-                'search_items'       => sprintf(__("Search %s", "bhubr-wppc"), $name),
-                'not_found'          => __("Not found", "bhubr-wppc"),
-                'not_found_in_trash' => __("No item found in Trash", "bhubr-wppc"),
-                // 'menu_name'          => "$name_s Items", "wp_{$singular_lc}_items"
-            ],
-            'description'   => "$name_s Items",
-            'public'        => true,
-            'menu_position' => self::$menu_pos++,
-            'supports'      => ['title', 'editor', 'thumbnail'],
-            'exclude_from_search' => true
-        ];
+    //     $name = \Inflect::pluralize($name_s);
+    //     $plural_lc = \Inflect::pluralize($singular_lc);
+    //     $args = [
+    //         'name' => $name,
+    //         'labels' => [
+    //             'name'               => $name,
+    //             'singular_name'      => $name_s,
+    //             'add_new'            => __("Add", "bhubr-wppc"),
+    //             'add_new_item'       => sprintf(__("Add %s", "bhubr-wppc"), $name_s),
+    //             'edit_item'          => sprintf(__("Edit %s", "bhubr-wppc"), $name_s),
+    //             'new_item'           => sprintf(__("New %s", "bhubr-wppc"), $name_s),
+    //             'all_items'          => sprintf(__("All %s", "bhubr-wppc"), $name_s),
+    //             'view_item'          => sprintf(__("View %s", "bhubr-wppc"), $name_s),
+    //             'search_items'       => sprintf(__("Search %s", "bhubr-wppc"), $name),
+    //             'not_found'          => __("Not found", "bhubr-wppc"),
+    //             'not_found_in_trash' => __("No item found in Trash", "bhubr-wppc"),
+    //             // 'menu_name'          => "$name_s Items", "wp_{$singular_lc}_items"
+    //         ],
+    //         'description'   => "$name_s Items",
+    //         'public'        => true,
+    //         'menu_position' => self::$menu_pos++,
+    //         'supports'      => ['title', 'editor', 'thumbnail'],
+    //         'exclude_from_search' => true
+    //     ];
 
-        self::$types['post'][$singular_lc] = $fields; 
-        self::$rest_bases[] = $plural_lc;
-        self::$rest_classes[$singular_lc] = $class_name;
+    //     self::$types['post'][$singular_lc] = $fields; 
+    //     self::$rest_bases[] = $plural_lc;
+    //     self::$rest_classes[$singular_lc] = $class_name;
 
-        $wp_types_kv = get_post_types(['_builtin' => true]);
-        $wp_types = array_keys($wp_types_kv);
-        if (array_search($singular_lc, $wp_types) !== false) return;
+    //     $wp_types_kv = get_post_types(); //['_builtin' => true]);
+    //     $wp_types = array_keys($wp_types_kv);
+    //     if (array_search($singular_lc, $wp_types) !== false) return;
 
-        register_post_type($singular_lc, $args);
-    }
+    //     register_post_type($singular_lc, $args);
+    // }
 
     public static function register_taxonomy($class_name) {
         $type_lc     = $class_name::$post_type;
@@ -121,47 +121,51 @@ abstract class Base_Model {
         register_taxonomy( $singular_lc, $type_lc, $args );
     }
 
-    protected $object_id = null;
-    protected $data;
-    static $map_fields;
-    static $required_fields;
-    //static $extra_fields = null;
-    static $skip_fields = array();
+    // protected $object_id = null;
+    // protected $data;
+    // static $map_fields;
+    // static $required_fields;
+    // //static $extra_fields = null;
+    // static $skip_fields = array();
 
-    public static function get_types() {
-        return self::$types['post'];
-    }
+    // public static function get_types() {
+    //     return self::$types['post'];
+    // }
 
-    public static function get_type_keys() {
-        return array_keys(self::$types['post']);
-    }
+    // public static function get_type_keys() {
+    //     return array_keys(self::$types['post']);
+    // }
 
-    public static function get_taxonomies() {
-        return self::$types['taxonomy'];
-    }
+    // public static function get_taxonomies() {
+    //     return self::$types['taxonomy'];
+    // }
 
-    public static function get_taxonomy_keys() {
-        return array_keys(self::$types['taxonomy']);
-    }
+    // public static function get_taxonomy_keys() {
+    //     return array_keys(self::$types['taxonomy']);
+    // }
 
-    public static function get_rest_bases() {
-        return self::$rest_bases;
-    }
+    // public static function get_rest_bases() {
+    //     return self::$rest_bases;
+    // }
 
-    public static function get_rest_route_class($singular_lc) {
-        return self::$rest_classes[$singular_lc];
+    // public static function get_rest_route_class($singular_lc) {
+    //     return self::$rest_classes[$singular_lc];
+    // }
+
+    public static function register_model_key($type_singular_lc) {
+        static::$types[] = $type_singular_lc;
     }
 
 
     /**
      * Get a data field
      */
-    public function get( $data_field ) {
-        if( array_key_exists($data_field, $this->data)) {
-            return $this->data[$data_field];
-        }
-        else throw new Exception("field $data_field does not exist");
-    }
+    // public function get( $data_field ) {
+    //     if( array_key_exists($data_field, $this->data)) {
+    //         return $this->data[$data_field];
+    //     }
+    //     else throw new Exception("field $data_field does not exist");
+    // }
 
     /**
      * Return as JSON

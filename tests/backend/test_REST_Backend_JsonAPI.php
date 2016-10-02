@@ -36,6 +36,7 @@ class Test_REST_Backend_JsonAPI extends WP_UnitTestCase {
         $this->server = $wp_rest_server = new WP_REST_Server;
 
         $this->rpb = bhubr\REST_Plugin_Boilerplate::get_instance();
+        $this->rpb->register_plugin('wprbp-test-foo', MODELS_DIR . '/foo');
         $this->rpb->register_plugin('wprbp-test-json-api', MODELS_DIR . '/json-api', Payload_Format::JSONAPI);
 
         do_action( 'init' );

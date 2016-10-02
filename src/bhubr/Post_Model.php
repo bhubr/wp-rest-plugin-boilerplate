@@ -37,7 +37,7 @@ class Post_Model extends Base_Model implements Model {
     }
 
     public static function init( $post_type ) {
-        $registered_post_types = self::get_type_keys();
+        $registered_post_types = static::$types;
         if (array_search($post_type, $registered_post_types) === false) {
             $msg = sprintf("Unknown post type: %s (registered types: %s)", $post_type, implode(', ', $registered_post_types));
             throw new Model_Exception($msg);

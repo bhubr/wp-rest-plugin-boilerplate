@@ -40,10 +40,11 @@ class REST_Plugin_Boilerplate {
      */
     public function register_plugin($plugin_name, $models_dir, $rest_type = Payload_Format::JSONAPI, $rest_root = 'bhubr', $rest_version = 1) {
         $this->registered_plugins[$plugin_name] = [
-            'models_dir' => $models_dir,
-            'rest_type'  => $rest_type,
-            'rest_root'  => $rest_root,
-            'rest_ver'   => $rest_version
+            'plugin_name' => $plugin_name,
+            'models_dir'  => $models_dir,
+            'rest_type'   => $rest_type,
+            'rest_root'   => $rest_root,
+            'rest_ver'    => $rest_version
         ];
     }
 
@@ -52,29 +53,8 @@ class REST_Plugin_Boilerplate {
      * Register custom post types
      */
     public function register_types() {
-        $models = [
-            'post' => [],
-            'term' => []
-        ];
         foreach($this->registered_plugins as $plugin_name => $plugin_descriptor) {
-            $models_dir = $plugin_descriptor['models_dir'];
-            if (! file_exists($models_dir)) {
-                throw new \Exception("Error for plugin $plugin_name: models dir $models_dir doesn't exist");
-            }
-            $model_files = glob("$models_dir/*.php");
-
-            foreach($model_files as $file) {
-                require_once $file;
-                $class_name = 'bhubr\\' . basename($file, '.php');
-                $name_slc = $class_name::$singular;
-                $models[$class_name::$type][] = $class_name;
-            }
-        }
-        foreach ($models['post'] as $class_name) {
-            Base_Model::register_type($class_name);
-        }
-        foreach ($models['term'] as $class_name) {
-            Base_Model::register_taxonomy($class_name);
+            Model_Registry::load_and_register_models($plugin_descriptor);
         }
     }
 
