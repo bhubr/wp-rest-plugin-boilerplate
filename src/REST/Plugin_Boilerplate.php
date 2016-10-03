@@ -2,7 +2,9 @@
 namespace bhubr\REST;
 
 require_once realpath(dirname(__FILE__) . '/../vendor/Inflect.php');
-require_once realpath(dirname(__FILE__) . '/../../vendor/autoload.php');
+if($local_autoload = realpath(dirname(__FILE__) . '/../../vendor/autoload.php')) {
+    require_once $local_autoload;
+}
 
 define('WPRBP_LANG_DIR', realpath(__DIR__ . '/../../languages'));
 
