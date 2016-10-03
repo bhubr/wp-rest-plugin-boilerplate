@@ -35,7 +35,30 @@ class Test_Controller extends WP_UnitTestCase {
     function test_wp_rest_server_routes() {
         global $wp_rest_server;
         $routes = $wp_rest_server->get_routes();
-        var_dump(array_keys($routes));
+        $keys = array_keys($routes);
+        
+        $expected = [
+            '/',
+            '/oembed/1.0',
+            '/oembed/1.0/embed',
+            '/bhubr/v1',
+            '/bhubr/v1/foos',
+            '/bhubr/v1/foos/(?P<id>[\d]+)',
+            '/bhubr/v1/foos/(?P<id>[\d]+)/foo_cats',
+            '/bhubr/v1/foos/(?P<id>[\d]+)/foo_tags',
+            '/bhubr/v1/foos/schema',
+            '/bhubr/v1/foo_cats',
+            '/bhubr/v1/foo_cats/(?P<id>[\d]+)',
+            '/bhubr/v1/foo_cats/schema',
+            '/bhubr/v1/foo_tags',
+            '/bhubr/v1/foo_tags/(?P<id>[\d]+)',
+            '/bhubr/v1/foo_tags/schema',
+        ];
+        $this->assertEquals($expected, $keys);
+
+            
+        
+
     }
 
 }

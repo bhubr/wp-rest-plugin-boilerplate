@@ -7,15 +7,12 @@ if ( ! class_exists( '\WP_REST_Controller' ) ) {
   require_once realpath(dirname(__FILE__) . '/../vendor/class-wp-rest-controller.php');
 }
 
-class Controller extends \WP_REST_Controller {
-  protected $bases = [];
+// class Route_Descriptor {
+//     public $plural;
+//     public
+// }
 
-  /**
-   * Set base routes for each types
-   */
-  // public function set_bases($bases) {
-  //   $this->bases = $bases;
-  // }
+class Controller extends \WP_REST_Controller {
 
   /**
    * Register the routes for the objects of the controller.

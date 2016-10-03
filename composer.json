@@ -21,6 +21,9 @@
         "tightenco/collect": "^5.3"
     },
     "autoload": {
+        "files": [
+            "src/REST/Utils/helpers.php"
+        ],
         "psr-4": {
             "bhubr\\REST\\": "src/REST"
         }

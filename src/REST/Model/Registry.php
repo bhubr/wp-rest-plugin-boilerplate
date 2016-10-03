@@ -1,25 +1,51 @@
 <?php
 namespace bhubr\REST\Model;
 
-use Underscore\Underscore as __;
-
-abstract class Registry {
+class Registry {
 
     /**
      * Holds information on each model
      */
-    protected static $registry = [];
+    protected $registry = [];
 
-    protected static $type_class_map = [
+    protected $type_class_map = [
         'post' => 'bhubr\Post_Model',
         'term' => 'bhubr\Term_Model'
     ];
+
+    /**
+     * Class instance
+     */
+    private static $_instance;
+
+    /**
+     * Get unique class instance
+     */
+    protected function get_instance()
+    {
+        if (is_null(self::$_instance)) {
+            self::$_instance = new Registry();
+        }
+        return self::$_instance;
+    }
+
+
+    /**
+     * Load then register models
+     */
+    public function load_and_register_models($plugin_descriptor) {
+        $model_files = $this->get_model_files($plugin_descriptor);
+        foreach($model_files as $file) {
+            $this->load_model_file($file, $plugin_descriptor);
+        }
+        $this->register_models_to_wordpress();
+    }
 
 
     /**
      * Scan the model folder to retrieve model file names
      */
-    public static function get_model_files($plugin_descriptor) {
+    protected function get_model_files($plugin_descriptor) {
         $models_dir  = $plugin_descriptor['plugin_dir'] . DIRECTORY_SEPARATOR . $plugin_descriptor['models_dir'];
         $plugin_name = $plugin_descriptor['plugin_name'];
         if (! file_exists($models_dir)) {
@@ -32,7 +58,7 @@ abstract class Registry {
     /**
      * Load an individual model class
      */
-    public static function load_model_file($file, $plugin_descriptor) {
+    protected function load_model_file($file, $plugin_descriptor) {
         $required_properties = ['type', 'singular', 'plural', 'name_s', 'name_p', 'fields', 'relations'];
         require_once $file;
         $class_name = $plugin_descriptor['models_namespace'] . basename($file, '.php');
@@ -44,31 +70,19 @@ abstract class Registry {
                 throw new \Exception("Missing property $prop in $class_name");
             }
         }
-        self::register_model($class_name, $plugin_descriptor);
-    }
-
-
-    /**
-     * Load then register models
-     */
-    public static function load_and_register_models($plugin_descriptor) {
-        $model_files = self::get_model_files($plugin_descriptor);
-        foreach($model_files as $file) {
-            self::load_model_file($file, $plugin_descriptor);
-        }
-        self::register_models_to_wordpress();
+        $this->register_model($class_name, $plugin_descriptor);
     }
 
 
     /**
      * Prepare data for use in REST controller
      */
-    public static function register_model($class_name, $plugin_descriptor) {
+    protected function register_model($class_name, $plugin_descriptor) {
         $plural_lc = $class_name::$plural;
-        if (array_key_exists($plural_lc, self::$registry)) {
+        if (array_key_exists($plural_lc, $this->registry)) {
             throw new \Exception("Duplicate model {$class_name::$singular} in registry");
         }
-        self::$registry[$plural_lc] = [
+        $this->registry[$plural_lc] = [
             'type'         => $class_name::$type,
             'singular_lc'  => $class_name::$singular,
             'namespace'    => $plugin_descriptor['rest_root'] . '/v' . $plugin_descriptor['rest_version'],
@@ -81,43 +95,43 @@ abstract class Registry {
     /**
      * Fetch data for rest controller
      */
-    public static function get_model_data_for_rest($plural_lc) {
-        return self::$registry[$plural_lc];
+    public function get_model_data_for_rest($plural_lc) {
+        return $this->registry[$plural_lc];
     }
 
 
     /**
      * Get class for given route's plural/lowercase model name
      */
-    public static function get_rest_route_class($plural_lc) {
-        return self::get_model_data_for_rest($plural_lc)['class'];
+    public function get_rest_route_class($plural_lc) {
+        return $this->get_model_data_for_rest($plural_lc)['class'];
     }
 
 
     /**
      * Get rest keys
      */
-    public static function get_rest_bases() {
-        return array_keys(self::$registry);
+    public function get_rest_bases() {
+        return array_keys($this->registry);
     }
 
 
     /**
      * Register loaded models
      */
-    public static function register_models_to_wordpress() {
-        $registry_values = collect(array_values(self::$registry));
+    protected function register_models_to_wordpress() {
+        $registry_values = collect(array_values($this->registry));
         $types = $registry_values->groupBy('type')->toArray();
         if (array_key_exists('post', $types)) {
             foreach ($types['post'] as $descriptor) {
                 Post::register_model_key($descriptor['singular_lc']);
-                self::register_wp_post_type($descriptor['class']);
+                $this->register_wp_post_type($descriptor['class']);
             }
         }
         if (array_key_exists('term', $types)) {
             foreach ($types['term'] as $class_name) {
                 Term::register_model_key($descriptor['singular_lc']);
-                self::register_wp_post_type($descriptor['class']);
+                $this->register_wp_post_type($descriptor['class']);
             }
         }
     }
@@ -126,7 +140,7 @@ abstract class Registry {
     /**
      * Register a WordPress custom post type
      */
-    public static function register_wp_post_type($class_name) {
+    protected function register_wp_post_type($class_name) {
         $singular_lc = $class_name::$singular;
         $plural_lc   = $class_name::$plural;
         $name_s      = $class_name::$name_s;
@@ -150,14 +164,14 @@ abstract class Registry {
             ],
             'description'   => "$name_s Items",
             'public'        => true,
-            // 'menu_position' => self::$menu_pos++,
+            // 'menu_position' => $this->menu_pos++,
             'supports'      => ['title', 'editor', 'thumbnail'],
             'exclude_from_search' => true
         ];
 
-        // self::$types['post'][$singular_lc] = $fields; 
-        // self::$rest_bases[] = $plural_lc;
-        // self::$rest_classes[$plural_lc] = $class_name;
+        // $this->types['post'][$singular_lc] = $fields; 
+        // $this->rest_bases[] = $plural_lc;
+        // $this->rest_classes[$plural_lc] = $class_name;
 
         // Allow wrapping native WP classes with objects... not sure it's a good idea...
         $wp_types_kv = get_post_types(['_builtin' => true]);
@@ -171,7 +185,7 @@ abstract class Registry {
     /**
      * Register a WordPress custom taxonomy
      */
-    public static function register_wp_taxonomy($class_name) {
+    protected function register_wp_taxonomy($class_name) {
         $type_lc     = $class_name::$post_type;
         $singular_lc = $class_name::$singular;
         $plural_lc   = $class_name::$plural;
@@ -191,32 +205,32 @@ abstract class Registry {
             'hierarchical' => true
         ];
 
-        // self::$types['taxonomy'][$singular_lc] = $fields; 
-        // self::$rest_bases[] = $plural_lc;
-        // self::$rest_classes[$plural_lc] = $class_name;
+        // $this->types['taxonomy'][$singular_lc] = $fields; 
+        // $this->rest_bases[] = $plural_lc;
+        // $this->rest_classes[$plural_lc] = $class_name;
 
         register_taxonomy( $singular_lc, $type_lc, $args );
     }
 
-//     public static function get_types() {
-//         return self::$types['post'];
+//     protected function get_types() {
+//         return $this->types['post'];
 //     }
 
-//     public static function get_type_keys() {
-//         return array_keys(self::$types['post']);
+//     protected function get_type_keys() {
+//         return array_keys($this->types['post']);
 //     }
 
-//     public static function get_taxonomies() {
-//         return self::$types['taxonomy'];
+//     protected function get_taxonomies() {
+//         return $this->types['taxonomy'];
 //     }
 
-//     public static function get_taxonomy_keys() {
-//         return array_keys(self::$types['taxonomy']);
+//     protected function get_taxonomy_keys() {
+//         return array_keys($this->types['taxonomy']);
 //     }
 
 
-//     public static function get_rest_route_class($singular_lc) {
-//         return self::$rest_classes[$singular_lc];
+//     protected function get_rest_route_class($singular_lc) {
+//         return $this->rest_classes[$singular_lc];
 //     }
     
 }

@@ -1,6 +1,8 @@
 <?php
 namespace bhubr\REST;
 
+use bhubr\REST\Utils\Collection;
+
 require_once realpath(dirname(__FILE__) . '/../vendor/Inflect.php');
 if($local_autoload = realpath(dirname(__FILE__) . '/../../vendor/autoload.php')) {
     require_once $local_autoload;
@@ -9,13 +11,25 @@ if($local_autoload = realpath(dirname(__FILE__) . '/../../vendor/autoload.php'))
 define('WPRBP_LANG_DIR', realpath(__DIR__ . '/../../languages'));
 
 class Plugin_Boilerplate {
+
+    /**
+     * Unique class instance
+     */
     private static $_instance;
-    protected $registered_plugins = [];
-    protected $wp_plugins_dir;
+
+    /**
+     * Array of registered plugins
+     */
+    protected $registered_plugins;
+
+    /**
+     * Model registry
+     */
+    protected $model_registry;
 
     /**
      * Get unique class instance
-     **/
+     */
     public static function get_instance()
     {
         if (is_null(self::$_instance)) {
@@ -26,9 +40,11 @@ class Plugin_Boilerplate {
 
     /**
      * Private constructor
-     **/
+     */
     private function __construct()
     {
+        $this->model_registry = new Model\Registry();
+        $this->registered_plugins = new Collection();
         add_action('plugins_loaded', array(&$this, 'load_textdomains'));
         add_action('init', array(&$this, 'register_types'));
         add_action('rest_api_init', function () {
@@ -61,7 +77,7 @@ class Plugin_Boilerplate {
      */
     public function register_types() {
         foreach($this->registered_plugins as $plugin_name => $plugin_descriptor) {
-            Model\Registry::load_and_register_models($plugin_descriptor);
+            $this->model_registry->load_and_register_models($plugin_descriptor);
         }
     }
 
