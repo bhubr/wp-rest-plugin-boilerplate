@@ -18,6 +18,8 @@ class Foo extends Post {
         'foo_tags'   => 'taxonomy_term'
     ];
     static $relations = [
+        'categories' => 'foo\Foo_Cat:has_many',
+        'tags'       => 'foo\Foo_Tag:has_many'
     ];
 
 }

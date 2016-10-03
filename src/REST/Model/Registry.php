@@ -5,6 +5,7 @@
 namespace bhubr\REST\Model;
 
 use bhubr\REST\Utils\Collection;
+use bhubr\REST\Utils\Tracer;
 
 /**
  * Holds model data for all the registered plugins.
@@ -15,7 +16,7 @@ class Registry {
     /**
      * Holds information on each model
      */
-    protected $registry;
+    public $registry;
 
     protected $type_class_map = [
         'post' => 'bhubr\Post_Model',
@@ -104,15 +105,18 @@ class Registry {
      */
     protected function add_model($class_name, $plugin_descriptor) {
         $plural_lc = $class_name::$plural;
+        // Tracer::save(__CLASS__, __FUNCTION__);
         if ($this->registry->has($plural_lc)) {
             throw new \Exception("Cannot register duplicate model {$class_name::$singular} in registry");
         }
+
         $this->registry->put( $plural_lc, collect_f ( [
-            'type'         => $class_name::$type,
-            'singular_lc'  => $class_name::$singular,
-            'namespace'    => $plugin_descriptor['rest_root'] . '/v' . $plugin_descriptor['rest_version'],
-            'rest_type'    => $plugin_descriptor['rest_type'],
-            'class'        => $class_name
+            'type'          => $class_name::$type,
+            'singular_lc'   => $class_name::$singular,
+            'namespace'     => $plugin_descriptor['rest_root'] . '/v' . $plugin_descriptor['rest_version'],
+            'rest_type'     => $plugin_descriptor['rest_type'],
+            'class'         => $class_name,
+            'relationships' => collect_f($class_name::$relations)
         ] ) );
     }
 

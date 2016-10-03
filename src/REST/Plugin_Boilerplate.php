@@ -43,7 +43,7 @@ class Plugin_Boilerplate {
      */
     private function __construct()
     {
-        $this->model_registry = new Model\Registry();
+        $this->model_registry = Model\Registry::get_instance();
         $this->registered_plugins = new Collection();
         add_action('plugins_loaded', array(&$this, 'load_textdomains'));
         add_action('init', array(&$this, 'register_types'));

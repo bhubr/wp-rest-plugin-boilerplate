@@ -2,6 +2,7 @@
 namespace bhubr\REST;
 
 use bhubr\REST\Model\Registry;
+use bhubr\REST\Model\Relationships;
 
 if ( ! class_exists( '\WP_REST_Controller' ) ) {
   require_once realpath(dirname(__FILE__) . '/../vendor/class-wp-rest-controller.php');
@@ -14,16 +15,21 @@ if ( ! class_exists( '\WP_REST_Controller' ) ) {
 
 class Controller extends \WP_REST_Controller {
 
+  protected $model_registry;
+
   /**
    * Register the routes for the objects of the controller.
    */
   public function register_routes() {
-    // $version = '1';
-    // $namespace = 'bhubr/v' . $version;
-    foreach(Registry::get_models_keys() as $type_plural_lc) {
-      $model_data = Registry::get_model($type_plural_lc);
+    $this->model_registry = Registry::get_instance();
+    $this->model_registry->registry->each(function($model_data, $type_plural_lc) {
 
-      register_rest_route( $model_data['namespace'], '/' . $type_plural_lc, array(
+
+    // foreach($this->model_registry->get_models_keys() as $type_plural_lc) {
+      // $model_data = $this->model_registry->get_model($type_plural_lc);
+      $namespace = $model_data['namespace'];
+
+      register_rest_route( $namespace, '/' . $type_plural_lc, array(
         array(
           'methods'         => \WP_REST_Server::READABLE,
           'callback'        => array( $this, 'get_items' ),
@@ -39,7 +45,8 @@ class Controller extends \WP_REST_Controller {
           'args'            => $this->get_endpoint_args_for_item_schema( true ),
         ),
       ) );
-      register_rest_route( $model_data['namespace'], '/' . $type_plural_lc . '/(?P<id>[\d]+)', array(
+
+      register_rest_route( $namespace, '/' . $type_plural_lc . '/(?P<id>[\d]+)', array(
         array(
           'methods'         => \WP_REST_Server::READABLE,
           'callback'        => array( $this, 'get_item' ),
@@ -67,11 +74,41 @@ class Controller extends \WP_REST_Controller {
           ),
         ),
       ) );
-      register_rest_route( $model_data['namespace'], '/' . $type_plural_lc . '/schema', array(
-        'methods'         => \WP_REST_Server::READABLE,
-        'callback'        => array( $this, 'get_public_item_schema' ),
-      ) );
-    }
+      $parsed_relationships = Relationships::parse_for_model($model_data['relationships']);
+      // var_dump($parsed_relationships->values);
+      $parsed_relationships->each(function($item, $key) use($namespace, $type_plural_lc) {
+        $new_route = '/' . $type_plural_lc . '/(?P<id>[\d]+)' . '/' . $key;
+        if($item['plural']) {
+          register_rest_route( $namespace, $new_route, [
+            [
+              'methods'         => \WP_REST_Server::READABLE,
+              'callback'        => array( $this, 'get_items' ),
+              'permission_callback' => array( $this, 'get_items_permissions_check' ),
+              'args'            => []
+            ]
+          ] );
+        }
+        else {
+          register_rest_route( $namespace, $new_route, [
+            [
+              'methods'         => \WP_REST_Server::READABLE,
+              'callback'        => array( $this, 'get_item' ),
+              'permission_callback' => array( $this, 'get_items_permissions_check' ),
+              'args'            => []
+            ]
+          ] );
+        }
+      });
+      // register_rest_route( $namespace, '/' . $type_plural_lc . '/schema', array(
+      //   'methods'         => \WP_REST_Server::READABLE,
+      //   'callback'        => array( $this, 'get_public_item_schema' ),
+      // ) );
+    // }
+    });
+  }
+
+  public function parse_route( $request ) {
+    return $request->get_route();
   }
 
   /**
@@ -84,7 +121,7 @@ class Controller extends \WP_REST_Controller {
     $route_bits = explode('/', $request->get_route());
     $plural_lc = array_pop($route_bits);
     // $type_lc = \Inflect::singularize($plural_lc);
-    $rest_class = Registry::get_model_class($plural_lc);
+    $rest_class = $this->model_registry->get_model_class($plural_lc);
     $items = $rest_class::read_all();
     $data = array();
     foreach( $items as $item ) {
@@ -105,7 +142,7 @@ class Controller extends \WP_REST_Controller {
     $route_bits = explode('/', $request->get_route());
     $id = (int)array_pop($route_bits); // get id
     $type_lc = \Inflect::singularize(array_pop($route_bits));
-    $rest_class = Registry::get_model_class($type_lc);
+    $rest_class = $this->model_registry->get_model_class($type_lc);
     $post = $rest_class::read($id);
     if ( is_array( $post ) ) {
       return new \WP_REST_Response( $post, 200 );
@@ -130,7 +167,7 @@ class Controller extends \WP_REST_Controller {
     $route_bits = explode('/', $request->get_route());
     $type_lc = \Inflect::singularize(array_pop($route_bits));
     $attributes = $request->get_json_params();
-    $rest_class = Registry::get_model_class($type_lc);
+    $rest_class = $this->model_registry->get_model_class($type_lc);
     $data = $rest_class::create($attributes);
     if ( is_array( $data ) ) {
       return new \WP_REST_Response( $data, 200 );
@@ -151,7 +188,7 @@ class Controller extends \WP_REST_Controller {
     $id = (int)array_pop($route_bits); // get id
     $type_lc = \Inflect::singularize(array_pop($route_bits));
     $attributes = $request->get_json_params();
-    $rest_class = Registry::get_model_class($type_lc);
+    $rest_class = $this->model_registry->get_model_class($type_lc);
     $post = $rest_class::update($id, $attributes);
 
     if ( is_array( $post ) ) {
@@ -174,7 +211,7 @@ class Controller extends \WP_REST_Controller {
     $route_bits = explode('/', $request->get_route());
     $id = (int)array_pop($route_bits); // get id
     $type_lc = \Inflect::singularize(array_pop($route_bits));
-    $rest_class = Registry::get_model_class($type_lc);
+    $rest_class = $this->model_registry->get_model_class($type_lc);
     $deleted_post = $rest_class::_delete($type_lc, $id);
     if ( is_array( $deleted_post ) ) {
       return new \WP_REST_Response( ['success' => true, 'deleted' => $deleted_post], 200 );

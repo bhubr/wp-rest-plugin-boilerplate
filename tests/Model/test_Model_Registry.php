@@ -8,28 +8,6 @@
 use bhubr\REST\Payload\Formatter;
 use bhubr\REST\Model\Registry;
 
-if ( ! function_exists( 'unregister_post_type' ) ) :
-function unregister_post_type( $post_type ) {
-    global $wp_post_types;
-    if ( isset( $wp_post_types[ $post_type ] ) ) {
-        unset( $wp_post_types[ $post_type ] );
-        return true;
-    }
-    return false;
-}
-endif;
-
-if ( ! function_exists( 'unregister_taxonomy' ) ) :
-function unregister_taxonomy( $taxonomy ) {
-    global $wp_taxonomies;
-    if ( isset( $wp_taxonomies[ $taxonomy ] ) ) {
-        unset( $wp_taxonomies[ $taxonomy ] );
-        return true;
-    }
-    return false;
-}
-endif;
-
 /**
  * Sample test case.
  */
@@ -57,11 +35,7 @@ class Test_Model_Registry extends WP_UnitTestCase {
      * Unregister registered WP post types after each test
      */
     function tearDown() {
-        $obj         = Registry::get_instance();
-        $refObject   = new ReflectionObject( $obj );
-        $refProperty = $refObject->getProperty( '_instance' );
-        $refProperty->setAccessible( true );
-        $refProperty->setValue(null);
+        reset_singleton_instance('bhubr\REST\Model\Registry');
         unregister_post_type('valid_type');
         unregister_taxonomy('valid_cat');
     }
@@ -167,11 +141,12 @@ class Test_Model_Registry extends WP_UnitTestCase {
         $this->mr->add_model($class_name, $this->pl_1model_ok);
         $this->assertEquals(['valid_types'], $this->mr->get_models_keys());
         $this->assertEquals([
-            'type'         => 'post',
-            'singular_lc'  => 'valid_type',
-            'namespace'    => 'dummy/v3',
-            'rest_type'    => Formatter::SIMPLE,
-            'class'        => 'registrytest\valid\Type'
+            'type'          => 'post',
+            'singular_lc'   => 'valid_type',
+            'namespace'     => 'dummy/v3',
+            'rest_type'     => Formatter::SIMPLE,
+            'class'         => 'registrytest\valid\Type',
+            'relationships' => []
 
         ], $this->mr->get_model('valid_types')->toArray());
         $this->assertEquals('registrytest\valid\Type', $this->mr->get_model_class('valid_types'));

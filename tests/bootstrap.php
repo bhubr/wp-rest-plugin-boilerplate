@@ -16,6 +16,7 @@ require_once $_tests_dir . '/includes/functions.php';
 define('SRC_DIR', dirname( dirname( __FILE__ ) ) . '/src/REST');
 define('MODELS_DIR', dirname( dirname( __FILE__ ) ) . '/tests-resources/models');
 define('RESOURCES_DIR', dirname( dirname( __FILE__ ) ) . '/tests-resources');
+define('WPRDB_DEBUG', true);
 
 /**
  * Manually load the plugin being tested.
@@ -27,3 +28,36 @@ tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
 // Start up the WP testing environment.
 require $_tests_dir . '/includes/bootstrap.php';
+
+// Some helpers
+if ( ! function_exists( 'unregister_post_type' ) ) :
+function unregister_post_type( $post_type ) {
+    global $wp_post_types;
+    if ( isset( $wp_post_types[ $post_type ] ) ) {
+        unset( $wp_post_types[ $post_type ] );
+        return true;
+    }
+    return false;
+}
+endif;
+
+if ( ! function_exists( 'unregister_taxonomy' ) ) :
+function unregister_taxonomy( $taxonomy ) {
+    global $wp_taxonomies;
+    if ( isset( $wp_taxonomies[ $taxonomy ] ) ) {
+        unset( $wp_taxonomies[ $taxonomy ] );
+        return true;
+    }
+    return false;
+}
+endif;
+
+if ( ! function_exists( 'reset_singleton_instance' ) ) :
+    function reset_singleton_instance( $class_name ) {
+        $obj         = $class_name::get_instance();
+        $refObject   = new ReflectionObject( $obj );
+        $refProperty = $refObject->getProperty( '_instance' );
+        $refProperty->setAccessible( true );
+        $refProperty->setValue(null);
+    }
+endif;
