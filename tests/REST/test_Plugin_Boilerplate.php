@@ -19,8 +19,8 @@ class Test_Plugin_Boilerplate extends WP_UnitTestCase {
      * and two custom taxonomies for this type
      */
     function setUp() {
-        $this->rbp = bhubr\REST\Plugin_Boilerplate::get_instance();
-        $this->rbp->register_plugin('dummy-plugin', RESOURCES_DIR, [
+        $this->rpb = bhubr\REST\Plugin_Boilerplate::get_instance();
+        $this->rpb->register_plugin('dummy-plugin', RESOURCES_DIR, [
             'models_dir' => 'models/foo', 'models_namespace' => 'foo\\'
         ]);
     }
@@ -33,7 +33,7 @@ class Test_Plugin_Boilerplate extends WP_UnitTestCase {
         global $locale;
         $locale = 'fr_FR';
 
-        $success = $this->rbp->load_textdomains();
+        $success = $this->rpb->load_textdomains();
         $this->assertEquals('fr_FR', $locale);
         $this->assertEquals('fr_FR', get_locale());
         $this->assertTrue($success);
@@ -59,7 +59,7 @@ class Test_Plugin_Boilerplate extends WP_UnitTestCase {
      * Ensure that plugin custom post types are registered, with correct labels
      */
     function test_register_post_types() {
-        $this->rbp->register_types();
+        $this->rpb->register_types();
 
         $builtin_types = get_post_types(['_builtin' => true]);
         $all_types = array_merge($builtin_types, ['foo' => 'foo']);

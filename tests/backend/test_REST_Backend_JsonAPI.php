@@ -4,7 +4,7 @@
  * Inspiration for this test: https://pantheon.io/blog/test-coverage-your-wp-rest-api-project
  * Eternal kudos to Daniel Bachhuber (https://twitter.com/danielbachhuber)
  */
-use bhubr\Payload_Format;
+use bhubr\REST\Payload\Formatter;
 
 /*
 
@@ -35,9 +35,16 @@ class Test_REST_Backend_JsonAPI extends WP_UnitTestCase {
         global $wp_rest_server;
         $this->server = $wp_rest_server = new WP_REST_Server;
 
-        $this->rpb = bhubr\REST_Plugin_Boilerplate::get_instance();
-        $this->rpb->register_plugin('wprbp-test-foo', MODELS_DIR . '/foo');
-        $this->rpb->register_plugin('wprbp-test-json-api', MODELS_DIR . '/json-api', Payload_Format::JSONAPI);
+        $this->rpb = bhubr\REST\Plugin_Boilerplate::get_instance();
+        $this->rpb->register_plugin('dummy-plugin', RESOURCES_DIR, [
+            'models_dir' => 'models/foo',
+            'models_namespace' => 'foo\\'
+        ]);
+
+        $this->rpb->register_plugin('wprbp-test-json-api', RESOURCES_DIR, [
+            'models_dir' => 'models/json-api',
+            'rest_type'  => Formatter::JSONAPI
+        ]);
 
         do_action( 'init' );
         do_action( 'rest_api_init' );
@@ -55,6 +62,7 @@ class Test_REST_Backend_JsonAPI extends WP_UnitTestCase {
       $request = new WP_REST_Request( 'GET', '/bhubr/v1' . $url );
       $response = $this->server->dispatch( $request );
       $this->assertEquals( $expected_status, $response->status );
+      var_dump($response->data);
       $this->assertEquals( $expected_data, $response->data );
     }
 

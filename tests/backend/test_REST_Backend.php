@@ -13,8 +13,11 @@ class Test_REST_Backend extends WP_UnitTestCase {
         global $wp_rest_server;
         $this->server = $wp_rest_server = new WP_REST_Server;
 
-        $this->rpb = bhubr\REST_Plugin_Boilerplate::get_instance();
-        $this->rpb->register_plugin('wprbp-test-foo', MODELS_DIR . '/foo');
+        $this->rpb = bhubr\REST\Plugin_Boilerplate::get_instance();
+        $this->rpb->register_plugin('dummy-plugin', RESOURCES_DIR, [
+            'models_dir' => 'models/foo', 'models_namespace' => 'foo\\'
+        ]);
+
 
         do_action( 'init' );
         do_action( 'rest_api_init' );

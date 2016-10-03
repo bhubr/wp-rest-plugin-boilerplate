@@ -20,8 +20,8 @@ class Test_Controller extends WP_UnitTestCase {
      */
     function setUp() {
         global $wp_rest_server;
-        $this->rbp = bhubr\REST\Plugin_Boilerplate::get_instance();
-        $this->rbp->register_plugin('dummy-plugin', RESOURCES_DIR, [
+        $this->rpb = bhubr\REST\Plugin_Boilerplate::get_instance();
+        $this->rpb->register_plugin('dummy-plugin', RESOURCES_DIR, [
             'models_dir' => 'models/foo', 'models_namespace' => 'foo\\'
         ]);
         $this->server = $wp_rest_server = new WP_REST_Server;
@@ -34,7 +34,8 @@ class Test_Controller extends WP_UnitTestCase {
      */
     function test_wp_rest_server_routes() {
         global $wp_rest_server;
-        var_dump($wp_rest_server->get_routes());
+        $routes = $wp_rest_server->get_routes();
+        var_dump(array_keys($routes));
     }
 
 }

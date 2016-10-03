@@ -5,11 +5,16 @@ use Underscore\Underscore as __;
 
 abstract class Registry {
 
+    /**
+     * Holds information on each model
+     */
     protected static $registry = [];
+
     protected static $type_class_map = [
         'post' => 'bhubr\Post_Model',
         'term' => 'bhubr\Term_Model'
     ];
+
 
     /**
      * Scan the model folder to retrieve model file names
@@ -22,6 +27,7 @@ abstract class Registry {
         }
         return glob("$models_dir/*.php");
     }
+
 
     /**
      * Load an individual model class
@@ -41,6 +47,7 @@ abstract class Registry {
         self::register_model($class_name, $plugin_descriptor);
     }
 
+
     /**
      * Load then register models
      */
@@ -51,6 +58,7 @@ abstract class Registry {
         }
         self::register_models_to_wordpress();
     }
+
 
     /**
      * Prepare data for use in REST controller
@@ -69,8 +77,6 @@ abstract class Registry {
         ];
     }
 
-    /**
-     * public static function get
 
     /**
      * Fetch data for rest controller
@@ -79,6 +85,10 @@ abstract class Registry {
         return self::$registry[$plural_lc];
     }
 
+
+    /**
+     * Get class for given route's plural/lowercase model name
+     */
     public static function get_rest_route_class($plural_lc) {
         return self::get_model_data_for_rest($plural_lc)['class'];
     }
@@ -112,11 +122,11 @@ abstract class Registry {
         }
     }
 
+
     /**
-     * Register a post model/type
+     * Register a WordPress custom post type
      */
     public static function register_wp_post_type($class_name) {
-        // die("$class_name\n");
         $singular_lc = $class_name::$singular;
         $plural_lc   = $class_name::$plural;
         $name_s      = $class_name::$name_s;
@@ -137,7 +147,6 @@ abstract class Registry {
                 'search_items'       => sprintf(__("Search %s", "bhubr-wprbp"), $name_p),
                 'not_found'          => __("Not found", "bhubr-wprbp"),
                 'not_found_in_trash' => __("No item found in Trash", "bhubr-wprbp"),
-                // 'menu_name'          => "$name_s Items", "wp_{$singular_lc}_items"
             ],
             'description'   => "$name_s Items",
             'public'        => true,
@@ -155,11 +164,13 @@ abstract class Registry {
         $wp_types = array_keys($wp_types_kv);
         if (array_search($singular_lc, $wp_types) !== false) return;
 
-        $res = register_post_type($singular_lc, $args);
-        // var_dump($res);
-        // var_dump(get_post_types());
+        register_post_type($singular_lc, $args);
     }
 
+
+    /**
+     * Register a WordPress custom taxonomy
+     */
     public static function register_wp_taxonomy($class_name) {
         $type_lc     = $class_name::$post_type;
         $singular_lc = $class_name::$singular;
