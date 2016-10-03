@@ -43,7 +43,7 @@ class Post extends Base implements Methods {
             throw new \Exception($msg);
         }
 
-        static::$type_fields = static::get_model_keys(); // Base_Model::get_types()[$post_type];
+        static::$type_fields = static::get_models_keys(); // Base_Model::get_types()[$post_type];
         static::$taxonomies = get_object_taxonomies( $post_type );
     }
 

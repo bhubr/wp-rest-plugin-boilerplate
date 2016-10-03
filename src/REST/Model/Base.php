@@ -156,7 +156,7 @@ abstract class Base {
         static::$types[] = $type_singular_lc;
     }
 
-    public static function get_model_keys() {
+    public static function get_models_keys() {
         return static::$types;
     }
 

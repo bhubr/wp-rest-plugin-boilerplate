@@ -88,6 +88,9 @@ class Registry {
         foreach($required_properties as $prop) {
             if(! property_exists($class_name, $prop)) $missing_properties[] = $prop;
         }
+        if($class_name::$type === 'term' && ! property_exists($class_name, 'post_type')) {
+            $missing_properties[] = 'post_type';
+        }
         if (count($missing_properties)) {
             $missing_str = implode(', ', $missing_properties);
             throw new \Exception("Missing required properties: [$missing_str] in $class_name");
@@ -118,22 +121,22 @@ class Registry {
      * Fetch data for rest controller
      */
     public function get_model($plural_lc) {
-        return $this->registry[$plural_lc];
+        return $this->registry->get_f($plural_lc, "Model plural/lowercase key '$plural_lc' not found in registry");
     }
 
 
     /**
      * Get class for given route's plural/lowercase model name
      */
-    public function get_rest_route_class($plural_lc) {
-        return $this->get_model_data_for_rest($plural_lc)['class'];
+    public function get_model_class($plural_lc) {
+        return $this->get_model($plural_lc)->get_f('class');
     }
 
 
     /**
      * Get rest keys
      */
-    public function get_model_keys() {
+    public function get_models_keys() {
         return $this->registry->keys()->toArray();
     }
 
@@ -151,9 +154,9 @@ class Registry {
             }
         }
         if (array_key_exists('term', $types)) {
-            foreach ($types['term'] as $class_name) {
+            foreach ($types['term'] as $descriptor) {
                 Term::register_model_key($descriptor['singular_lc']);
-                $this->register_wp_post_type($descriptor['class']);
+                $this->register_wp_taxonomy($descriptor['class']);
             }
         }
     }
@@ -220,7 +223,12 @@ class Registry {
         $args = [
             'labels' => [
                 'name' => $name_p,
-                'add_new_item' => sprintf(__("Add %s", "bhubr-wprbp"), $name_s),
+                'singular_name' => $name_s,
+                'new_item_name' => sprintf(__("New %s", "bhubr-wprbp"), $name_s),
+                'add_new_item'  => sprintf(__("Add %s", "bhubr-wprbp"), $name_s),
+                'view_item'     => sprintf(__("View %s", "bhubr-wprbp"), $name_s),
+                'search_items'  => sprintf(__("Search %s", "bhubr-wprbp"), $name_p),
+                'not_found'     => __("Not found", "bhubr-wprbp"),
             ],
             'show_ui' => true,
             'show_tagcloud' => false,
@@ -230,7 +238,6 @@ class Registry {
         // $this->types['taxonomy'][$singular_lc] = $fields; 
         // $this->rest_bases[] = $plural_lc;
         // $this->rest_classes[$plural_lc] = $class_name;
-
         register_taxonomy( $singular_lc, $type_lc, $args );
     }
 

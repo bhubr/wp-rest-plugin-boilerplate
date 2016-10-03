@@ -20,7 +20,7 @@ class Controller extends \WP_REST_Controller {
   public function register_routes() {
     // $version = '1';
     // $namespace = 'bhubr/v' . $version;
-    foreach(Registry::get_model_keys() as $type_plural_lc) {
+    foreach(Registry::get_models_keys() as $type_plural_lc) {
       $model_data = Registry::get_model($type_plural_lc);
 
       register_rest_route( $model_data['namespace'], '/' . $type_plural_lc, array(
@@ -84,7 +84,7 @@ class Controller extends \WP_REST_Controller {
     $route_bits = explode('/', $request->get_route());
     $plural_lc = array_pop($route_bits);
     // $type_lc = \Inflect::singularize($plural_lc);
-    $rest_class = Registry::get_rest_route_class($plural_lc);
+    $rest_class = Registry::get_model_class($plural_lc);
     $items = $rest_class::read_all();
     $data = array();
     foreach( $items as $item ) {
@@ -105,7 +105,7 @@ class Controller extends \WP_REST_Controller {
     $route_bits = explode('/', $request->get_route());
     $id = (int)array_pop($route_bits); // get id
     $type_lc = \Inflect::singularize(array_pop($route_bits));
-    $rest_class = Registry::get_rest_route_class($type_lc);
+    $rest_class = Registry::get_model_class($type_lc);
     $post = $rest_class::read($id);
     if ( is_array( $post ) ) {
       return new \WP_REST_Response( $post, 200 );
@@ -130,7 +130,7 @@ class Controller extends \WP_REST_Controller {
     $route_bits = explode('/', $request->get_route());
     $type_lc = \Inflect::singularize(array_pop($route_bits));
     $attributes = $request->get_json_params();
-    $rest_class = Registry::get_rest_route_class($type_lc);
+    $rest_class = Registry::get_model_class($type_lc);
     $data = $rest_class::create($attributes);
     if ( is_array( $data ) ) {
       return new \WP_REST_Response( $data, 200 );
@@ -151,7 +151,7 @@ class Controller extends \WP_REST_Controller {
     $id = (int)array_pop($route_bits); // get id
     $type_lc = \Inflect::singularize(array_pop($route_bits));
     $attributes = $request->get_json_params();
-    $rest_class = Registry::get_rest_route_class($type_lc);
+    $rest_class = Registry::get_model_class($type_lc);
     $post = $rest_class::update($id, $attributes);
 
     if ( is_array( $post ) ) {
@@ -174,7 +174,7 @@ class Controller extends \WP_REST_Controller {
     $route_bits = explode('/', $request->get_route());
     $id = (int)array_pop($route_bits); // get id
     $type_lc = \Inflect::singularize(array_pop($route_bits));
-    $rest_class = Registry::get_rest_route_class($type_lc);
+    $rest_class = Registry::get_model_class($type_lc);
     $deleted_post = $rest_class::_delete($type_lc, $id);
     if ( is_array( $deleted_post ) ) {
       return new \WP_REST_Response( ['success' => true, 'deleted' => $deleted_post], 200 );

@@ -37,4 +37,13 @@ class Test_Utils_Collection extends WP_UnitTestCase {
     public function test_get_non_existing_key() {
         $b = $this->collection->get_f('b');
     }
+
+    /**
+     * Error: several items provided for a single relationship
+     * @expectedException Exception
+     * @expectedExceptionMessage Custom error message
+     */
+    public function test_get_non_existing_key_custom() {
+        $b = $this->collection->get_f('b', 'Custom error message');
+    }
 }
