@@ -55,25 +55,20 @@ class Plugin_Boilerplate {
 
 
     /**
-     * Register a plugin
+     * Register a plugin.
+     * See src/REST/Utils/helpers.php for rpb_build_plugin_descriptor()
      */
     public function register_plugin($plugin_name, $plugin_dir, $options = []) {
-        $default_options = [
-            'models_dir' => 'models',
-            'models_namespace' => 'bhubr\\',
-            'rest_type' => Payload\Formatter::JSONAPI,
-            'rest_root' => 'bhubr',
-            'rest_version' => 1
-        ];
-        $this->registered_plugins[$plugin_name] = array_merge([
-            'plugin_name' => $plugin_name,
-            'plugin_dir'  => $plugin_dir
-        ], $default_options, $options);
+        $plugin_descriptor = rpb_build_plugin_descriptor(
+            $plugin_name, $plugin_dir, $options
+        );
+        $this->registered_plugins[$plugin_name] = $plugin_descriptor;
     }
 
 
     /**
-     * Register custom post types
+     * Register custom post types.
+     * Uses the ArrayAccess capability of Illuminate\Support\Collection
      */
     public function register_types() {
         foreach($this->registered_plugins as $plugin_name => $plugin_descriptor) {

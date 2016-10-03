@@ -6,6 +6,7 @@
     "keywords": ["wordpress","rest","backbone"],
     "homepage": "https://github.com/t1z/wp-rest-plugin-boilerplate",
     "license": "MIT",
+    "minimum-stability": "dev",
     "authors": [
         {
             "name": "Benoît Hubert",
@@ -27,5 +28,8 @@
         "psr-4": {
             "bhubr\\REST\\": "src/REST"
         }
+    },
+    "require-dev": {
+        "sebastian/peek-and-poke": "^1.0@dev"
     }
 }

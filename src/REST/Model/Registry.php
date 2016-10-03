@@ -1,12 +1,21 @@
 <?php
+ /**
+  * @package bhubr\REST
+  */
 namespace bhubr\REST\Model;
 
+use bhubr\REST\Utils\Collection;
+
+/**
+ * Holds model data for all the registered plugins.
+ * Registers WP custom post types and taxonomies
+ */
 class Registry {
 
     /**
      * Holds information on each model
      */
-    protected $registry = [];
+    protected $registry;
 
     protected $type_class_map = [
         'post' => 'bhubr\Post_Model',
@@ -21,12 +30,20 @@ class Registry {
     /**
      * Get unique class instance
      */
-    protected function get_instance()
+    public static function get_instance()
     {
         if (is_null(self::$_instance)) {
             self::$_instance = new Registry();
         }
         return self::$_instance;
+    }
+
+
+    /**
+     * Private constructor
+     */
+    private function __construct() {
+        $this->registry = new Collection();
     }
 
 
@@ -59,17 +76,22 @@ class Registry {
      * Load an individual model class
      */
     protected function load_model_file($file, $plugin_descriptor) {
-        $required_properties = ['type', 'singular', 'plural', 'name_s', 'name_p', 'fields', 'relations'];
         require_once $file;
         $class_name = $plugin_descriptor['models_namespace'] . basename($file, '.php');
         if (! class_exists($class_name)) {
-            throw new \Exception("Could not find class class_name in $file. Check namespacing: " . $plugin_descriptor['models_namespace']);
+            $file_name = $plugin_descriptor['models_dir'] . '/' . basename($file);
+            throw new \Exception("Class $class_name not found in $file_name. Check namespacing in file => " . $plugin_descriptor['models_namespace']);
         }
+        $required_properties = ['type', 'singular', 'plural', 'name_s', 'name_p', 'fields', 'relations'];
+        $missing_properties = [];
         foreach($required_properties as $prop) {
-            if(! property_exists($class_name, $prop)) {
-                throw new \Exception("Missing property $prop in $class_name");
-            }
+            if(! property_exists($class_name, $prop)) $missing_properties[] = $prop;
         }
+        if (count($missing_properties)) {
+            $missing_str = implode(', ', $missing_properties);
+            throw new \Exception("Missing required properties: [$missing_str] in $class_name");
+        }
+
         $this->register_model($class_name, $plugin_descriptor);
     }
 
@@ -82,13 +104,13 @@ class Registry {
         if (array_key_exists($plural_lc, $this->registry)) {
             throw new \Exception("Duplicate model {$class_name::$singular} in registry");
         }
-        $this->registry[$plural_lc] = [
+        $this->registry->put( $plural_lc, collect_f ( [
             'type'         => $class_name::$type,
             'singular_lc'  => $class_name::$singular,
             'namespace'    => $plugin_descriptor['rest_root'] . '/v' . $plugin_descriptor['rest_version'],
             'rest_type'    => $plugin_descriptor['rest_type'],
             'class'        => $class_name
-        ];
+        ] ) );
     }
 
 
@@ -120,7 +142,7 @@ class Registry {
      * Register loaded models
      */
     protected function register_models_to_wordpress() {
-        $registry_values = collect(array_values($this->registry));
+        $registry_values = $this->registry->values();
         $types = $registry_values->groupBy('type')->toArray();
         if (array_key_exists('post', $types)) {
             foreach ($types['post'] as $descriptor) {
