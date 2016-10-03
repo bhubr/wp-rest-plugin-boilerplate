@@ -8,7 +8,7 @@ class Collection extends \Illuminate\Support\Collection {
      * @param $key string Key of the item to fetch
      */
     public function get_f($key) {
-        if ($this->has($key)) {
+        if (! $this->has($key)) {
             throw new \Exception("Key '$key' not found in collection");
         }
         return $this->get($key);
