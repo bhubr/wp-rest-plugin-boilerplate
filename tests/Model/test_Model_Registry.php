@@ -5,6 +5,7 @@
  *
  * @package Sandbox_Plugin
  */
+use bhubr\REST\Payload\Formatter;
 
 if ( ! function_exists( 'unregister_post_type' ) ) :
 function unregister_post_type( $post_type ) {
@@ -34,7 +35,9 @@ class Test_Model_Registry extends WP_UnitTestCase {
 
         $this->pl_1model_ok = rpb_build_plugin_descriptor('test-1model', MODELS_DIR, [
             'models_dir'       => 'model-registry/valid',
-            'models_namespace' => 'registrytest\\valid\\'
+            'models_namespace' => 'registrytest\\valid\\',
+            'rest_root'        => 'dummy',
+            'rest_version'     => '3'
         ]);
     }
 
@@ -54,10 +57,11 @@ class Test_Model_Registry extends WP_UnitTestCase {
 
     function test_load_model_file_ok() {
         $this->assertFalse(class_exists('registrytest\valid\Type'));
-        $this->mr->load_model_file(
+        $class_name = $this->mr->load_model_file(
             MODELS_DIR . '/model-registry/valid/Type.php',
             $this->pl_1model_ok
         );
+        $this->assertEquals('registrytest\valid\Type', $class_name);
         $this->assertTrue(class_exists('registrytest\valid\Type'));
     }
 
@@ -95,6 +99,41 @@ class Test_Model_Registry extends WP_UnitTestCase {
             $plugin_descriptor
         );
         $this->assertTrue(class_exists('registrytest\InvalidNS'));
+    }
+
+
+    /**
+     * Add a model
+     */
+    public function test_add_get_model_ok() {
+        $class_name = $this->mr->load_model_file(
+            MODELS_DIR . '/model-registry/valid/Type.php',
+            $this->pl_1model_ok
+        );
+        $this->mr->add_model($class_name, $this->pl_1model_ok);
+        $this->assertEquals(['valid_types'], $this->mr->get_model_keys());
+        $this->assertEquals([
+            'type'         => 'post',
+            'singular_lc'  => 'valid_type',
+            'namespace'    => 'dummy/v3',
+            'rest_type'    => Formatter::SIMPLE,
+            'class'        => 'registrytest\valid\Type'
+
+        ], $this->mr->get_model('valid_types')->toArray());
+    }
+
+    /**
+     * Error: class does not have missing properties
+     * @expectedException Exception
+     * @expectedExceptionMessage Cannot register duplicate model valid_type in registry
+     */
+    public function test_add_model_nok_duplicate() {
+        $class_name = $this->mr->load_model_file(
+            MODELS_DIR . '/model-registry/valid/Type.php',
+            $this->pl_1model_ok
+        );
+        $this->mr->add_model($class_name, $this->pl_1model_ok);
+        $this->mr->add_model($class_name, $this->pl_1model_ok);
     }
 
 

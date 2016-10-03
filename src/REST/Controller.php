@@ -20,10 +20,10 @@ class Controller extends \WP_REST_Controller {
   public function register_routes() {
     // $version = '1';
     // $namespace = 'bhubr/v' . $version;
-    foreach(Registry::get_rest_bases() as $base) {
-      $model_data = Registry::get_model_data_for_rest($base);
+    foreach(Registry::get_model_keys() as $type_plural_lc) {
+      $model_data = Registry::get_model($type_plural_lc);
 
-      register_rest_route( $model_data['namespace'], '/' . $base, array(
+      register_rest_route( $model_data['namespace'], '/' . $type_plural_lc, array(
         array(
           'methods'         => \WP_REST_Server::READABLE,
           'callback'        => array( $this, 'get_items' ),
@@ -39,7 +39,7 @@ class Controller extends \WP_REST_Controller {
           'args'            => $this->get_endpoint_args_for_item_schema( true ),
         ),
       ) );
-      register_rest_route( $model_data['namespace'], '/' . $base . '/(?P<id>[\d]+)', array(
+      register_rest_route( $model_data['namespace'], '/' . $type_plural_lc . '/(?P<id>[\d]+)', array(
         array(
           'methods'         => \WP_REST_Server::READABLE,
           'callback'        => array( $this, 'get_item' ),
@@ -67,7 +67,7 @@ class Controller extends \WP_REST_Controller {
           ),
         ),
       ) );
-      register_rest_route( $model_data['namespace'], '/' . $base . '/schema', array(
+      register_rest_route( $model_data['namespace'], '/' . $type_plural_lc . '/schema', array(
         'methods'         => \WP_REST_Server::READABLE,
         'callback'        => array( $this, 'get_public_item_schema' ),
       ) );

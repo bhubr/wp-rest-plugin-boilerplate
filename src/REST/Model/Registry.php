@@ -53,7 +53,8 @@ class Registry {
     public function load_and_register_models($plugin_descriptor) {
         $model_files = $this->get_model_files($plugin_descriptor);
         foreach($model_files as $file) {
-            $this->load_model_file($file, $plugin_descriptor);
+            $class_name = $this->load_model_file($file, $plugin_descriptor);
+            $this->add_model($class_name, $plugin_descriptor);
         }
         $this->register_models_to_wordpress();
     }
@@ -91,18 +92,17 @@ class Registry {
             $missing_str = implode(', ', $missing_properties);
             throw new \Exception("Missing required properties: [$missing_str] in $class_name");
         }
-
-        $this->register_model($class_name, $plugin_descriptor);
+        return $class_name;
     }
 
 
     /**
      * Prepare data for use in REST controller
      */
-    protected function register_model($class_name, $plugin_descriptor) {
+    protected function add_model($class_name, $plugin_descriptor) {
         $plural_lc = $class_name::$plural;
-        if (array_key_exists($plural_lc, $this->registry)) {
-            throw new \Exception("Duplicate model {$class_name::$singular} in registry");
+        if ($this->registry->has($plural_lc)) {
+            throw new \Exception("Cannot register duplicate model {$class_name::$singular} in registry");
         }
         $this->registry->put( $plural_lc, collect_f ( [
             'type'         => $class_name::$type,
@@ -117,7 +117,7 @@ class Registry {
     /**
      * Fetch data for rest controller
      */
-    public function get_model_data_for_rest($plural_lc) {
+    public function get_model($plural_lc) {
         return $this->registry[$plural_lc];
     }
 
@@ -133,8 +133,8 @@ class Registry {
     /**
      * Get rest keys
      */
-    public function get_rest_bases() {
-        return array_keys($this->registry);
+    public function get_model_keys() {
+        return $this->registry->keys()->toArray();
     }
 
 

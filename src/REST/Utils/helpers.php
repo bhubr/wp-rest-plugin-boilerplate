@@ -31,7 +31,7 @@ if (! function_exists('rpb_build_plugin_descriptor')) {
         $default_options = [
             'models_dir' => 'models',
             'models_namespace' => 'bhubr\\',
-            'rest_type' => Formatter::JSONAPI,
+            'rest_type' => Formatter::SIMPLE,
             'rest_root' => 'bhubr',
             'rest_version' => 1
         ];
