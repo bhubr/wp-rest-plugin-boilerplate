@@ -26,7 +26,6 @@ class Passport extends Post {
         ]
     ];
     static $relations = [
-        'books'    => 'rel\Book:has_many',
         'owner'    => 'rel\Person:belongs_to:mypass'
     ];
 

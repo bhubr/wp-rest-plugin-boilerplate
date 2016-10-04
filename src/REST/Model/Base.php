@@ -510,6 +510,13 @@ abstract class Base {
         return $map_fields;
     }
 
+
+
+    static function fetch_relationship($object_id, $relationship_key) {
+        if ( ! array_key_exists( $relationship_key, static::$relations ) ) {
+            throw new \Exception("Model " . get_called_class() . " has no rel '$relationship_key'");
+        }
+    }
     
 }
 

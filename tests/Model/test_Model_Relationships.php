@@ -67,13 +67,13 @@ class Test_Model_Relationships extends WP_UnitTestCase {
             ]
         ];
 
-        $foo_model_descriptor = $this->mr->get_model('foos');
-        $parsed_relationships = Relationships::parse_for_model(
-            $foo_model_descriptor->get('relationships')
-        );
+        $foo_relationships = $this->mr->get_model('foos')->get_f('relationships');
+        // $parsed_relationships = Relationships::parse_for_model(
+        //     $foo_model_descriptor->get('relationships')
+        // );
 
         $this->assertEquals(
-            $expected_foo_relationships, $parsed_relationships->toArray()
+            $expected_foo_relationships, $foo_relationships->toArray()
         );
     }
 
@@ -88,48 +88,62 @@ class Test_Model_Relationships extends WP_UnitTestCase {
         $obj_class = 'rel\Person';
         $person_model_descriptor = $this->mr->get_model('persons');
         $person_model_relationships = $person_model_descriptor->get_f('relationships');
+
+
         $this->assertEquals(
             [
-                'mybooks' => 'rel\Book:has_many',
-                'mypass'  => 'rel\Passport:has_one:owner'
+                // 'mybooks' => 'rel\Book:has_many',
+                // 'mypass'  => 'rel\Passport:has_one:owner'
+                'mybooks' => [
+                    'type'     => 'books',
+                    'plural'   => true,
+                    'rel_type' => 'has_many',
+                    'inverse'  => 'author'
+                ],
+                'mypass'  => [
+                    'type'     => 'passports',
+                    'plural'   => false,
+                    'rel_type' => 'has_one',
+                    'inverse'  => 'owner'
+                ]
             ],
             $person_model_relationships->toArray()
         );
-        $person_mypass_rel = $person_model_relationships->get_f('mypass');
-        // 1. chope la clé de la relation
-        // $relation = 'mydumbass';
-        // 2. parse les relations
-        $mypass_relation_descriptor = Relationships::parse_relationship(
-            $person_mypass_rel, 'mypass'
-        );
-        $this->assertEquals(
-            [
-                'type'     => 'passports',
-                'plural'   => false,
-                'rel_type' => 'has_one',
-                'inverse'  => 'owner'
-            ],
-            $mypass_relation_descriptor->toArray()
-        );
-        // var_dump($relation_descriptor);
-        $related_type_plural = $mypass_relation_descriptor->get_f('type');
-        $related_model_descriptor = $this->mr->get_model($related_type_plural);
-        $related_model_relationships = $related_model_descriptor->get_f('relationships');
-        $related_passport_rel = $related_model_relationships->get_f(
-            $mypass_relation_descriptor->get_f('inverse')
-        );
-        $passport_owner_relation_decriptor = Relationships::parse_relationship(
-            $related_passport_rel, $mypass_relation_descriptor->get_f('inverse')
-        );
-        $this->assertEquals(
-            [
-                'type'     => 'persons',
-                'plural'   => false,
-                'rel_type' => 'belongs_to',
-                'inverse'  => 'mypass'
-            ],
-            $passport_owner_relation_decriptor->toArray()
-        );
+        // $person_mypass_rel = $person_model_relationships->get_f('mypass');
+        // // 1. chope la clé de la relation
+        // // $relation = 'mydumbass';
+        // // 2. parse les relations
+        // $mypass_relation_descriptor = Relationships::parse_relationship(
+        //     $person_mypass_rel, 'mypass'
+        // );
+        // $this->assertEquals(
+        //     [
+        //         'type'     => 'passports',
+        //         'plural'   => false,
+        //         'rel_type' => 'has_one',
+        //         'inverse'  => 'owner'
+        //     ],
+        //     $mypass_relation_descriptor->toArray()
+        // );
+        // // var_dump($relation_descriptor);
+        // $related_type_plural = $mypass_relation_descriptor->get_f('type');
+        // $related_model_descriptor = $this->mr->get_model($related_type_plural);
+        // $related_model_relationships = $related_model_descriptor->get_f('relationships');
+        // $related_passport_rel = $related_model_relationships->get_f(
+        //     $mypass_relation_descriptor->get_f('inverse')
+        // );
+        // $passport_owner_relation_decriptor = Relationships::parse_relationship(
+        //     $related_passport_rel, $mypass_relation_descriptor->get_f('inverse')
+        // );
+        // $this->assertEquals(
+        //     [
+        //         'type'     => 'persons',
+        //         'plural'   => false,
+        //         'rel_type' => 'belongs_to',
+        //         'inverse'  => 'mypass'
+        //     ],
+        //     $passport_owner_relation_decriptor->toArray()
+        // );
 
         $person = Post::_create('person', []);
         $passport = Post::_create('passport', []);
@@ -150,7 +164,7 @@ class Test_Model_Relationships extends WP_UnitTestCase {
             'owner'        => 3
         ], $passport);
 
-        $passport_dup = Person::fetch_relationship('mypass');
+        $passport_dup = rel\Person::fetch_relationship($person['id'], 'mypass');
         // var_dump($passport_owner_relation_decriptor);
         // 3. détermine la fonction pour lire/écrire la relation
 

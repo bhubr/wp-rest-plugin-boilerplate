@@ -53,10 +53,18 @@ class Registry {
      */
     public function load_and_register_models($plugin_descriptor) {
         $model_files = $this->get_model_files($plugin_descriptor);
+        $model_descriptors = new Collection;
         foreach($model_files as $file) {
             $class_name = $this->load_model_file($file, $plugin_descriptor);
-            $this->add_model($class_name, $plugin_descriptor);
+            $model_descriptors[] = $this->add_model($class_name, $plugin_descriptor);
         }
+        $model_descriptors->each(function($descriptor) {
+            $relationships = $descriptor->get('relationships');
+            $parsed_rels = $this->parse_model_relationships($relationships);
+            // We simply replace the relationships collection
+            $descriptor->put('relationships', $parsed_rels);
+        });
+        var_dump($this->registry);
         $this->register_models_to_wordpress();
     }
 
@@ -110,14 +118,18 @@ class Registry {
             throw new \Exception("Cannot register duplicate model {$class_name::$singular} in registry");
         }
 
-        $this->registry->put( $plural_lc, collect_f ( [
+        $registry = $this->registry->put( $plural_lc, collect_f ( [
             'type'          => $class_name::$type,
             'singular_lc'   => $class_name::$singular,
             'namespace'     => $plugin_descriptor['rest_root'] . '/v' . $plugin_descriptor['rest_version'],
             'rest_type'     => $plugin_descriptor['rest_type'],
             'class'         => $class_name,
+            // 'relationships' => $this->parse_model_relationships(
+            //     collect_f($class_name::$relations)
+            // )
             'relationships' => collect_f($class_name::$relations)
         ] ) );
+        return $registry->get($plural_lc);
     }
 
 
@@ -244,6 +256,24 @@ class Registry {
         // $this->rest_classes[$plural_lc] = $class_name;
         register_taxonomy( $singular_lc, $type_lc, $args );
     }
+
+    public function parse_model_relationships($relationships) {
+        return $relationships->map([$this, 'parse_relationship']);
+    }
+
+    public function parse_relationship($relationship_descriptor, $relationship_attr) {
+        $desc_bits = explode(':', $relationship_descriptor);
+        $rel_class = $desc_bits[0];
+        $rel_type = $desc_bits[1];
+        $output = [
+            'type'     => $rel_class::$plural,
+            'plural'   => array_search($rel_type, ['has_one', 'belongs_to']) === false,
+            'rel_type' => $desc_bits[1],
+        ];
+        if( count( $desc_bits ) > 2 ) $output['inverse'] = $desc_bits[2];
+        return collect_f($output);
+    }
+
 
 //     protected function get_types() {
 //         return $this->types['post'];
