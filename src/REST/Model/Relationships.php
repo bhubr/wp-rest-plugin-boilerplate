@@ -13,9 +13,12 @@ class Relationships {
         $desc_bits = explode(':', $relationship_descriptor);
         $rel_class = $desc_bits[0];
         $rel_type = $desc_bits[1];
-        return [
-            'type'   => $rel_class::$plural,
-            'plural' => $rel_type !== 'has_one'
+        $output = [
+            'type'     => $rel_class::$plural,
+            'plural'   => array_search($rel_type, ['has_one', 'belongs_to']) === false,
+            'rel_type' => $desc_bits[1],
         ];
+        if( count( $desc_bits ) > 2 ) $output['inverse'] = $desc_bits[2];
+        return collect_f($output);
     }
 }

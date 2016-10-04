@@ -94,6 +94,8 @@ class Test_Controller extends WP_UnitTestCase {
         $request = new WP_REST_Request( 'GET', '/bhubr/v1/foos');
         $parsed = $this->controller->parse_route( $request );
         $expected = [
+            'class'  => 'foo\Foo',
+            'action' => 'read_all'
         ];
         $this->assertEquals( '/bhubr/v1/foos', $parsed );
     }
