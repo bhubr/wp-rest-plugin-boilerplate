@@ -1,7 +1,8 @@
 <?php
 namespace bhubr;
+use bhubr\REST\Model\Post;
 
-class Dumbmany extends Post_Model {
+class Dumbmany extends Post {
     static $type = 'post';
 
     static $singular = 'dumbmany';

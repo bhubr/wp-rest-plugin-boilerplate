@@ -1,7 +1,8 @@
 <?php
 namespace bhubr;
+use bhubr\REST\Model\Post;
 
-class Dummy extends Post_Model {
+class Dummy extends Post {
     static $type = 'post';
 
     static $singular = 'dummy';
@@ -15,10 +16,10 @@ class Dummy extends Post_Model {
         'status'        => 'string',
         'dummy_int'     => 'integer',
         'dummy_str'     => 'string',
-        'dumbass_id'    => 'Dumbass:has_one'
+        // 'dumbass_id'    => 'Dumbass:has_one'
     ];
     static $relations = [
-        'dumbass'    => 'Dumbass:has_one',
+        'mydumbass'    => 'bhubr\Dumbass:has_one',
         'dumbmanies' => 'Dumbmany:has_many',
         'dumbmany2manies' => 'Dumbmany2many:has_many',
         'dummyterms' => 'DummyTerm:has_many',

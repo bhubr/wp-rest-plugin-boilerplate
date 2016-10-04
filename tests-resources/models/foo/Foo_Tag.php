@@ -15,6 +15,7 @@ class Foo_Tag extends Term {
     static $fields = [
     ];
     static $relations = [
+        'foos' => 'foo\Foo:has_many',
     ];
 
 }

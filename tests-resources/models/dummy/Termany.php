@@ -1,7 +1,8 @@
 <?php
 namespace bhubr;
+use bhubr\REST\Model\Term;
 
-class Termany extends Term_Model {
+class Termany extends Term {
     static $type = 'term';
     static $post_type = 'dummy';
 
