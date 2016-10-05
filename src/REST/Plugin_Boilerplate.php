@@ -114,7 +114,7 @@ class Plugin_Boilerplate {
                 id bigint(20) NOT NULL AUTO_INCREMENT,
                 object1_id bigint(20) NOT NULL,
                 object2_id bigint(20) NOT NULL,
-                rel_type ENUM('post_post', 'post_term', 'term_post', 'term_term'),
+                rel_type VARCHAR(64),
                 meta_value longtext DEFAULT NULL,
 
                 UNIQUE KEY id (id)

@@ -94,14 +94,7 @@ class Controller extends \WP_REST_Controller {
                 echo "Rel route for rel key $rel_key\n";
 
                 $route = '/' . $type_plural_lc . '/(?P<id>[\d]+)' . '/' . $rel_key;
-                $route_func_with_args = $this->model_registry->get_route_function_with_args('GET', $rel_descriptor);
-                echo "Rel route for rel key $rel_key =>" . $route_func_with_args[0][1] . "\n";
-                // $route_func_args = $this->model_registry->get_route_function_args('GET', $rel_descriptor);
-                // $this->add_route_func( 'GET', $route, $route_func);
-                $this->filters = [
-                    // [$this, 'extract_object_id'],
-                    $route_func_with_args
-                ];
+
 
                 ////
                 // echo "Adding route: GET $route => $route_func\n";
@@ -158,8 +151,8 @@ class Controller extends \WP_REST_Controller {
      * @return \WP_Error|\WP_REST_Response
      */
     public function get_items( $request ) {
-        $route_bits = explode('/', $request->get_route());
-        $plural_lc = array_pop($route_bits);
+        $route_segments = explode('/', $request->get_route());
+        $plural_lc = array_pop($route_segments);
         // $type_lc = \Inflect::singularize($plural_lc);
         $rest_class = $this->model_registry->get_model_class($plural_lc);
         $items = $rest_class::read_all();
@@ -179,21 +172,53 @@ class Controller extends \WP_REST_Controller {
      * @return \WP_Error|\WP_REST_Response
      */
     public function get_item( $request ) {
-        $route_bits = explode('/', $request->get_route());
-        $id = (int)array_pop($route_bits); // get id
-        // $type_lc = \Inflect::singularize();
-        $rest_class = $this->model_registry->get_model_class(array_pop($route_bits));
+        $route_segments = explode('/', $request->get_route());
+        var_dump($route_segments);
+        array_splice($route_segments, 0, 3);
+        var_dump($route_segments);
+        $plural_lc = array_shift($route_segments);
+        $id = (int)array_shift($route_segments); // get id
+        var_dump($route_segments);
+
+        $model_descriptor = $this->model_registry->get_model($plural_lc);
+        $rest_class = $model_descriptor->get_f('class');
+        $model_relationships = $model_descriptor->get_f('relationships');
         $post = $rest_class::read($id);
-        $filter_output = [$id];
-        foreach($this->filters as $route_func_with_args) {
-            // var_dump($route_func_with_args);
-            $route_func = $route_func_with_args[0];
-            var_dump($route_func[1]);
-            $route_func_args = array_merge($route_func_with_args[1], $filter_output);
-            var_dump($route_func_args);
-            $filter_output = call_user_func_array($route_func, $route_func_args);
-            var_dump($filter_output);
+        // $filter_output = [$id];
+        if( count( $route_segments ) ) {
+            $relationship_key = array_shift($route_segments);
+            $relationship = $model_relationships->get($relationship_key);
+            if( ! is_null( $relationship ) ) {
+                echo "FOUND relationship '$relationship_key'\n";
+                // var_dump($relationship);
+                $route_func_with_args = $this->model_registry->get_route_function_with_args('GET', $relationship);
+                $route_func = $route_func_with_args->get('func');
+                // var_dump($route_func[1]);
+                $route_func_args = array_merge($route_func_with_args->get('args'), [$id]);
+                var_dump($route_func_args);
+                $filter_output = call_user_func_array($route_func, $route_func_args);
+                var_dump($filter_output);
+                if(empty($filter_output)) throw new \Exception("404 not found");
+
+                $relatee_class = $this->model_registry->get_model_class($relationship->get('type'));
+                $post = $relatee_class::read($filter_output[0]['id']);
+            }
         }
+
+        // foreach($this->filters as $route_func_with_args) {
+        //     // var_dump($route_func_with_args);
+        //     
+        //     var_dump($route_func[1]);
+        //     
+        //     var_dump($route_func_args);
+        //     
+        //     var_dump($filter_output);
+        // }
+        // echo "Rel route for rel key $rel_key =>" . $route_func_with_args[0][1] . "\n";
+        // $route_func_args = $this->model_registry->get_route_function_args('GET', $rel_descriptor);
+        // $this->add_route_func( 'GET', $route, $route_func);
+
+
         if ( is_array( $post ) ) {
             return new \WP_REST_Response( $post, 200 );
         }
@@ -215,8 +240,8 @@ class Controller extends \WP_REST_Controller {
      */
     public function create_item( $request ) {
         // var_dump($request->get_url_params());
-        $route_bits = explode('/', $request->get_route());
-        $type_lc = \Inflect::singularize(array_pop($route_bits));
+        $route_segments = explode('/', $request->get_route());
+        $type_lc = \Inflect::singularize(array_pop($route_segments));
         $attributes = $request->get_json_params();
         $rest_class = $this->model_registry->get_model_class($type_lc);
         $data = $rest_class::create($attributes);
@@ -235,9 +260,9 @@ class Controller extends \WP_REST_Controller {
      * @return \WP_Error|\WP_REST_Request
      */
     public function update_item( $request ) {
-        $route_bits = explode('/', $request->get_route());
-        $id = (int)array_pop($route_bits); // get id
-        $type_lc = \Inflect::singularize(array_pop($route_bits));
+        $route_segments = explode('/', $request->get_route());
+        $id = (int)array_pop($route_segments); // get id
+        $type_lc = \Inflect::singularize(array_pop($route_segments));
         $attributes = $request->get_json_params();
         $rest_class = $this->model_registry->get_model_class($type_lc);
         $post = $rest_class::update($id, $attributes);
@@ -259,9 +284,9 @@ class Controller extends \WP_REST_Controller {
     public function delete_item( $request ) {
         $item = $this->prepare_item_for_database( $request );
 
-        $route_bits = explode('/', $request->get_route());
-        $id = (int)array_pop($route_bits); // get id
-        $type_lc = \Inflect::singularize(array_pop($route_bits));
+        $route_segments = explode('/', $request->get_route());
+        $id = (int)array_pop($route_segments); // get id
+        $type_lc = \Inflect::singularize(array_pop($route_segments));
         $rest_class = $this->model_registry->get_model_class($type_lc);
         $deleted_post = $rest_class::_delete($type_lc, $id);
         if ( is_array( $deleted_post ) ) {

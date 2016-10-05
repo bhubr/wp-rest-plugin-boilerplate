@@ -59,18 +59,33 @@ class Test_REST_Backend extends WP_UnitTestCase {
 
         global $wpdb;
         $pivot_table = $wpdb->prefix . 'rpb_many_to_many';
+        echo "\n\n#### INSERT ENTRY into pivot table\n\n";
+        $wpdb->show_errors();
+        $data = [
+            'rel_type'   => 'person_passport',
+            'object1_id' => 3,
+            'object2_id' => 5
+        ];
+        $res = $wpdb->insert($pivot_table, $data, ['%s', '%d', '%d']);
+
+
         $res = $wpdb->get_results(
-            "INSERT INTO {$pivot_table} (rel_type,object1_id,object2_id) VALUES('person_passport', 3, 5)", ARRAY_A
+            "SELECT * FROM {$pivot_table} WHERE REL_TYPE='person_passport' AND object2_id = 5", ARRAY_A
         );
+        echo "\n READ ENTRY results\n";
+        var_dump($res);
+        // var_dump($res);
+        if(empty($res)) $wpdb->print_error();
 
 
-
-        // $this->request_get('/passports/5', 200, [
-        //     ['id' => 5, 'name' => "HP's pass", 'slug' => 'hps-pass', 'country_code' => 'fr', 'number' => 'XYZ666'],
-        // ]);
-        $request = new WP_REST_Request( 'GET', '/bhubr/v1/passports/5'  );
+        $this->request_get('/passports/5', 200,
+            ['id' => 5, 'name' => "HP's pass", 'slug' => 'hps-pass', 'country_code' => 'fr', 'number' => 'XYZ666']
+        );
+        $request = new WP_REST_Request( 'GET', '/bhubr/v1/passports/5/owner'  );
         $response = $this->server->dispatch( $request );
-        var_dump( $response->data );
+        $this->request_get('/passports/5/owner', 200,
+            ['id' => 3, 'name' => 'Harry Potter', 'slug' => 'harry-potter']
+        );
 
     }
 

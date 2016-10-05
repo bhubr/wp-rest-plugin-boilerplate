@@ -375,10 +375,10 @@ class Registry {
         $route_func_args = $this->get_func_args( $relationship, $reverse_rel );
         // echo "\n&&&&&& route func args\n";
         // var_dump([ $route_func_args ]);
-        return [
-            [ $this, $route_func ],
-            [ $route_func_args ]
-        ];
+        return collect_f([
+            'func' => [ $this, $route_func ],
+            'args' => [$route_func_args]
+        ]);
         // echo "### got route_function: $a);
         // return $a;
     }
@@ -417,7 +417,6 @@ class Registry {
         }
         else if($reverse_rel_type === 'has_one' && $this_rel_type === 'belongs_to') {
             return $relationship->get_f('type_s') . '_' . $reverse_rel->get_f('type_s');
-            
         }
         else if($this_rel_type === 'has_many' && $reverse_rel_type === 'belongs_to') {
             // return 'get_related_one_to_many';
@@ -482,15 +481,16 @@ class Registry {
     function get_one_to_one_relatee($rel_type, $owner_id) {
         global $wpdb;
         echo "### Query ###   SELECT object2_id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND 'object1_id' = $owner_id\n";
-        $res = $wpdb->get_results(
+        return $wpdb->get_results(
             "SELECT object2_id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND object1_id = $owner_id", ARRAY_A
         );
     }
 
     function get_one_to_one_owner($rel_type, $relatee_id) {
         global $wpdb;
-        $res = $wpdb->get_results(
-            "SELECT object1_id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND object2_id = $relatee_id", ARRAY_A
+        echo "### Query ###   SELECT object1_id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND object2_id = $relatee_id\n";
+        return $wpdb->get_results(
+            "SELECT object1_id AS id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND object2_id = $relatee_id", ARRAY_A
         );
     }
 
@@ -498,7 +498,12 @@ class Registry {
     // ICI c'est PAS OK si l'ancien relatee n'a plus d'owner!
     function set_one_to_one_relatee($rel_type, $owner_id, $relatee_id) {
         global $wpdb;
-        $res = $wpdb->get_results(
+        ////
+        //// !!!!!!!!!!
+        // wpdb->update
+        //// !!!!!!!!!!
+        ////
+        return $wpdb->get_results(
             "UPDATE {$this->pivot_table} SET object2_id = $relatee_id WHERE 'object1_id' = $owner_id", ARRAY_A
         );
     }
@@ -507,7 +512,12 @@ class Registry {
     // PAR CONTRE, ICI c'est OK si l'ancien owner n'a plus de relatee!
     function set_one_to_one_owner($rel_type, $owner_id, $relatee_id) {
         global $wpdb;
-        $res = $wpdb->get_results(
+        ////
+        //// !!!!!!!!!!
+        // wpdb->update
+        //// !!!!!!!!!!
+        ////
+        return $wpdb->get_results(
             "UPDATE {$this->pivot_table} SET object1_id = $owner_id WHERE 'object2_id' = $relatee_id", ARRAY_A
         );
     }
