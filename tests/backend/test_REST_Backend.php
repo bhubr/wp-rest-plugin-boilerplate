@@ -33,10 +33,10 @@ class Test_REST_Backend extends WP_UnitTestCase {
     }
 
     protected function request_get($url, $expected_status, $expected_data) {
-      $request = new WP_REST_Request( 'GET', '/bhubr/v1' . $url );
-      $response = $this->server->dispatch( $request );
-      $this->assertEquals( $expected_status, $response->status );
-      $this->assertEquals( $expected_data, $response->data );
+        $request = new WP_REST_Request( 'GET', '/bhubr/v1' . $url );
+        $response = $this->server->dispatch( $request );
+        $this->assertEquals( $expected_status, $response->status );
+        $this->assertEquals( $expected_data, $response->data );
     }
 
     public function test_get() {
@@ -53,9 +53,25 @@ class Test_REST_Backend extends WP_UnitTestCase {
         ]);
 
         $this->request_get('/passports', 200, [
-            ['id' => 5, 'name' => "HP's pass", 'slug' => 'hps-pass'],
-            ['id' => 6, 'name' => "SH's pass", 'slug' => 'shs-pass'],
+            ['id' => 5, 'name' => "HP's pass", 'slug' => 'hps-pass', 'country_code' => 'fr', 'number' => 'XYZ666'],
+            ['id' => 6, 'name' => "SH's pass", 'slug' => 'shs-pass', 'country_code' => 'fr', 'number' => 'ZYX999'],
         ]);
+
+        global $wpdb;
+        $pivot_table = $wpdb->prefix . 'rpb_many_to_many';
+        $res = $wpdb->get_results(
+            "INSERT INTO {$pivot_table} (rel_type,object1_id,object2_id) VALUES('person_passport', 3, 5)", ARRAY_A
+        );
+
+
+
+        // $this->request_get('/passports/5', 200, [
+        //     ['id' => 5, 'name' => "HP's pass", 'slug' => 'hps-pass', 'country_code' => 'fr', 'number' => 'XYZ666'],
+        // ]);
+        $request = new WP_REST_Request( 'GET', '/bhubr/v1/passports/5'  );
+        $response = $this->server->dispatch( $request );
+        var_dump( $response->data );
+
     }
 
 }

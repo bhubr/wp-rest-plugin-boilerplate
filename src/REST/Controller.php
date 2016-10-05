@@ -91,16 +91,17 @@ class Controller extends \WP_REST_Controller {
             $model_relationships = $this->model_registry->registry->get($type_plural_lc)->get('relationships');
             $model_relationships->each( function( $rel_descriptor, $rel_key ) use( $namespace, $type_plural_lc ) {
                 $route = '/' . $type_plural_lc . '/(?P<id>[\d]+)' . '/' . $rel_key;
-                $route_func = $this->model_registry->get_route_function('GET', $rel_descriptor);
+                $route_func_with_args = $this->model_registry->get_route_function_with_args('GET', $rel_descriptor);
+                // $route_func_args = $this->model_registry->get_route_function_args('GET', $rel_descriptor);
                 // $this->add_route_func( 'GET', $route, $route_func);
                 $this->filters = [
                     // [$this, 'extract_object_id'],
-                    [$this->model_registry, $route_func]
+                    $route_func_with_args
                 ];
 
                 ////
                 echo "Rel route for rel key $rel_key\n";
-                echo "Adding route: GET $route => $route_func\n";
+                // echo "Adding route: GET $route => $route_func\n";
                 ////
 
                 // if($rel_descriptor->get_f('plural')) {
@@ -177,12 +178,17 @@ class Controller extends \WP_REST_Controller {
     public function get_item( $request ) {
         $route_bits = explode('/', $request->get_route());
         $id = (int)array_pop($route_bits); // get id
-        $type_lc = \Inflect::singularize(array_pop($route_bits));
-        $rest_class = $this->model_registry->get_model_class($type_lc);
+        // $type_lc = \Inflect::singularize();
+        $rest_class = $this->model_registry->get_model_class(array_pop($route_bits));
         $post = $rest_class::read($id);
-        $filter_output = $id;
-        foreach($this->filters as $filter) {
-            $filter_output = call_user_func($filter_output);
+        $filter_output = [$id];
+        foreach($this->filters as $route_func_with_args) {
+            // var_dump($route_func_with_args);
+            $route_func = $route_func_with_args[0];
+            $route_func_args = array_merge($route_func_with_args[1], $filter_output);
+            var_dump($route_func_args);
+            $filter_output = call_user_func_array($route_func, $route_func_args);
+            var_dump($filter_output);
         }
         if ( is_array( $post ) ) {
             return new \WP_REST_Response( $post, 200 );
