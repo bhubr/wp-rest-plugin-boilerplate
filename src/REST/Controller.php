@@ -35,6 +35,7 @@ class Controller extends \WP_REST_Controller {
         // Iterate models, and register routes for each model
 
         $this->model_registry->registry->each(function($model_data, $type_plural_lc) {
+            echo "###### ROUTES FOR MODEL $type_plural_lc\n";
 
             // Get model's routes namespace (set per-plugin: all models in a plugin share it)
             $namespace = $model_data['namespace'];
@@ -90,8 +91,11 @@ class Controller extends \WP_REST_Controller {
             // Registering relationships routes
             $model_relationships = $this->model_registry->registry->get($type_plural_lc)->get('relationships');
             $model_relationships->each( function( $rel_descriptor, $rel_key ) use( $namespace, $type_plural_lc ) {
+                echo "Rel route for rel key $rel_key\n";
+
                 $route = '/' . $type_plural_lc . '/(?P<id>[\d]+)' . '/' . $rel_key;
                 $route_func_with_args = $this->model_registry->get_route_function_with_args('GET', $rel_descriptor);
+                echo "Rel route for rel key $rel_key =>" . $route_func_with_args[0][1] . "\n";
                 // $route_func_args = $this->model_registry->get_route_function_args('GET', $rel_descriptor);
                 // $this->add_route_func( 'GET', $route, $route_func);
                 $this->filters = [
@@ -100,7 +104,6 @@ class Controller extends \WP_REST_Controller {
                 ];
 
                 ////
-                echo "Rel route for rel key $rel_key\n";
                 // echo "Adding route: GET $route => $route_func\n";
                 ////
 
@@ -185,6 +188,7 @@ class Controller extends \WP_REST_Controller {
         foreach($this->filters as $route_func_with_args) {
             // var_dump($route_func_with_args);
             $route_func = $route_func_with_args[0];
+            var_dump($route_func[1]);
             $route_func_args = array_merge($route_func_with_args[1], $filter_output);
             var_dump($route_func_args);
             $filter_output = call_user_func_array($route_func, $route_func_args);

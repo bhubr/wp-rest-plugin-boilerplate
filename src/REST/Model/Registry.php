@@ -75,7 +75,7 @@ class Registry {
             $model_descriptors[$plural_lc] = $this->add_model($class_name, $plugin_descriptor);
         }
         $model_descriptors->each( [$this, 'parse_model_relationships'] );
-        $model_descriptors->each( [$this, 'model_relationships_set_strategies'] );
+        // $model_descriptors->each( [$this, 'model_relationships_set_strategies'] );
         // var_dump($this->registry);
         $this->register_models_to_wordpress();
     }
@@ -373,8 +373,8 @@ class Registry {
         // printf("\n--- SHOULD CALL BLOODY GET FUNC with: %s, %s, %s\n", $method, $this_rel_type, $reverse_rel_type);
         $route_func = $this->get_func( $method, $this_rel_type, $reverse_rel_type );
         $route_func_args = $this->get_func_args( $relationship, $reverse_rel );
-        echo "\n&&&&&& route func args\n";
-        var_dump([ $route_func_args ]);
+        // echo "\n&&&&&& route func args\n";
+        // var_dump([ $route_func_args ]);
         return [
             [ $this, $route_func ],
             [ $route_func_args ]
@@ -442,11 +442,11 @@ class Registry {
         $prefix = $method === 'GET' ? 'get' : 'set';
         // echo "get_func #2 prefix\n";
         if ($this_rel_type === 'has_one' && $reverse_rel_type === 'belongs_to') {
-            // echo "#### 1to1\n";
+            echo "#### 1to1 RELATEE\n";
             return $prefix . '_one_to_one_relatee';
         }
         else if($reverse_rel_type === 'has_one' && $this_rel_type === 'belongs_to') {
-            // echo "#### 1belongs\n";
+            echo "#### 1to1 OWNER\n";
             return $prefix . '_one_to_one_owner';
         }
         else if($this_rel_type === 'has_many' && $reverse_rel_type === 'belongs_to') {
