@@ -78,15 +78,18 @@ class Test_REST_Backend extends WP_UnitTestCase {
         if(empty($res)) $wpdb->print_error();
 
 
-        $this->request_get('/passports/5', 200,
-            ['id' => 5, 'name' => "HP's pass", 'slug' => 'hps-pass', 'country_code' => 'fr', 'number' => 'XYZ666']
-        );
-        $request = new WP_REST_Request( 'GET', '/bhubr/v1/passports/5/owner'  );
-        $response = $this->server->dispatch( $request );
+        // $this->request_get('/passports/5', 200,
+        //     ['id' => 5, 'name' => "HP's pass", 'slug' => 'hps-pass', 'country_code' => 'fr', 'number' => 'XYZ666']
+        // );
+        // $request = new WP_REST_Request( 'GET', '/bhubr/v1/passports/5/owner'  );
+        // $response = $this->server->dispatch( $request );
         $this->request_get('/passports/5/owner', 200,
             ['id' => 3, 'name' => 'Harry Potter', 'slug' => 'harry-potter']
         );
 
+        $this->request_get('/persons/3/mypass', 200,
+            ['id' => 5, 'name' => "HP's pass", 'slug' => 'hps-pass', 'country_code' => 'fr', 'number' => 'XYZ666']
+        );
     }
 
 }

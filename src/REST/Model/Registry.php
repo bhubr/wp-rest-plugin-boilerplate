@@ -482,7 +482,7 @@ class Registry {
         global $wpdb;
         echo "### Query ###   SELECT object2_id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND 'object1_id' = $owner_id\n";
         return $wpdb->get_results(
-            "SELECT object2_id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND object1_id = $owner_id", ARRAY_A
+            "SELECT object2_id As id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND object1_id = $owner_id", ARRAY_A
         );
     }
 
