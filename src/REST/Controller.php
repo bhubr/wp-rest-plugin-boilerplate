@@ -3,6 +3,8 @@ namespace bhubr\REST;
 
 use bhubr\REST\Model\Registry;
 use bhubr\REST\Model\Relationships;
+use bhubr\REST\Utils\Collection;
+use bhubr\REST\Payload\Formatter;
 
 if ( ! class_exists( '\WP_REST_Controller' ) ) {
   require_once realpath(dirname(__FILE__) . '/../vendor/class-wp-rest-controller.php');
@@ -165,6 +167,25 @@ class Controller extends \WP_REST_Controller {
         return new \WP_REST_Response( $data, 200 );
     }
 
+    protected function extract_route_segments( $request ) {
+        $route_segments = explode('/', $request->get_route());
+        array_splice($route_segments, 0, 3);
+        $fields = ['model_key', 'model_id', 'relationship_key'];
+        $output = new Collection();
+        foreach($fields as $key) {
+            $segment = array_shift($route_segments);
+            if( is_null( $segment ) ) break;
+            $output->put($key, $segment);
+        }
+        return $output;
+        // $plural_lc = array_shift($route_segments);
+        // $id = (int)array_shift($route_segments); // get id
+        // $segments = [
+        //     'model_key' => $plural_lc,
+        //     'model_id'  =>
+        // ]
+    }
+
     /**
      * Get one item from the collection
      *
@@ -173,12 +194,9 @@ class Controller extends \WP_REST_Controller {
      */
     public function get_item( $request ) {
         $route_segments = explode('/', $request->get_route());
-        var_dump($route_segments);
         array_splice($route_segments, 0, 3);
-        var_dump($route_segments);
         $plural_lc = array_shift($route_segments);
         $id = (int)array_shift($route_segments); // get id
-        var_dump($route_segments);
 
         $model_descriptor = $this->model_registry->get_model($plural_lc);
         $rest_class = $model_descriptor->get_f('class');
@@ -239,12 +257,22 @@ class Controller extends \WP_REST_Controller {
      * @return \WP_Error|\WP_REST_Request
      */
     public function create_item( $request ) {
+        $route_segments = $this->extract_route_segments( $request );
+        var_dump($route_segments);
         // var_dump($request->get_url_params());
-        $route_segments = explode('/', $request->get_route());
-        $type_lc = \Inflect::singularize(array_pop($route_segments));
-        $attributes = $request->get_json_params();
-        $rest_class = $this->model_registry->get_model_class($type_lc);
-        $data = $rest_class::create($attributes);
+        // $route_segments = explode('/', $request->get_route());
+        // $type_lc = \Inflect::singularize(array_pop($route_segments));
+        $payload = $request->get_json_params();
+        $model_key = $route_segments->get('model_key');
+        $model_descriptor = $this->model_registry->get_model($model_key);
+        $payload_format = $model_descriptor->get('rest_type');
+        $parsed_payload = Formatter::parse_and_validate(
+            $payload_format, $payload, $model_descriptor->get_f('attributes'), $model_descriptor->get_f('relationships')
+        );
+        var_dump($parsed_payload);
+
+        $rest_class = $model_descriptor->get('class');
+        $data = $rest_class::create($parsed_payload['attributes']);
         if ( is_array( $data ) ) {
             return new \WP_REST_Response( $data, 200 );
         }

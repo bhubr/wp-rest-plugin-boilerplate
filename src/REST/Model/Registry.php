@@ -139,6 +139,7 @@ class Registry {
                                '/v' . $plugin_descriptor['rest_version'],
             'rest_type'     => $plugin_descriptor['rest_type'],
             'class'         => $class_name,
+            'attributes'    => $class_name::$fields,
             // 'relationships' => $this->parse_model_relationships(
             //     collect_f($class_name::$relations)
             // )

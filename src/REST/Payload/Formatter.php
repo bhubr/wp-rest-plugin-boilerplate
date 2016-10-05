@@ -21,10 +21,10 @@ class Formatter {
             $msg = "Invalid payload format $payload_format. Valid formats: ";
             throw new \Exception($msg. implode(', ', $accepted_payload_formats), self::INVALID_PAYLOAD_FORMAT);
         }
-        $strategy_class = 'bhubr\Formatter' . $payload_format;
+        $strategy_class = 'bhubr\REST\Payload\Formatter' . $payload_format;
         // return $strategy_class::parse($payload, $attributes_keys, $relationships_keys);
         $result_relationships = $strategy_class::extract_relationships($payload, $model_relationships);
-        $result_attributes = $strategy_class::extract_attributes($result_relationships['payload'], $model_attributes);
+        $result_attributes = $strategy_class::check_and_extract_attributes($result_relationships['payload'], $model_attributes);
         return [
             'relationships' => $result_relationships['relationships'],
             'attributes'    => $result_attributes['attributes'],

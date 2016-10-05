@@ -39,6 +39,24 @@ class Test_REST_Backend extends Backend_UnitTestCase {
     //     $this->assertEquals( $expected_data, $response->data );
     // }
 
+    public function test_create() {
+        $this->request_post('/persons', [
+            'first_name' => 'John',
+            'last_name'  => 'Doe',
+            'email'      => 'johndoe@example.com',
+            'birth_year' => 1967,
+            'unknown'    => '!! BAD FIELD: NOT DECLARED IN MODEL !!'
+        ], 200, [
+            'id'         => 3,
+            'name'       => '',
+            'slug'       => 'john-doe',
+            'first_name' => 'John',
+            'last_name'  => 'Doe',
+            'email'      => 'johndoe@example.com',
+            'birth_year' => 1967,
+        ]);
+    }
+
     public function test_get() {
         $this->request_get('/persons', 200, []);
 
