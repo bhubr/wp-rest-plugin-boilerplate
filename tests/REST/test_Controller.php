@@ -32,12 +32,12 @@ class Test_Controller extends WP_UnitTestCase {
 
         $this->server = $wp_rest_server = new WP_REST_Server;
         $this->controller = new Controller;
-        try {
+        // try {
             do_action('init');
             do_action('rest_api_init');
-        } catch(Exception $e) {
-            Tracer::show();
-        }
+        // } catch(Exception $e) {
+        //     Tracer::show();
+        // }
     }
 
     function tearDown() {
@@ -53,12 +53,12 @@ class Test_Controller extends WP_UnitTestCase {
      * Test WP_REST_Server routes
      */
     function test_wp_rest_server_routes() {
-        try {
-            do_action('init');
-            do_action('rest_api_init');
-        } catch(Exception $e) {
-            Tracer::show();
-        }
+        // try {
+        //     do_action('init');
+        //     do_action('rest_api_init');
+        // } catch(Exception $e) {
+        //     Tracer::show();
+        // }
 
         global $wp_rest_server;
         $routes = $wp_rest_server->get_routes();
@@ -76,13 +76,17 @@ class Test_Controller extends WP_UnitTestCase {
             // '/bhubr/v1/foos/schema',
             '/bhubr/v1/foo_cats',
             '/bhubr/v1/foo_cats/(?P<id>[\d]+)',
+            '/bhubr/v1/foo_cats/(?P<id>[\d]+)/foos',
             // '/bhubr/v1/foo_cats/schema',
             '/bhubr/v1/foo_tags',
             '/bhubr/v1/foo_tags/(?P<id>[\d]+)',
+            '/bhubr/v1/foo_tags/(?P<id>[\d]+)/foos',
             // '/bhubr/v1/foo_tags/schema',
         ];
         sort($expected);
         sort($keys);
+        var_dump($expected);
+        var_dump($keys);
         $this->assertEquals($expected, $keys);
     }
 

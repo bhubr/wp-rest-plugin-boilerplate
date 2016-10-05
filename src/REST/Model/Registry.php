@@ -338,7 +338,8 @@ class Registry {
             $relationship->get_f('rel_type'),
             $inverse_rel->get_f('rel_type')
         );
-        $create_or_update_func = $this->get_create_or_update_func(
+        $create_or_update_func = $this->get_func(
+            'GET',
             $relationship->get_f('rel_type'),
             $inverse_rel->get_f('rel_type')
         );
@@ -346,11 +347,38 @@ class Registry {
             $model_descriptor->get_f('singular_lc'),
             $inverse_desc->get_f('singular_lc')
         ];
+        var_dump($create_or_update_func);
         var_dump($create_or_update_func_args);
         echo $combined_rel_type . "\n";
         echo "\n-----------\n\n";
         // var_dump($model_plural . ' ' . $relationship->get('rel_type') . ' => ' .
         //  $inverse_rel->get('type') . ' ' . $inverse_rel->get('rel_type') );
+    }
+
+    public function get_inverse_relationship($relationship) {
+        $relatee_type = $relationship->get_f('type');
+        return $this->registry->get_f( $relatee_type )->get_f('relationships');
+    }
+
+    public function get_route_function($method, $relationship) {
+        $reverse_key = $relationship->get('inverse');
+        $reverse_rel = $this->get_inverse_relationship($relationship)->get($reverse_key);
+        echo "REGISTRY::" . __FUNCTION__ . " => relationships:\n";
+        var_dump($relationship);
+        var_dump($reverse_rel);
+        echo "REGISTRY::" . __FUNCTION__ . " => should call printf then get_func\n";
+        // throw new \Exception('I failed here');
+        $this_rel_type = $relationship->get_f('rel_type');
+        $reverse_rel_type = $reverse_rel->get('rel_type');
+        printf("\n--- SHOULD CALL BLOODY GET FUNC with: %s, %s, %s\n", $method, $this_rel_type, $reverse_rel_type);
+        $a =  $this->get_func(
+            $method,
+            $this_rel_type,
+            $reverse_rel_type
+            
+        );
+        var_dump($a);
+        return $a;
     }
 
     /**
@@ -378,12 +406,15 @@ class Registry {
     /**
      * Get relation type from object - related object relation types
      */
-    public function get_create_or_update_func($this_rel_type, $reverse_rel_type) {
-        if(
-            ($this_rel_type === 'has_one' && $reverse_rel_type === 'belongs_to') ||
-            ($reverse_rel_type === 'has_one' && $this_rel_type === 'belongs_to')
-        ) {
-            return self::RELATION_ONE_TO_ONE;
+    public function get_create_or_update_func_args($relationship, $reverse_rel) {
+        $this_rel_type    = $relationship->get_f('rel_type');
+        $reverse_rel_type = $reverse_rel->get_f('rel_type');
+        if ($this_rel_type === 'has_one' && $reverse_rel_type === 'belongs_to') {
+            return $this_rel_type->get_f('type_s') . '_' . $reverse_rel_type->get_f('type_s');
+        }
+        else if($reverse_rel_type === 'has_one' && $this_rel_type === 'belongs_to') {
+        
+            
         }
         else if($this_rel_type === 'has_many' && $reverse_rel_type === 'belongs_to') {
             return 'get_related_one_to_many';
@@ -396,6 +427,85 @@ class Registry {
         }
         else throw new \Exception("NOT IMPLEMENTED for $this_rel_type, $reverse_rel_type\n");
     }
+
+    /**
+     * Get relation type from object - related object relation types
+     */
+    public function get_func($method, $this_rel_type, $reverse_rel_type) {
+        echo "get_func #1\n";
+        var_dump(func_get_args());
+        $prefix = $method === 'GET' ? 'get' : 'set';
+        echo "get_func #2 prefix\n";
+        if ($this_rel_type === 'has_one' && $reverse_rel_type === 'belongs_to') {
+            echo "#### 1to1\n";
+            return $prefix . '_one_to_one_relatee';
+        }
+        else if($reverse_rel_type === 'has_one' && $this_rel_type === 'belongs_to') {
+            echo "#### 1belongs\n";
+            return $prefix . '_one_to_one_owner';
+        }
+        else if($this_rel_type === 'has_many' && $reverse_rel_type === 'belongs_to') {
+            echo "#### one2many\n";
+            return $prefix . '_one_to_many';
+        }
+        else if($this_rel_type === 'belongs_to' && $reverse_rel_type === 'has_many') {
+            echo "#### many2one\n";
+            return self::RELATION_MANY_TO_ONE;
+        }
+        else if($this_rel_type === 'has_many' && $reverse_rel_type === 'has_many') {
+            echo "#### many2many\n";
+            return self::RELATION_MANY_TO_MANY;
+        }
+        else {
+            echo "#### fucking ERROR\n";
+            throw new \Exception("NOT IMPLEMENTED for $this_rel_type, $reverse_rel_type\n");
+        }
+    }
+
+
+    /**
+     * e.g.
+     * Get passport for person
+     * Needs: 
+     *   - rel_type (e.g. person_passport)
+     *   - what do you want to get? Passport id from Person? Or Person id from Passport?
+     *
+     * $rel_type = person_passport (person owns passport, hence person comes first in $rel_type)
+     * $where_relatee_field = 'object2_id' (we want the passport id related to person)
+     * $where_owner_field   = 'object1_id' (we want the passport id related to person)
+     */
+    function get_related_one_to_one_relatee($rel_type, $owner_id) {
+        $res = $wpdb->get_results(
+            "SELECT object2_id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND 'object1_id' = $owner_id", ARRAY_A
+        );
+    }
+
+    function get_related_one_to_one_owner($rel_type, $relatee_id) {
+        $res = $wpdb->get_results(
+            "SELECT object1_id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND 'object2_id' = $relatee_id", ARRAY_A
+        );
+    }
+
+    // ATTENTION CAR IL FAUT ALORS QUE L'ENTREE de l'ancien relatee soit effacée !!!!!!
+    // ICI c'est PAS OK si l'ancien relatee n'a plus d'owner!
+    function set_related_one_to_one_relatee($rel_type, $owner_id, $relatee_id) {
+        $res = $wpdb->get_results(
+            "UPDATE {$this->pivot_table} SET object2_id = $relatee_id WHERE 'object1_id' = $owner_id", ARRAY_A
+        );
+    }
+
+    // ATTENTION CAR IL FAUT ALORS QUE L'ENTREE de l'ancien owner soit effacée !!!!!!
+    // PAR CONTRE, ICI c'est OK si l'ancien owner n'a plus de relatee!
+    function set_related_one_to_one_owner($rel_type, $owner_id, $relatee_id) {
+        $res = $wpdb->get_results(
+            "UPDATE {$this->pivot_table} SET object1_id = $owner_id WHERE 'object2_id' = $relatee_id", ARRAY_A
+        );
+    }
+
+
+    function get_related_one_to_one($rel_type, $owner_or_relatee_id, $table_field) {
+    }
+
 
     function get_related_one_to_many($owner_type, $relatee_type, $owner_id) {
         $this_first = $this_rel_class > $rev_rel_class;

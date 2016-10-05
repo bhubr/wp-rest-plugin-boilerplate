@@ -8,45 +8,43 @@ if ( ! class_exists( '\WP_REST_Controller' ) ) {
   require_once realpath(dirname(__FILE__) . '/../vendor/class-wp-rest-controller.php');
 }
 
-// class Route_Descriptor {
-//     public $plural;
-//     public
-// }
-
 class Controller extends \WP_REST_Controller {
 
-  protected $model_registry;
+    protected $model_registry;
+    protected $routes = [];
 
-  /**
-   * Register the routes for the objects of the controller.
-   */
-  public function register_routes() {
-    $this->model_registry = Registry::get_instance();
-    $this->model_registry->registry->each(function($model_data, $type_plural_lc) {
+    /**
+     * Register the routes for the objects of the controller.
+     */
+    public function register_routes() {
+        $this->model_registry = Registry::get_instance();
+        $this->model_registry->registry->map(function($model_data, $type_plural_lc) {
 
+            echo "### Registering routes for model $type_plural_lc ####\n";
 
-    // foreach($this->model_registry->get_models_keys() as $type_plural_lc) {
-      // $model_data = $this->model_registry->get_model($type_plural_lc);
-      $namespace = $model_data['namespace'];
+            $namespace = $model_data['namespace'];
 
-      register_rest_route( $namespace, '/' . $type_plural_lc, array(
-        array(
-          'methods'         => \WP_REST_Server::READABLE,
-          'callback'        => array( $this, 'get_items' ),
-          'permission_callback' => array( $this, 'get_items_permissions_check' ),
-          'args'            => array(
+            echo "### Registering GET ALL & CREATE routes\n";
+            register_rest_route( $namespace, '/' . $type_plural_lc, array(
+                array(
+                  'methods'         => \WP_REST_Server::READABLE,
+                  'callback'        => array( $this, 'get_items' ),
+                  'permission_callback' => array( $this, 'get_items_permissions_check' ),
+                  'args'            => array(
 
-          ),
-        ),
-        array(
-          'methods'         => \WP_REST_Server::CREATABLE,
-          'callback'        => array( $this, 'create_item' ),
-          'permission_callback' => array( $this, 'create_item_permissions_check' ),
-          'args'            => $this->get_endpoint_args_for_item_schema( true ),
-        ),
-      ) );
+                  ),
+                ),
+                array(
+                  'methods'         => \WP_REST_Server::CREATABLE,
+                  'callback'        => array( $this, 'create_item' ),
+                  'permission_callback' => array( $this, 'create_item_permissions_check' ),
+                  'args'            => $this->get_endpoint_args_for_item_schema( true ),
+                ),
+            ) );
 
-      register_rest_route( $namespace, '/' . $type_plural_lc . '/(?P<id>[\d]+)', array(
+        echo "### Registering GET ONE, UPDATE and DELETE routes\n";
+
+        register_rest_route( $namespace, '/' . $type_plural_lc . '/(?P<id>[\d]+)', array(
         array(
           'methods'         => \WP_REST_Server::READABLE,
           'callback'        => array( $this, 'get_item' ),
@@ -74,12 +72,22 @@ class Controller extends \WP_REST_Controller {
           ),
         ),
       ) );
-      $parsed_relationships = Relationships::parse_for_model($model_data['relationships']);
-      // var_dump($parsed_relationships->values);
-      $parsed_relationships->each(function($item, $key) use($namespace, $type_plural_lc) {
-        $new_route = '/' . $type_plural_lc . '/(?P<id>[\d]+)' . '/' . $key;
-        if($item['plural']) {
-          register_rest_route( $namespace, $new_route, [
+
+      echo "### Registering Relationships routes\n";
+      $model_relationships = $this->model_registry->registry->get($type_plural_lc)->get('relationships');
+      var_dump($model_relationships);
+      $model_relationships->map(function($rel_descriptor, $rel_key) use($namespace, $type_plural_lc) {
+        echo "Rel route for rel key $rel_key\n";
+        $route = '/' . $type_plural_lc . '/(?P<id>[\d]+)' . '/' . $rel_key;
+        echo "#1\n";
+        $route_func = $this->model_registry->get_route_function('GET', $rel_descriptor);
+        echo "route func: $route_func\n";
+        $this->add_route_func( 'GET', $route, $route_func);
+        echo "#3\n";
+        echo "Adding route: GET $route => $route_func\n";
+
+        if($rel_descriptor->get_f('plural')) {
+          register_rest_route( $namespace, $route, [
             [
               'methods'         => \WP_REST_Server::READABLE,
               'callback'        => array( $this, 'get_items' ),
@@ -89,7 +97,7 @@ class Controller extends \WP_REST_Controller {
           ] );
         }
         else {
-          register_rest_route( $namespace, $new_route, [
+          register_rest_route( $namespace, $route, [
             [
               'methods'         => \WP_REST_Server::READABLE,
               'callback'        => array( $this, 'get_item' ),
@@ -98,13 +106,27 @@ class Controller extends \WP_REST_Controller {
             ]
           ] );
         }
-      });
+        echo "returning true\n";
+        return true;
+      }
+      );
+
+
       // register_rest_route( $namespace, '/' . $type_plural_lc . '/schema', array(
       //   'methods'         => \WP_REST_Server::READABLE,
       //   'callback'        => array( $this, 'get_public_item_schema' ),
       // ) );
     // }
+      return true;
     });
+  }
+
+  public function add_route_func($method, $route, $route_function) {
+    echo "#2a\n";
+
+    $key = $method . ' ' . $route;
+    $this->routes[$key] = $route_function;
+    echo "#2b\n";
   }
 
   public function parse_route( $request ) {
