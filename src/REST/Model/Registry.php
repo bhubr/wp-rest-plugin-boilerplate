@@ -363,22 +363,22 @@ class Registry {
     public function get_route_function($method, $relationship) {
         $reverse_key = $relationship->get('inverse');
         $reverse_rel = $this->get_inverse_relationship($relationship)->get($reverse_key);
-        echo "REGISTRY::" . __FUNCTION__ . " => relationships:\n";
-        var_dump($relationship);
-        var_dump($reverse_rel);
-        echo "REGISTRY::" . __FUNCTION__ . " => should call printf then get_func\n";
+        // echo "REGISTRY::" . __FUNCTION__ . " => relationships:\n";
+        // var_dump($relationship);
+        // var_dump($reverse_rel);
+        // echo "REGISTRY::" . __FUNCTION__ . " => should call printf then get_func\n";
         // throw new \Exception('I failed here');
         $this_rel_type = $relationship->get_f('rel_type');
         $reverse_rel_type = $reverse_rel->get('rel_type');
-        printf("\n--- SHOULD CALL BLOODY GET FUNC with: %s, %s, %s\n", $method, $this_rel_type, $reverse_rel_type);
-        $a =  $this->get_func(
+        // printf("\n--- SHOULD CALL BLOODY GET FUNC with: %s, %s, %s\n", $method, $this_rel_type, $reverse_rel_type);
+        return $this->get_func(
             $method,
             $this_rel_type,
             $reverse_rel_type
             
         );
-        var_dump($a);
-        return $a;
+        // echo "### got route_function: $a);
+        // return $a;
     }
 
     /**
@@ -432,32 +432,32 @@ class Registry {
      * Get relation type from object - related object relation types
      */
     public function get_func($method, $this_rel_type, $reverse_rel_type) {
-        echo "get_func #1\n";
-        var_dump(func_get_args());
+        // echo "get_func #1\n";
+        // var_dump(func_get_args());
         $prefix = $method === 'GET' ? 'get' : 'set';
-        echo "get_func #2 prefix\n";
+        // echo "get_func #2 prefix\n";
         if ($this_rel_type === 'has_one' && $reverse_rel_type === 'belongs_to') {
-            echo "#### 1to1\n";
+            // echo "#### 1to1\n";
             return $prefix . '_one_to_one_relatee';
         }
         else if($reverse_rel_type === 'has_one' && $this_rel_type === 'belongs_to') {
-            echo "#### 1belongs\n";
+            // echo "#### 1belongs\n";
             return $prefix . '_one_to_one_owner';
         }
         else if($this_rel_type === 'has_many' && $reverse_rel_type === 'belongs_to') {
-            echo "#### one2many\n";
+            // echo "#### one2many\n";
             return $prefix . '_one_to_many';
         }
         else if($this_rel_type === 'belongs_to' && $reverse_rel_type === 'has_many') {
-            echo "#### many2one\n";
+            // echo "#### many2one\n";
             return self::RELATION_MANY_TO_ONE;
         }
         else if($this_rel_type === 'has_many' && $reverse_rel_type === 'has_many') {
-            echo "#### many2many\n";
+            // echo "#### many2many\n";
             return self::RELATION_MANY_TO_MANY;
         }
         else {
-            echo "#### fucking ERROR\n";
+            // echo "#### fucking ERROR\n";
             throw new \Exception("NOT IMPLEMENTED for $this_rel_type, $reverse_rel_type\n");
         }
     }

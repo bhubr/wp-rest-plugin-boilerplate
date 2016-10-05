@@ -27,8 +27,11 @@ class Test_Controller extends WP_UnitTestCase {
 
         $this->rpb = bhubr\REST\Plugin_Boilerplate::get_instance();
         $this->rpb->register_plugin('dummy-plugin', RESOURCES_DIR, [
-            'models_dir' => 'models/foo', 'models_namespace' => 'foo\\'
+            'models_dir' => 'models/relationships', 'models_namespace' => 'rel\\'
         ]);
+        // $this->rpb->register_plugin('dummy-plugin', RESOURCES_DIR, [
+        //     'models_dir' => 'models/foo', 'models_namespace' => 'foo\\'
+        // ]);
 
         $this->server = $wp_rest_server = new WP_REST_Server;
         $this->controller = new Controller;
@@ -85,8 +88,8 @@ class Test_Controller extends WP_UnitTestCase {
         ];
         sort($expected);
         sort($keys);
-        var_dump($expected);
-        var_dump($keys);
+        // var_dump($expected);
+        // var_dump($keys);
         $this->assertEquals($expected, $keys);
     }
 
