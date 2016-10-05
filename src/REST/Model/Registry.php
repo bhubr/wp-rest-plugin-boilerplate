@@ -18,6 +18,19 @@ class Registry {
      */
     public $registry;
 
+    /**
+     * Pivot table name
+     */
+    private $pivot_table;
+
+    /**
+     * Relation types
+     */
+    const RELATION_ONE_TO_ONE = 'ONE_TO_ONE';
+    const RELATION_ONE_TO_MANY = 'ONE_TO_MANY';
+    const RELATION_MANY_TO_ONE = 'MANY_TO_ONE';
+    const RELATION_MANY_TO_MANY = 'MANY_TO_MANY';
+
     protected $type_class_map = [
         'post' => 'bhubr\Post_Model',
         'term' => 'bhubr\Term_Model'
@@ -44,6 +57,8 @@ class Registry {
      * Private constructor
      */
     private function __construct() {
+        global $wpdb;
+        $this->pivot_table = $wpdb->prefix . 'rpb_many_to_many';
         $this->registry = new Collection();
     }
 
@@ -56,15 +71,12 @@ class Registry {
         $model_descriptors = new Collection;
         foreach($model_files as $file) {
             $class_name = $this->load_model_file($file, $plugin_descriptor);
-            $model_descriptors[] = $this->add_model($class_name, $plugin_descriptor);
+            $plural_lc = $class_name::$plural;
+            $model_descriptors[$plural_lc] = $this->add_model($class_name, $plugin_descriptor);
         }
-        $model_descriptors->each(function($descriptor) {
-            $relationships = $descriptor->get('relationships');
-            $parsed_rels = $this->parse_model_relationships($relationships);
-            // We simply replace the relationships collection
-            $descriptor->put('relationships', $parsed_rels);
-        });
-        var_dump($this->registry);
+        $model_descriptors->each( [$this, 'parse_model_relationships'] );
+        $model_descriptors->each( [$this, 'model_relationships_set_strategies'] );
+        // var_dump($this->registry);
         $this->register_models_to_wordpress();
     }
 
@@ -115,19 +127,22 @@ class Registry {
         $plural_lc = $class_name::$plural;
         // Tracer::save(__CLASS__, __FUNCTION__);
         if ($this->registry->has($plural_lc)) {
-            throw new \Exception("Cannot register duplicate model {$class_name::$singular} in registry");
+            throw new \Exception(
+                "Cannot register duplicate model {$class_name::$singular} in registry"
+                );
         }
 
         $registry = $this->registry->put( $plural_lc, collect_f ( [
             'type'          => $class_name::$type,
             'singular_lc'   => $class_name::$singular,
-            'namespace'     => $plugin_descriptor['rest_root'] . '/v' . $plugin_descriptor['rest_version'],
+            'namespace'     => $plugin_descriptor['rest_root'] .
+                               '/v' . $plugin_descriptor['rest_version'],
             'rest_type'     => $plugin_descriptor['rest_type'],
             'class'         => $class_name,
             // 'relationships' => $this->parse_model_relationships(
             //     collect_f($class_name::$relations)
             // )
-            'relationships' => collect_f($class_name::$relations)
+            '_relationships' => collect_f($class_name::$relations)
         ] ) );
         return $registry->get($plural_lc);
     }
@@ -257,21 +272,140 @@ class Registry {
         register_taxonomy( $singular_lc, $type_lc, $args );
     }
 
-    public function parse_model_relationships($relationships) {
-        return $relationships->map([$this, 'parse_relationship']);
+    public function parse_model_relationships($model_descriptor) {
+        $raw_relationships = $model_descriptor->get('_relationships');
+        $relationships = $raw_relationships->map([$this, 'parse_relationship']);
+        $model_descriptor->put('relationships', $relationships);
     }
 
-    public function parse_relationship($relationship_descriptor, $relationship_attr) {
+    public function parse_relationship($relationship_descriptor) {
         $desc_bits = explode(':', $relationship_descriptor);
+        var_dump($desc_bits);
         $rel_class = $desc_bits[0];
         $rel_type = $desc_bits[1];
         $output = [
             'type'     => $rel_class::$plural,
+            'type_s'   => $rel_class::$singular,
             'plural'   => array_search($rel_type, ['has_one', 'belongs_to']) === false,
             'rel_type' => $desc_bits[1],
         ];
         if( count( $desc_bits ) > 2 ) $output['inverse'] = $desc_bits[2];
         return collect_f($output);
+    }
+
+    public function model_relationships_set_strategies($model_descriptor, $model_plural) {
+        $relationships = $model_descriptor->get_f('relationships');
+        echo "#### Set strategies for model $model_plural #### \n";
+        var_dump($relationships);
+        $relationships->each(
+            function( $relationship, $key ) use( $model_descriptor, $model_plural ) {
+                $this->set_strategies( $relationship, $model_descriptor, $model_plural, $key );
+            }
+        );
+    }
+
+    public function set_strategies( $relationship, $model_descriptor, $model_plural, $key ) {
+        echo "#### Set strategy for model $model_plural, key $key #### \n";
+        var_dump($relationship);
+
+        $relatee_type    = $relationship->get_f('type');
+        $inverse_rel_key = $relationship->get_f('inverse');
+        $inverse_desc    = $this->registry->get_f( $relatee_type );
+        $inverse_rel     = $inverse_desc->get('relationships')->get($inverse_rel_key);
+        var_dump($inverse_rel);
+        // $inverse_rel_key = $relationship->get_f('inverse');
+        // $inverse_rel = $relatee_desc->get_f($inverse_rel_key);
+        // foreach ($relatee_desc->get('relationships') as $key => $_relationship) {
+        //     if ( $_relationship->get( 'type' ) !== $model_plural ) continue;
+        //     $inverse_rel = $_relationship;
+        //     $inverse_rel_key = $key;
+        // }
+        //     function( $relationship, $key ) use( $model_plural, &$inverse_rel_key ) {
+        //         $inverse_rel_key = $key;
+        //         if ($relationship->get( 'type' ) === $model_plural) {
+
+        //         } 
+        //         return 
+        //     }
+        // );
+        printf("(%s) %s: %s:%s => ", 
+            $model_plural, $key, $relationship->get('type'), $relationship->get('rel_type')
+            );
+        printf("(%s) %s : %s:%s\n",
+            $relatee_type, $inverse_rel_key, $inverse_rel->get('type'), $inverse_rel->get('rel_type'));
+
+        $combined_rel_type = $this->get_relation_type(
+            $relationship->get_f('rel_type'),
+            $inverse_rel->get_f('rel_type')
+        );
+        $create_or_update_func = $this->get_create_or_update_func(
+            $relationship->get_f('rel_type'),
+            $inverse_rel->get_f('rel_type')
+        );
+        $create_or_update_func_args = [
+            $model_descriptor->get_f('singular_lc'),
+            $inverse_desc->get_f('singular_lc')
+        ];
+        var_dump($create_or_update_func_args);
+        echo $combined_rel_type . "\n";
+        echo "\n-----------\n\n";
+        // var_dump($model_plural . ' ' . $relationship->get('rel_type') . ' => ' .
+        //  $inverse_rel->get('type') . ' ' . $inverse_rel->get('rel_type') );
+    }
+
+    /**
+     * Get relation type from object - related object relation types
+     */
+    public function get_relation_type($this_rel_type, $reverse_rel_type) {
+        if(
+            ($this_rel_type === 'has_one' && $reverse_rel_type === 'belongs_to') ||
+            ($reverse_rel_type === 'has_one' && $this_rel_type === 'belongs_to')
+        ) {
+            return self::RELATION_ONE_TO_ONE;
+        }
+        else if($this_rel_type === 'has_many' && $reverse_rel_type === 'belongs_to') {
+            return self::RELATION_ONE_TO_MANY;
+        }
+        else if($this_rel_type === 'belongs_to' && $reverse_rel_type === 'has_many') {
+            return self::RELATION_MANY_TO_ONE;
+        }
+        else if($this_rel_type === 'has_many' && $reverse_rel_type === 'has_many') {
+            return self::RELATION_MANY_TO_MANY;
+        }
+        else throw new \Exception("NOT IMPLEMENTED for $this_rel_type, $reverse_rel_type\n");
+    }
+
+    /**
+     * Get relation type from object - related object relation types
+     */
+    public function get_create_or_update_func($this_rel_type, $reverse_rel_type) {
+        if(
+            ($this_rel_type === 'has_one' && $reverse_rel_type === 'belongs_to') ||
+            ($reverse_rel_type === 'has_one' && $this_rel_type === 'belongs_to')
+        ) {
+            return self::RELATION_ONE_TO_ONE;
+        }
+        else if($this_rel_type === 'has_many' && $reverse_rel_type === 'belongs_to') {
+            return 'get_related_one_to_many';
+        }
+        else if($this_rel_type === 'belongs_to' && $reverse_rel_type === 'has_many') {
+            return self::RELATION_MANY_TO_ONE;
+        }
+        else if($this_rel_type === 'has_many' && $reverse_rel_type === 'has_many') {
+            return self::RELATION_MANY_TO_MANY;
+        }
+        else throw new \Exception("NOT IMPLEMENTED for $this_rel_type, $reverse_rel_type\n");
+    }
+
+    function get_related_one_to_many($owner_type, $relatee_type, $owner_id) {
+        $this_first = $this_rel_class > $rev_rel_class;
+        $where_type = $this_first ? static::$type . '_' . $this_rel_class::$type : $this_rel_class::$type . '_' . static::$type;
+        $where_id = $this_first ? 'object1_id' : 'object2_id';
+        $relatee_id = $this_first ? 'object2_id' : 'object1_id';
+        $res = $wpdb->get_results(
+            "SELECT * FROM $table_name WHERE rel_type='$where_type' AND $where_id = $object_id", ARRAY_A
+        );
+
     }
 
 

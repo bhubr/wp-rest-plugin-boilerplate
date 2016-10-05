@@ -57,13 +57,17 @@ class Test_Model_Relationships extends WP_UnitTestCase {
         $expected_foo_relationships = [
             'categories' => [
                 'type'     => 'foo_cats',
+                'type_s'   => 'foo_cat',
                 'plural'   => true,
-                'rel_type' => 'has_many'
+                'rel_type' => 'has_many',
+                'inverse'  => 'foos'
             ],
             'tags' => [
-                'type'   => 'foo_tags',
-                'plural' => true,
-                'rel_type' => 'has_many'
+                'type'     => 'foo_tags',
+                'type_s'   => 'foo_tag',
+                'plural'   => true,
+                'rel_type' => 'has_many',
+                'inverse'  => 'foos'
             ]
         ];
 
@@ -96,12 +100,14 @@ class Test_Model_Relationships extends WP_UnitTestCase {
                 // 'mypass'  => 'rel\Passport:has_one:owner'
                 'mybooks' => [
                     'type'     => 'books',
+                    'type_s'   => 'book',
                     'plural'   => true,
                     'rel_type' => 'has_many',
                     'inverse'  => 'author'
                 ],
                 'mypass'  => [
                     'type'     => 'passports',
+                    'type_s'   => 'passport',
                     'plural'   => false,
                     'rel_type' => 'has_one',
                     'inverse'  => 'owner'
