@@ -15,7 +15,8 @@ class Test_REST_Backend extends WP_UnitTestCase {
 
         $this->rpb = bhubr\REST\Plugin_Boilerplate::get_instance();
         $this->rpb->register_plugin('dummy-plugin', RESOURCES_DIR, [
-            'models_dir' => 'models/foo', 'models_namespace' => 'foo\\'
+            'models_dir' => 'models/relationships',
+            'models_namespace' => 'rel\\',
         ]);
 
 
@@ -39,13 +40,13 @@ class Test_REST_Backend extends WP_UnitTestCase {
     }
 
     public function test_get() {
-        $this->request_get('/foos', 200, []);
+        $this->request_get('/persons', 200, []);
 
-        $model1 = bhubr\Foo::create(['name' => 'Pouet']);
-        $model2 = bhubr\Foo::create(['name' => 'Youpla boum']);
-        $this->request_get('/foos', 200, [
-            ['id' => 3, 'name' => 'Pouet', 'slug' => 'pouet', 'foo_cat' => null, 'foo_tags' => []],
-            ['id' => 4, 'name' => 'Youpla boum', 'slug' => 'youpla-boum', 'foo_cat' => null, 'foo_tags' => []],
+        $model1 = rel\Person::create(['name' => 'Harry Potter']);
+        $model2 = rel\Person::create(['name' => 'Sally Harper']);
+        $this->request_get('/persons', 200, [
+            ['id' => 3, 'name' => 'Harry Potter', 'slug' => 'harry-potter'],
+            ['id' => 4, 'name' => 'Sally Harper', 'slug' => 'sally-harper'],
         ]);
     }
 

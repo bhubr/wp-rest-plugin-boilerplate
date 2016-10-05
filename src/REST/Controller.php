@@ -42,23 +42,22 @@ class Controller extends \WP_REST_Controller {
             //  Register GET ALL and CREATE routes
             register_rest_route( $namespace, '/' . $type_plural_lc, array(
                 array(
-                  'methods'         => \WP_REST_Server::READABLE,
-                  'callback'        => array( $this, 'get_items' ),
-                  'permission_callback' => array( $this, 'get_items_permissions_check' ),
-                  'args'            => array(
-
-                  ),
+                    'methods'         => \WP_REST_Server::READABLE,
+                    'callback'        => array( $this, 'get_items' ),
+                    'permission_callback' => array( $this, 'get_items_permissions_check' ),
+                    'args'            => array(
+    
+                    ),
                 ),
                 array(
-                  'methods'         => \WP_REST_Server::CREATABLE,
-                  'callback'        => array( $this, 'create_item' ),
-                  'permission_callback' => array( $this, 'create_item_permissions_check' ),
-                  'args'            => $this->get_endpoint_args_for_item_schema( true ),
+                    'methods'         => \WP_REST_Server::CREATABLE,
+                    'callback'        => array( $this, 'create_item' ),
+                    'permission_callback' => array( $this, 'create_item_permissions_check' ),
+                    'args'            => $this->get_endpoint_args_for_item_schema( true ),
                 ),
             ) );
 
             // Register GET ONE, UPDATE and DELETE routes
-
             register_rest_route( $namespace, '/' . $type_plural_lc . '/(?P<id>[\d]+)', array(
                 array(
                     'methods'         => \WP_REST_Server::READABLE,
@@ -94,7 +93,10 @@ class Controller extends \WP_REST_Controller {
                 $route = '/' . $type_plural_lc . '/(?P<id>[\d]+)' . '/' . $rel_key;
                 $route_func = $this->model_registry->get_route_function('GET', $rel_descriptor);
                 // $this->add_route_func( 'GET', $route, $route_func);
-                $this->filters[] = $route_func;
+                $this->filters = [
+                    // [$this, 'extract_object_id'],
+                    [$this->model_registry, $route_func]
+                ];
 
                 ////
                 echo "Rel route for rel key $rel_key\n";
@@ -105,7 +107,7 @@ class Controller extends \WP_REST_Controller {
                 register_rest_route( $namespace, $route, [
                     [
                         'methods'         => \WP_REST_Server::READABLE,
-                        'callback'        => array( $this, 'get_items' ),
+                        'callback'        => array( $this, 'get_item' ),
                         'permission_callback' => array( $this, 'get_items_permissions_check' ),
                         'args'            => []
                     ]
@@ -130,6 +132,10 @@ class Controller extends \WP_REST_Controller {
              // ) );
             // }
         } );
+    }
+
+    public function extract_object_id($object) {
+        return $object['id'];
     }
 
     // public function add_route_func($method, $route, $route_function) {
@@ -174,6 +180,10 @@ class Controller extends \WP_REST_Controller {
         $type_lc = \Inflect::singularize(array_pop($route_bits));
         $rest_class = $this->model_registry->get_model_class($type_lc);
         $post = $rest_class::read($id);
+        $filter_output = $id;
+        foreach($this->filters as $filter) {
+            $filter_output = call_user_func($filter_output);
+        }
         if ( is_array( $post ) ) {
             return new \WP_REST_Response( $post, 200 );
         }

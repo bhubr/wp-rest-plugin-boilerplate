@@ -328,10 +328,10 @@ abstract class Base {
             $object = static::_read(static::$singular, $post_id);
             self::add_to_cache(static::$singular, $object);
         }
-        if (! $fetch_relations) return $object;
-        foreach(static::$relations as $field => $relation_descriptor) {
-            $object[$field] = self::get_relation($object, $relation_descriptor);
-        }
+        // if (! $fetch_relations) return $object;
+        // foreach(static::$relations as $field => $relation_descriptor) {
+        //     $object[$field] = self::get_relation($object, $relation_descriptor);
+        // }
         return $object;
     }
 
@@ -365,7 +365,7 @@ abstract class Base {
     public static function get_relation($object, $relation_descriptor) {
         $object_id = $object['id'];
         $desc_bits = explode(':', $relation_descriptor);
-        $this_rel_class = 'bhubr\\' . $desc_bits[0];
+        $this_rel_class = $desc_bits[0];
         $this_rel_type = $desc_bits[1];
         $rel_class_relations = $this_rel_class::$relations;
         // Look for belongs to
@@ -432,12 +432,12 @@ abstract class Base {
                 return $item[$where['field']] === $where['value'];
             });
         }
-        $objects = array_map(function($object) {
-            foreach(static::$relations as $field => $relation_descriptor) {
-                $object[$field] = self::get_relation($object, $relation_descriptor);
-            }
-            return $object;
-        }, $objects);
+        // $objects = array_map(function($object) {
+        //     foreach(static::$relations as $field => $relation_descriptor) {
+        //         $object[$field] = self::get_relation($object, $relation_descriptor);
+        //     }
+        //     return $object;
+        // }, $objects);
 
         return $objects;
     }
