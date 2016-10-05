@@ -42,11 +42,19 @@ class Test_REST_Backend extends WP_UnitTestCase {
     public function test_get() {
         $this->request_get('/persons', 200, []);
 
-        $model1 = rel\Person::create(['name' => 'Harry Potter']);
-        $model2 = rel\Person::create(['name' => 'Sally Harper']);
+        $model1    = rel\Person::create(['name' => 'Harry Potter']);
+        $model2    = rel\Person::create(['name' => 'Sally Harper']);
+        $passport1 = rel\Passport::create(['name' => "HP's pass", 'country_code' => 'fr', 'number' => 'XYZ666']);
+        $passport2 = rel\Passport::create(['name' => "SH's pass", 'country_code' => 'fr', 'number' => 'ZYX999']);
+
         $this->request_get('/persons', 200, [
             ['id' => 3, 'name' => 'Harry Potter', 'slug' => 'harry-potter'],
             ['id' => 4, 'name' => 'Sally Harper', 'slug' => 'sally-harper'],
+        ]);
+
+        $this->request_get('/passports', 200, [
+            ['id' => 5, 'name' => "HP's pass", 'slug' => 'hps-pass'],
+            ['id' => 6, 'name' => "SH's pass", 'slug' => 'shs-pass'],
         ]);
     }
 
