@@ -24,7 +24,7 @@ class Book extends Post {
         ]
     ];
     static $relations = [
-        'author'    => 'rel\Person:has_one:mybooks',
+        'author'    => 'rel\Person:belongs_to:mybooks',
     ];
 
 }
