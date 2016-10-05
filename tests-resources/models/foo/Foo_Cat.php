@@ -15,7 +15,7 @@ class Foo_Cat extends Term {
     static $fields = [
     ];
     static $relations = [
-        'foos' => 'foo\Foo:has_many',
+        'foos' => 'foo\Foo:has_many:categories',
     ];
 
 }
