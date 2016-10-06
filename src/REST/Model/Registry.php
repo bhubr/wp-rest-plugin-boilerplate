@@ -415,10 +415,10 @@ class Registry {
         $reverse_rel_type = $reverse_rel->get_f('rel_type');
 
         if ($this_rel_type === 'has_one' && $reverse_rel_type === 'belongs_to') {
-            return $reverse_rel->get_f('type_s') . '_' . $relationship->get_f('type_s');
+            return $reverse_rel->get_f('type_s') . '_' . $relationship->get_f('type_s'); // . ':' . $reverse_rel->get_f('inverse');
         }
         else if($reverse_rel_type === 'has_one' && $this_rel_type === 'belongs_to') {
-            return $relationship->get_f('type_s') . '_' . $reverse_rel->get_f('type_s');
+            return $relationship->get_f('type_s') . '_' . $reverse_rel->get_f('type_s'); // . ':' . $relationship->get_f('inverse');
         }
         else if($this_rel_type === 'has_many' && $reverse_rel_type === 'belongs_to') {
             // return 'get_related_one_to_many';

@@ -32,7 +32,10 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
     }
 
 
-
+    /**
+     * CREATE NOT OK
+     * Missing & invalid fields
+     */
     public function test_create_nok_missing_fields() {
         $this->request_post('/persons', [
             'birth_year' => 1967,
@@ -67,6 +70,9 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
         ]);
     }
 
+    /**
+     * CREATE with 1-1 relationship OK
+     */
     public function test_create_ok_relationship_one_to_one() {
         $this->request_post('/persons', [
             'first_name' => 'Foo',
@@ -112,7 +118,6 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
                 // 'owner'        => 1
             ]
         );
-
         $this->request_get('/passports/3/owner', 404,
             [
                 'error' => 'Post with id=3 was not found',
@@ -131,6 +136,36 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
             ]
         );
 
+    }
+
+    /**
+     * CREATE with 1-1 relationship NOK (OWNER not found)
+     */
+    public function test_create_nok_relationship_one_to_one() {
+        $this->request_post('/persons', [
+            'first_name' => 'Foo', 'last_name'  => 'Bar', 'email' => 'foobar@example.com',
+        ], 200, [
+            'id'         => 1,
+            'name'       => 'Foo Bar',
+            'slug'       => 'foo-bar',
+            'first_name' => 'Foo',
+            'last_name'  => 'Bar',
+            'email'      => 'foobar@example.com',
+        ]);
+        // TODO DELETE LE PASSPORT?????
+        $this->request_post('/passports', [
+            'country_code' => 'uk',
+            'date_issued'  => '2014-11-19',
+            'number'       => 'T7820-AXB-102',
+            'owner'        => 101
+        ], 400, [
+            'error' => 'Cannot link rel\Passport(id=2) with non-existent rel\Person(id=101)'
+        ]);
+        global $wpdb;
+        $res = $wpdb->get_results(
+            "SELECT * FROM {$this->pivot_table}"
+        );
+        var_dump($res);
     }
 
     public function test_get() {

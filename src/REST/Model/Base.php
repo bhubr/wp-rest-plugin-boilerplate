@@ -192,8 +192,19 @@ abstract class Base {
 
         foreach($payload_relationships as $key => $id_or_ids) {
             $relationship = $model_relationships->get_f($key);
+            try {
+                $related_class = $model_registry->get_model_class($relationship->get('type'));
+                $related_model = $related_class::read($id_or_ids);
+            } catch(\Exception $e) {
+                $msg = sprintf("Cannot link %s(id=%d) with non-existent %s(id=%d)",
+                    static::class, $object['id'], $related_class, $id_or_ids
+                );
+                if( $e->getCode() === 404 ) throw new \Exception($msg, 400);
+                else throw new \Exception("Unknown error: " . $e->getMessage(), 500);
+            }
             $route_func_with_args = $model_registry->get_route_function_with_args('SET', $relationship);
             $route_func = $route_func_with_args->get('func');
+            // var_dump($relationship); echo "$id_or_ids\n";
             $route_func_args = array_merge($route_func_with_args->get('args'), [$object['id'], $id_or_ids]);
             // var_dump($route_func_args);
             $filter_output = call_user_func_array($route_func, $route_func_args);
