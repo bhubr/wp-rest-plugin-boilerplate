@@ -135,12 +135,33 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
 
     public function test_get() {
         global $wpdb;
+        $res = $wpdb->get_results(
+            "SELECT * FROM {$this->pivot_table}"
+        );
+        $this->assertEquals(0, count($res));
+        $posts = get_posts();
+        $this->assertEquals(0, count($posts));
+
+        $res = $wpdb->get_results(
+            "SELECT * FROM {$wpdb->postmeta}"
+        );
+
+        // $folder = realpath(__DIR__ . '/../../'); // Répertoire où sauvegarder le dump de la base de données
+        // $cmd = sprintf("mysqldump -u%s -p%s %s > %s/%s", DB_USER,DB_PASSWORD,DB_NAME,$folder,DB_NAME."-".date("d-m-Y-H\hi").".sql"); 
+        // system($cmd);
+
+        $this->assertEquals(0, count($res));
+
         $this->request_get('/persons', 200, []);
 
         $model1    = rel\Person::create(['first_name' => 'Harry', 'last_name' => 'Potter']);
+        $this->assertEquals(1, $model1['id']);
         $model2    = rel\Person::create(['first_name' => 'Sally', 'last_name' => 'Harper']);
+        $this->assertEquals(2, $model2['id']);
         $passport1 = rel\Passport::create(['name' => "HP's pass", 'country_code' => 'fr', 'number' => 'XYZ666', 'date_issued' => '2016-09-18']);
+        $this->assertEquals(3, $passport1['id']);
         $passport2 = rel\Passport::create(['name' => "SH's pass", 'country_code' => 'fr', 'number' => 'ZYX999', 'date_issued' => '2015-04-26']);
+        $this->assertEquals(4, $passport2['id']);
 
         $this->request_get('/persons', 200, [
             ['id' => 1, 'first_name' => 'Harry', 'last_name' => 'Potter', 'slug' => 'harry-potter', 'name' => 'Harry Potter'],
@@ -160,12 +181,15 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
             'object2_id' => 3
         ];
         $res = $wpdb->insert($pivot_table, $data, ['%s', '%d', '%d']);
+        if(!$res) throw Exception(vsprintf("unable to create rel %s %d %d", $data));
         $data = [
             'rel_type'   => 'person_passport',
             'object1_id' => 2,
             'object2_id' => 4
         ];
         $res = $wpdb->insert($pivot_table, $data, ['%s', '%d', '%d']);
+        if(!$res) throw Exception(vsprintf("unable to create rel %s %d %d", $data));
+
 
         $this->request_get('/passports/3/owner', 200,
             ['id' => 1, 'first_name' => 'Harry', 'last_name' => 'Potter', 'name' => 'Harry Potter', 'slug' => 'harry-potter']

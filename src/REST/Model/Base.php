@@ -347,13 +347,13 @@ abstract class Base {
      * Read unique model
      */
     public static function read($post_id, $fetch_relations = true) {
-        if ($cached_object = self::get_from_cache(static::$singular, $post_id)) {
-            $object = $cached_object;
-        }
-        else {
+        // if ($cached_object = self::get_from_cache(static::$singular, $post_id)) {
+        //     $object = $cached_object;
+        // }
+        // else {
             $object = static::_read(static::$singular, $post_id);
-            self::add_to_cache(static::$singular, $object);
-        }
+            // self::add_to_cache(static::$singular, $object);
+        // }
         // if (! $fetch_relations) return $object;
         // foreach(static::$relations as $field => $relation_descriptor) {
         //     $object[$field] = self::get_relation($object, $relation_descriptor);

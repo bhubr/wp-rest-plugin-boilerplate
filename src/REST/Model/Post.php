@@ -140,11 +140,11 @@ class Post extends Base implements Methods {
      * @param $post_type string Registered WP Custom Post Type
      */
     public static function _create( $post_type, $payload ) {
-        echo "\n\n\n##### DESCRIPTOR FOR $post_type:\n";
+        // echo "\n\n\n##### DESCRIPTOR FOR $post_type:\n";
         $model_descriptor = Registry::get_instance()->get_model_by('singular_lc', $post_type);
         // var_dump(static::$descriptor);
         $parsed_payload = Formatter::process_payload( $payload, $model_descriptor );
-        var_dump($parsed_payload);
+        // var_dump($parsed_payload);
         $payload = $parsed_payload['attributes'];
         if( $parsed_payload['missing'] || $parsed_payload['invalid'] ) {
             $missing_str = implode( ', ', $parsed_payload['missing'] );

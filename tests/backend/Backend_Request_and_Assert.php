@@ -17,7 +17,7 @@ trait Backend_Request_and_Assert {
         // var_dump($request->get_content_type());
         // var_dump($request->get_body());
         $response = $this->server->dispatch( $request );
-        echo "RESPONSE\n";
+        // echo "RESPONSE\n";
         $error = array_key_exists('error', $response->data) ? $response->data['error'] : '';
         $this->assertEquals( $expected_status, $response->status, "Unexpected error {$response->status} => $error" );
         $this->assertEquals( $expected_data, $response->data );
