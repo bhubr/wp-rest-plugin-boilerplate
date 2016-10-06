@@ -39,8 +39,6 @@ use Underscore\Underscore as __;
 abstract class Base {
 
     protected static $types = [
-        'post' => [],
-        'taxonomy' => []
     ];
 
     protected static $rest_bases = [];
@@ -276,7 +274,7 @@ abstract class Base {
 
     public static function create($payload) {
         $object = static::_create(static::$singular, $payload);
-        $relations = self::update_object_relations($object, $payload);
+        // $relations = self::update_object_relations($object, $payload);
         return $object;
     }
 
@@ -285,7 +283,7 @@ abstract class Base {
      */
     public static function update($object_id, $payload) {
         $object = static::_update(static::$singular, $object_id, $payload);
-        $relations = self::update_object_relations($object, $payload);
+        // $relations = self::update_object_relations($object, $payload);
         return $object;
     }
 
@@ -463,6 +461,60 @@ abstract class Base {
      */
     // abstract public function delete( $object_id );
 
+
+
+
+    public static function map_fields_payload_to_wp( $payload ) {
+        $payload = self::apply_map_functions($payload);
+echo "\n#### PAYLOAD\n";
+var_dump($payload);
+        // Throw error if no array
+        if( ! is_array( $payload ) ) {
+            throw new \Exception( 'payload is not an array' );
+        }
+
+        // This allows user to customize mapped fields
+        $map_fields = array_merge(static::get_core_fields_in(), static::$map_fields);
+
+        // Empty data for WP Post or Term, and empty meta data
+        $wp_obj_data  = [];
+        $wp_meta_data = [];
+
+        // $wp_id_field = static::get_id_field();
+        if ( array_key_exists(static::ID_KEY, $payload ) ) {
+            unset( $payload[static::ID_KEY] );
+        }
+        // echo "\n#### MAP FIELDS\n";
+        // var_dump( $map_fields );
+        // var_dump( $payload );
+        foreach( $map_fields as $wp_key => $obj_key ) {
+            // echo "\n#### Map fields?? $wp_key $obj_key\n";
+            $wp_obj_attr = is_string( $wp_key ) ? $wp_key : $obj_key;
+            if( !array_key_exists( $obj_key, $payload ) ) continue;
+            // echo "\n#### MAP FIELDS YEEESSS $wp_key $obj_key\n";
+            $wp_obj_data[$wp_obj_attr] = $payload[$obj_key];
+            unset( $payload[$obj_key] );
+        }
+        foreach( $payload as $key => $val ) {
+            $wp_meta_data[$key] = $val;
+        }
+        return collect_f([
+            'wp_obj'  => $wp_obj_data,
+            '_meta_'  => $wp_meta_data
+        ]);
+    }
+
+    public static function apply_map_functions($attributes) {
+        if ( property_exists(static::class, 'map_functions') ) {
+            echo "\n\n### HAS map_functions\n";
+            foreach(static::$map_functions as $key => $callable) {
+                echo "\n\n### HAS map_function $key\n";
+                $attributes[$key] = call_user_func($callable, collect($attributes));
+            }
+        }
+        return $attributes;
+    }
+
     /**
      * Prepare data structure for object creation or update.
      *
@@ -481,7 +533,7 @@ abstract class Base {
         $fields_done = [];
 
         // Iterate on built-in fields, mapped if necessary
-        foreach( static::$map_fields as $k => $f ) {
+        foreach( static::$map_fields as $f => $k ) {
             // If key is a string, that means we must map the payload key to the target object key
             // This is because sometimes we map object field name (e.g. post ID or term term_id to id), sometimes not
             $key = is_string( $k ) ? $k : $f;

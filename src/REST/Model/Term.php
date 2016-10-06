@@ -3,9 +3,12 @@ namespace bhubr\REST\Model;
 
 class Term extends Base implements Methods {
 
+    const ID_KEY = 'term_id';
+
+
     static $id_key = 'term_id';
     // Accepted fields
-    static $map_fields = array('id' => 'term_id', 'slug', 'name', 'description');
+    static $map_fields = array('term_id' => 'id', 'slug', 'name', 'description');
     static $required_fields = []; //array('name');
 
     // Extra fields (encoded as JSON into post_content)

@@ -20,10 +20,10 @@ class DummyTerm extends Term {
         'termone_id'    => 'Termone:has_one'
     ];
     static $relations = [
-        'termone'        => 'Termone:has_one',
-        'termanies'      => 'Termany:has_many',
-        'termany2manies' => 'Termany2many:has_many',
-        'dummies'        => 'Dummy:has_many'
+        'termone'        => 'bhubr\Termone:has_one',
+        'termanies'      => 'bhubr\Termany:has_many',
+        'termany2manies' => 'bhubr\Termany2many:has_many',
+        'dummies'        => 'bhubr\Dummy:has_many'
     ];
 
 }

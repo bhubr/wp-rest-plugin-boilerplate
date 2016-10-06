@@ -1,7 +1,7 @@
 
 <?php
 
-class Backend_UnitTestCase extends WP_UnitTestCase {
+trait Backend_Request_and_Assert {
 
     protected function request_get($url, $expected_status, $expected_data) {
         $request = new WP_REST_Request( 'GET', '/bhubr/v1' . $url );

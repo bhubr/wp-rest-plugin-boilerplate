@@ -266,9 +266,7 @@ class Controller extends \WP_REST_Controller {
         $model_key = $route_segments->get('model_key');
         $model_descriptor = $this->model_registry->get_model($model_key);
         $payload_format = $model_descriptor->get('rest_type');
-        $parsed_payload = Formatter::parse_and_validate(
-            $payload_format, $payload, $model_descriptor->get_f('attributes'), $model_descriptor->get_f('relationships')
-        );
+        $parsed_payload = Formatter::process_payload( $payload_format, $payload, $model_descriptor );
         var_dump($parsed_payload);
 
         $rest_class = $model_descriptor->get('class');

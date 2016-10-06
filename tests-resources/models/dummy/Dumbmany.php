@@ -13,9 +13,9 @@ class Dumbmany extends Post {
 
     static $fields = [
         'dumb_str'  => 'string',
-        'dummy_id'  => 'Dummy:belongs_to'
+        // 'dummy_id'  => 'Dummy:belongs_to'
     ];
     static $relations = [
-        'dummy'    => 'Dummy:belongs_to'
+        'dummy'    => 'bhubr\Dummy:belongs_to'
     ];
 }

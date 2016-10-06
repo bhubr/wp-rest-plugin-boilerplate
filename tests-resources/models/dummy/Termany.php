@@ -17,6 +17,6 @@ class Termany extends Term {
         'dummyterm_id'  => 'DummyTerm:belongs_to'
     ];
     static $relations = [
-        'dummyterm'    => 'DummyTerm:belongs_to'
+        'dummyterm'    => 'bhubr\DummyTerm:belongs_to'
     ];
 }

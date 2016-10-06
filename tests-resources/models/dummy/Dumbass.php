@@ -12,11 +12,10 @@ class Dumbass extends Post {
     static $name_p = 'Dumbasses';
 
     static $fields = [
-        'dumb_str'  => 'string',
-        'dummy_id'  => 'Dummy:belongs_to'
+        'dumb_str'  => 'string'
     ];
     static $relations = [
-        'mydummy'    => 'Dummy:belongs_to'
+        'mydummy'    => 'bhubr\Dummy:belongs_to'
     ];
 
 }

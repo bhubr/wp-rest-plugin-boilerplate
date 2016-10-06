@@ -16,6 +16,6 @@ class Termany2many extends Term {
         'dumb_str'  => 'string'
     ];
     static $relations = [
-        'dummyterms'    => 'DummyTerm:has_many'
+        'dummyterms'    => 'bhubr\DummyTerm:has_many'
     ];
 }

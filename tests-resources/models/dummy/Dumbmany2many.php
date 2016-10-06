@@ -15,6 +15,6 @@ class Dumbmany2many extends Post {
         'dumb_str'  => 'string'
     ];
     static $relations = [
-        'dummies'    => 'Dummy:has_many'
+        'dummies'    => 'bhubr\Dummy:has_many'
     ];
 }

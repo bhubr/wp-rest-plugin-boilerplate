@@ -13,7 +13,7 @@ use bhubr\REST\Utils\Tracer;
 /**
  * Sample test case.
  */
-class Test_Controller extends WP_UnitTestCase {
+class Test_Controller extends WPRPB_UnitTestCase {
     private $rbp;
     private $server;
     private $controller;
@@ -43,14 +43,13 @@ class Test_Controller extends WP_UnitTestCase {
         // }
     }
 
-    function tearDown() {
-        reset_singleton_instance('bhubr\REST\Plugin_Boilerplate');
-        reset_singleton_instance('bhubr\REST\Model\Registry');
-
-        // SUPER IMPORTANT sinon l'action d'enregistrement des types
-        // est répétée plusieurs fois !!
-        remove_action( 'init', [$this->rpb, 'register_types'] );
-    }
+    // function tearDown() {
+    //     reset_singleton_instance('bhubr\REST\Plugin_Boilerplate');
+    //     reset_singleton_instance('bhubr\REST\Model\Registry');
+    //     // SUPER IMPORTANT sinon l'action d'enregistrement des types
+    //     // est répétée plusieurs fois !!
+    //     remove_action( 'init', [$this->rpb, 'register_types'] );
+    // }
 
     /**
      * Test WP_REST_Server routes

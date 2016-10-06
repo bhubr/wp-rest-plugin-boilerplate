@@ -6,52 +6,83 @@
  * @package Sandbox_Plugin
  */
 
-// require_once 'inc/Dummy.php';
-// require 'inc/Dumbass.php';
-// require 'inc/Dumbmany.php';
-// require 'inc/Dumbmany2many.php';
+use bhubr\REST\Model\Post;
+use bhubr\REST\Model\Term;
 
 /**
  * Sample test case.
  */
-class Test_Post_Model extends WP_UnitTestCase {
+class Test_Post_Model extends WPRPB_UnitTestCase {
 
     protected $rpb;
 
-    protected function createAndTruncatePivotTable() {
-        global $wpdb;
-        $pivot_table = $wpdb->prefix . 'rpb_many_to_many';
-        $this->rpb->create_assoc_with_meta_table('wprbp-test-suite');
+    // protected function createAndTruncatePivotTable() {
+    //     global $wpdb;
+    //     $pivot_table = $wpdb->prefix . 'rpb_many_to_many';
+    //     $this->rpb->create_assoc_with_meta_table('wprbp-test-suite');
 
-        $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
-        $res = $mysqli->query("TRUNCATE TABLE $pivot_table");
-        if (! $res) {
-            throw new Exception("Could not empty pivot table $pivot_table\n");
-        }
-    }
+    //     $this->mysqli = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+    //     $res = $this->mysqli->query("TRUNCATE TABLE $pivot_table");
+    //     if (! $res) {
+    //         throw new Exception("Could not empty pivot table $pivot_table => {$this->mysqli->error}");
+    //     }
+    // }
+
+    // protected function truncatePostTable() {
+    //     global $wpdb;
+    //     $res = $this->mysqli->query("TRUNCATE TABLE {$wpdb->posts}");
+    //     if (! $res) {
+    //         throw new Exception("Could truncate table {$wpdb->posts} => {$this->mysqli->error}");
+    //     }
+
+    // }
 
     public function setUp() {
         parent::setUp();
-        $this->rpb = bhubr\REST_Plugin_Boilerplate::get_instance();
+        // $this->rpb = bhubr\REST\Plugin_Boilerplate::get_instance();
         // $plugin_descriptor = require 'plugin_descriptor.php';
         // $this->rpb->register_plugin('wprbp-test-suite', $plugin_descriptor);
-        $this->rpb->register_plugin('wprbp-test-foo', MODELS_DIR . '/foo');
-        $this->rpb->register_plugin('wprbp-test-dummy', MODELS_DIR . '/dummy');
+        $this->rpb->register_plugin('wprbp-test-foo', MODELS_DIR, [
+            'models_dir'       => 'foo',
+            'models_namespace' => 'foo\\'
+        ]);
+        $this->rpb->register_plugin('wprbp-test-dummy', MODELS_DIR, [
+            'models_dir'       => 'dummy',
+        ]);
+        $this->rpb->register_plugin('wprbp-test-map', MODELS_DIR, [
+            'models_dir'       => 'map-fields',
+        ]);
         do_action('init');
-        $this->createAndTruncatePivotTable();
+        // $this->createAndTruncatePivotTable();
+        // $this->truncatePostTable();
 
     }
 
-    public function tearDown() {
-        // $this->rpb->delete_term_meta_tables('wprbp-test-suite');
+
+    public function test_map_post_fields() {
+        $model = Post::_create('foo', ['name' => 'Pouet 1', 'baz' => 'poop', 'bee' => 'poy', 'boo' => 'yap']);
+        var_dump($model);
+        $post = get_post($model['id']);
+        $mapped = Post::map_fields_wp_to_obj($post);
+        $this->assertFalse(array_key_exists('ID', $mapped));
+        $this->assertFalse(array_key_exists('post_name', $mapped));
+        $this->assertFalse(array_key_exists('post_title', $mapped));
+        $this->assertEquals($post->ID, $mapped['id']);
+        $this->assertEquals($post->post_name, $mapped['slug']);
+        $this->assertEquals($post->post_title, $mapped['name']);
+
+        $post = wp_insert_post( ['post_type' => 'foo'], true );
+        var_dump($post);
+        var_dump(get_post(2));
     }
+
 
     /**
-     * @expectedException     bhubr\Model_Exception
+     * @expectedException Exception
      */
     public function test_create_bad_type()
     {
-        $model = bhubr\Post_Model::_create('fzoo', ['name' => 'Pouet 1', 'baz' => 'poop', 'bee' => 'poy', 'boo' => 'yap']);
+        $model = Post::_create('fzoo', ['name' => 'Pouet 1', 'baz' => 'poop', 'bee' => 'poy', 'boo' => 'yap']);
     }
 
     
@@ -59,80 +90,94 @@ class Test_Post_Model extends WP_UnitTestCase {
      * Test creating and reading a model
      */
     function test_create_and_read() {
-        $model = bhubr\Post_Model::_create('foo', ['name' => 'Pouet 1', 'baz' => 'poop', 'bee' => 'poy', 'boo' => 'yap']);
+        $model = Post::_create('foo', ['name' => 'Pouet 1', 'baz' => 'poop', 'bee' => 'poy', 'boo' => 'yap']);
         $expected_model = [
-            'id' => 3, 'name' => 'Pouet 1', 'slug' => 'pouet-1',
+            'id' => 1, 'name' => 'Pouet 1', 'slug' => 'pouet-1',
             'baz' => 'poop', 'bee' => 'poy', 'boo' => 'yap',
-            'foo_cat' => null, 'foo_tags' => []
+            // 'foo_cat' => null, 'foo_tags' => []
         ];
         $this->assertEquals($expected_model, $model);
-        $read_model = bhubr\Post_Model::_read('foo', 3);
+        $read_model = Post::_read('foo', 1);
         $this->assertEquals($expected_model, $read_model);
     }
 
-    function test_extract_payload_with_terms() {
-        $payload = ['name' => 'Pouet 1', 'baz' => 'poop', 'bee' => 'poy', 'boo' => 'yap', 'foo_cat' => 1, 'foo_tags' => [2, 3]];
-        $fields = bhubr\Post_Model::extract_payload_taxonomies('foo', $payload);
-        $expected = [
-            '__meta__' => ['baz' => 'poop', 'bee' => 'poy', 'boo' => 'yap'],
-            '__terms__' => [
-                'foo_cat' => 1,
-                'foo_tag' => [2, 3]
-            ],
-            'post_title' => 'Pouet 1'
-        ];
-        $this->assertEquals($expected, $fields);
-    }
+    // function test_extract_payload_with_terms() {
+    //     $payload = ['name' => 'Pouet 1', 'baz' => 'poop', 'bee' => 'poy', 'boo' => 'yap', 'foo_cat' => 1, 'foo_tags' => [2, 3]];
+    //     $fields = Post::extract_payload_taxonomies('foo', $payload);
+    //     $expected = [
+    //         '__meta__' => ['baz' => 'poop', 'bee' => 'poy', 'boo' => 'yap'],
+    //         '__terms__' => [
+    //             'foo_cat' => 1,
+    //             'foo_tag' => [2, 3]
+    //         ],
+    //         'post_title' => 'Pouet 1'
+    //     ];
+    //     $this->assertEquals($expected, $fields);
+    // }
 
     /**
      * Test creating and reading a model with terms
      */
     function test_create_read_update_delete_with_terms() {
-        $cat1 = bhubr\Term_Model::_create('foo_cat', ['name' => 'Foo cat 1', 'a' => 'A', 'b' => 'B']);
-        $cat2 = bhubr\Term_Model::_create('foo_cat', ['name' => 'Foo cat 2', 'a' => 'A', 'b' => 'B']);
-        $tag1 = bhubr\Term_Model::_create('foo_tag', ['name' => 'Foo tag 1', 'a' => 'A', 'b' => 'B']);
-        $tag2 = bhubr\Term_Model::_create('foo_tag', ['name' => 'Foo tag 2', 'a' => 'A', 'b' => 'B']);
-        $tag3 = bhubr\Term_Model::_create('foo_tag', ['name' => 'Foo tag 3', 'a' => 'A', 'b' => 'B']);
-        $model = bhubr\Foo::create(['name' => 'Pouet 2', 'foo_cat' => $cat1['id'], 'foo_tags' => [$tag1['id'], $tag2['id']]]);
+        $cat1 = Term::_create('foo_cat', ['name' => 'Foo cat 1', 'a' => 'A', 'b' => 'B']);
+        $cat2 = Term::_create('foo_cat', ['name' => 'Foo cat 2', 'a' => 'A', 'b' => 'B']);
+        $tag1 = Term::_create('foo_tag', ['name' => 'Foo tag 1', 'a' => 'A', 'b' => 'B']);
+        $tag2 = Term::_create('foo_tag', ['name' => 'Foo tag 2', 'a' => 'A', 'b' => 'B']);
+        $tag3 = Term::_create('foo_tag', ['name' => 'Foo tag 3', 'a' => 'A', 'b' => 'B']);
+        $model = foo\Foo::create(['name' => 'Pouet 2', 'foo_cat' => $cat1['id'], 'foo_tags' => [$tag1['id'], $tag2['id']]]);
 
         $expected_model = [
-            'id' => 4, 'name' => 'Pouet 2', 'slug' => 'pouet-2', 'foo_cat' => $cat1['id'], 'foo_tags' => [$tag1['id'], $tag2['id']]
+            'id' => 1, 'name' => 'Pouet 2', 'slug' => 'pouet-2', 
+            // 'foo_cat' => $cat1['id'], 'foo_tags' => [$tag1['id'], $tag2['id']]
         ];
         $this->assertEquals($expected_model, $model);
-        $read_model = bhubr\Post_Model::_read('foo', $model['id']);
+        $read_model = Post::_read('foo', $model['id']);
         $this->assertEquals($expected_model, $read_model);
 
 
         $expected_tags2 = [$tag1['id'], $tag3['id']];
-        $updated_model = bhubr\Post_Model::_update('foo', 4, ['name' => 'Pouet 2 updated', 'foo_cat' => $cat2['id'], 'foo_tags' => $expected_tags2]);
+        $updated_model = Post::_update('foo', 1, [
+            'name' => 'Pouet 2 updated',
+            // 'foo_cat' => $cat2['id'], 'foo_tags' => $expected_tags2
+        ]);
         $expected_model2 = [
-            'id' => 4, 'name' => 'Pouet 2 updated', 'slug' => 'pouet-2', 'foo_cat' => $cat2['id'], 'foo_tags' => $expected_tags2
+            'id' => 1, 'name' => 'Pouet 2 updated', 'slug' => 'pouet-2',
+            // 'foo_cat' => $cat2['id'], 'foo_tags' => $expected_tags2
         ];
-        $this->assertEquals($expected_tags2, $updated_model['foo_tags']);
+        // $this->assertEquals($expected_tags2, $updated_model['foo_tags']);
         $this->assertEquals($expected_model2, $updated_model);
 
-        bhubr\Post_Model::_delete('foo', 4);
-        $this->assertEquals(null, get_post(4));
+        Post::_delete('foo', 1);
+        $this->assertEquals(null, get_post(1));
     }
 
     /**
      * Test creating and reading a model with terms
      */
     function test_read_all_with_terms() {
-        $cat1 = bhubr\Term_Model::_create('foo_cat', ['name' => 'Foo cat A', 'a' => 'A', 'b' => 'B']);
-        $cat2 = bhubr\Term_Model::_create('foo_cat', ['name' => 'Foo cat B', 'a' => 'A', 'b' => 'B']);
-        $tag1 = bhubr\Term_Model::_create('foo_tag', ['name' => 'Foo tag C', 'a' => 'A', 'b' => 'B']);
-        $tag2 = bhubr\Term_Model::_create('foo_tag', ['name' => 'Foo tag A', 'a' => 'A', 'b' => 'B']);
-        $tag3 = bhubr\Term_Model::_create('foo_tag', ['name' => 'Foo tag B', 'a' => 'A', 'b' => 'B']);
-        $model1 = bhubr\Post_Model::_create('foo', ['name' => 'Foo Biz', 'foo_cat' => $cat1['id'], 'foo_tags' => [$tag1['id'], $tag2['id']]]);
-        $model2 = bhubr\Post_Model::_create('foo', ['name' => 'Foo Bar', 'foo_cat' => $cat2['id'], 'foo_tags' => [$tag2['id']]]);
-        $model3 = bhubr\Post_Model::_create('foo', ['name' => 'Foo Woo', 'foo_cat' => $cat2['id'], 'foo_tags' => [$tag3['id']]]);
+        $cat1 = Term::_create('foo_cat', ['name' => 'Foo cat A', 'a' => 'A', 'b' => 'B']);
+        $cat2 = Term::_create('foo_cat', ['name' => 'Foo cat B', 'a' => 'A', 'b' => 'B']);
+        $tag1 = Term::_create('foo_tag', ['name' => 'Foo tag C', 'a' => 'A', 'b' => 'B']);
+        $tag2 = Term::_create('foo_tag', ['name' => 'Foo tag A', 'a' => 'A', 'b' => 'B']);
+        $tag3 = Term::_create('foo_tag', ['name' => 'Foo tag B', 'a' => 'A', 'b' => 'B']);
+        $model1 = Post::_create('foo', ['name' => 'Foo Biz', 'foo_cat' => $cat1['id'], 'foo_tags' => [$tag1['id'], $tag2['id']]]);
+        $model2 = Post::_create('foo', ['name' => 'Foo Bar', 'foo_cat' => $cat2['id'], 'foo_tags' => [$tag2['id']]]);
+        $model3 = Post::_create('foo', ['name' => 'Foo Woo', 'foo_cat' => $cat2['id'], 'foo_tags' => [$tag3['id']]]);
 
-        $all_models = bhubr\Post_Model::_read_all('foo');
+        $all_models = Post::_read_all('foo');
         $this->assertEquals([
-            ['id' => 5, 'name' => 'Foo Biz', 'slug' => 'foo-biz', 'foo_cat' => $cat1['id'], 'foo_tags' => [$tag2['id'], $tag1['id']]],
-            ['id' => 6, 'name' => 'Foo Bar', 'slug' => 'foo-bar', 'foo_cat' => $cat2['id'], 'foo_tags' => [$tag2['id']]],
-            ['id' => 7, 'name' => 'Foo Woo', 'slug' => 'foo-woo', 'foo_cat' => $cat2['id'], 'foo_tags' => [$tag3['id']]],
+            [
+                'id' => 1, 'name' => 'Foo Biz', 'slug' => 'foo-biz',
+                // 'foo_cat' => $cat1['id'], 'foo_tags' => [$tag2['id'], $tag1['id']]
+            ],
+            [
+                'id' => 2, 'name' => 'Foo Bar', 'slug' => 'foo-bar',
+                // 'foo_cat' => $cat2['id'], 'foo_tags' => [$tag2['id']]
+            ],
+            [
+                'id' => 3, 'name' => 'Foo Woo', 'slug' => 'foo-woo',
+                // 'foo_cat' => $cat2['id'], 'foo_tags' => [$tag3['id']]
+            ],
         ], $all_models);
     }
 

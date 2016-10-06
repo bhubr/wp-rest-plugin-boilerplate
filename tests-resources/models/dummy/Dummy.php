@@ -20,10 +20,9 @@ class Dummy extends Post {
     ];
     static $relations = [
         'mydumbass'    => 'bhubr\Dumbass:has_one',
-        'dumbmanies' => 'Dumbmany:has_many',
-        'dumbmany2manies' => 'Dumbmany2many:has_many',
-        'dummyterms' => 'DummyTerm:has_many',
-        // 'prout' => 'Kikou:has_many'
+        'dumbmanies' => 'bhubr\Dumbmany:has_many',
+        'dumbmany2manies' => 'bhubr\Dumbmany2many:has_many',
+        'dummyterms' => 'bhubr\DummyTerm:has_many',
     ];
 
 }

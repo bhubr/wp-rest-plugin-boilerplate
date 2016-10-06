@@ -27,6 +27,11 @@ class Person extends Post {
             'type'     => 'integer'
         ]
     ];
+    // static $map_fields = ['post_title' => 'first_name'];
+    static $map_functions = [
+        'name' => [__CLASS__, 'map_name']
+    ];
+    static function map_name( $attributes ) { return $attributes->get('first_name') . ' ' . $attributes->get('last_name'); }
     static $relations = [
         'mybooks'      => 'rel\Book:has_many:author',
         'mypass'       => 'rel\Passport:has_one:owner'

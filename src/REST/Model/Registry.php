@@ -281,7 +281,6 @@ class Registry {
 
     public function parse_relationship($relationship_descriptor) {
         $desc_bits = explode(':', $relationship_descriptor);
-        var_dump($desc_bits);
         $rel_class = $desc_bits[0];
         $rel_type = $desc_bits[1];
         $output = [
@@ -297,7 +296,7 @@ class Registry {
     public function model_relationships_set_strategies($model_descriptor, $model_plural) {
         $relationships = $model_descriptor->get_f('relationships');
         echo "#### Set strategies for model $model_plural #### \n";
-        var_dump($relationships);
+        // var_dump($relationships);
         $relationships->each(
             function( $relationship, $key ) use( $model_descriptor, $model_plural ) {
                 $this->set_strategies( $relationship, $model_descriptor, $model_plural, $key );

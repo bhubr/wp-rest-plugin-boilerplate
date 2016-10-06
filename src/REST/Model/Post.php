@@ -5,11 +5,16 @@ use Underscore\Underscore as __;
 
 class Post extends Base implements Methods {
 
+    const ID_KEY = 'ID';
+
     // Name of the primary object key in Backbone.js app
     static $id_key = 'id';
 
     // Accepted fields
-    static $map_fields = array('id' => 'ID', 'slug' => 'post_name', 'name' => 'post_title'); //, 'content' => 'post_content', 'cat' => 'category', 'status' => 'post_status', 'order' => 'menu_order');
+    private   static $map_fields_core_in = ['post_name' => 'slug'];
+    private   static $map_fields_core_out = ['ID' => 'id', 'post_name' => 'slug'];
+    protected static $map_fields = ['post_title' => 'name'];
+    //, 'content' => 'post_content', 'cat' => 'category', 'status' => 'post_status', 'order' => 'menu_order');
     
     // Terms that are required
     static $required_fields = []; //array('name', 'cat');
@@ -20,6 +25,9 @@ class Post extends Base implements Methods {
     // Taxonomy associated to post type
     static $taxonomy;
 
+    protected static $types = [];
+
+
     static $type_fields = null;
     static $taxonomies = null;
 
@@ -27,6 +35,7 @@ class Post extends Base implements Methods {
     static $meta_key = '__meta__';
 
     static $real_metas = array( '_thumbnail_id' );
+
 
     /**
      * Private constructor because we don't want an instance to be created if creation fails.
@@ -36,8 +45,10 @@ class Post extends Base implements Methods {
         throw new \Exception('Dont use');
     }
 
+
     public static function init( $post_type ) {
         $registered_post_types = static::$types;
+        // var_dump($registered_post_types);
         if (array_search($post_type, $registered_post_types) === false) {
             $msg = sprintf("Unknown post type: %s (registered types: %s)", $post_type, implode(', ', $registered_post_types));
             throw new \Exception($msg);
@@ -135,11 +146,15 @@ class Post extends Base implements Methods {
         );
 
         // Parse JSON payload
-        $post_fields = array_merge( $base_fields, self::extract_payload_taxonomies($post_type, $payload) );
+        // $post_fields = array_merge( $base_fields, self::extract_payload_taxonomies($post_type, $payload) );
+        $split_payload = self::map_fields_payload_to_wp($payload);
+        var_dump($split_payload);
+        $post_fields = array_merge( $base_fields, $split_payload->get_f('wp_obj'));
+        var_dump($post_fields);
         // Extract meta values, remove them and ID from post fields
-        $meta_value = $post_fields['__meta__'];
-        unset($post_fields['__meta__']);
-        unset($post_fields['ID']);
+        $meta_value = $split_payload->get_f('_meta_');
+        // unset($post_fields['__meta__']);
+        // unset($post_fields['ID']);
 
         // Insert post
         $post_id = wp_insert_post( $post_fields, true );
@@ -153,7 +168,8 @@ class Post extends Base implements Methods {
 
         // Get the created post from the DB (so we can return the slug if it is different from what was asked)
         $post = get_post($post_id);
-        $post_data = self::get_post_fields( $post );
+        var_dump($post);
+        $post_data = self::map_fields_wp_to_obj( $post );
         $post_terms = self::get_object_terms($post_type, $post_id);
 
         // Populate values from the meta_value
@@ -215,20 +231,29 @@ class Post extends Base implements Methods {
         return $success[0];
     }
 
+    public static function get_core_fields_in() {
+        return self::$map_fields_core_in;
+    }
 
-    public static function get_post_fields( $post ) {
+    public static function get_core_fields_out() {
+        return self::$map_fields_core_out;
+    }
+
+
+    public static function map_fields_wp_to_obj( $post ) {
+        $map_fields = array_merge(self::get_core_fields_out(), static::$map_fields);
         if( is_wp_error( $post ) ) {
             throw new \Exception( 'Object is not a WP_Post' );
         }
         // Populate values from the WP_Post object
         $post_data = array();
-        foreach( self::$map_fields as $plan_f => $wp_post_f ) {
-            if( !property_exists($post, $wp_post_f) ) continue;
-            $post_data[$plan_f] = $post->$wp_post_f;
+        foreach( $map_fields as $wp_post_f => $obj_key ) {
+            if( !property_exists($post, $wp_post_f) ) throw new \Exception("Property WP_Post::$wp_post_f not found");
+            echo "$obj_key => $wp_post_f {$post->$wp_post_f}\n";
+            $post_data[$obj_key] = $post->$wp_post_f;
         }
         return $post_data;
     }
-
 
     /**
      * Internal update object
@@ -259,7 +284,7 @@ class Post extends Base implements Methods {
         // Get the created post from the DB (so we can return the slug if it is different from what was asked)
         $post = get_post($post_id);
 
-        $post_data = self::get_post_fields( $post );
+        $post_data = self::map_fields_wp_to_obj( $post );
         $post_terms = self::get_object_terms($post_type, $post_id);
 
         // Populate values from the meta_value
@@ -291,7 +316,7 @@ class Post extends Base implements Methods {
         if( $post === null ) {
             throw new \Exception("Post with id=$post_id was not found");
         }
-        $post_data = self::get_post_fields( $post );
+        $post_data = self::map_fields_wp_to_obj( $post );
         $post_terms = self::get_object_terms($post_type, $post_id);
 
         $meta_value = get_post_meta( $post_id, static::$meta_key, true );
@@ -329,7 +354,7 @@ class Post extends Base implements Methods {
         }
         $posts = get_posts( array_merge( $args, $extra_args ) );
         foreach( $posts as $post ) {
-            $post_data = self::get_post_fields( $post );
+            $post_data = self::map_fields_wp_to_obj( $post );
             $post_terms = self::get_object_terms($post_type, $post->ID);
             $meta_value = get_post_meta( $post->ID, static::$meta_key, true );
             $thumb_id = get_post_meta( $post->ID, '_thumbnail_id', true );
