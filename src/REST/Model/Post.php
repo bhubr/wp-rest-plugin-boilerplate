@@ -319,7 +319,7 @@ class Post extends Base implements Methods {
         static::init( $post_type );
         $post = get_post( $post_id );
         if( $post === null ) {
-            throw new \Exception("Post with id=$post_id was not found");
+            throw new \Exception("Post with id=$post_id was not found", 404);
         }
         $post_data = self::map_fields_wp_to_obj( $post );
         $post_terms = self::get_object_terms($post_type, $post_id);

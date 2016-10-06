@@ -193,34 +193,41 @@ class Controller extends \WP_REST_Controller {
      * @return \WP_Error|\WP_REST_Response
      */
     public function get_item( $request ) {
-        $route_segments = explode('/', $request->get_route());
-        array_splice($route_segments, 0, 3);
-        $plural_lc = array_shift($route_segments);
-        $id = (int)array_shift($route_segments); // get id
+        try {
+            $route_segments = explode('/', $request->get_route());
+            array_splice($route_segments, 0, 3);
+            $plural_lc = array_shift($route_segments);
+            $id = (int)array_shift($route_segments); // get id
 
-        $model_descriptor = $this->model_registry->get_model($plural_lc);
-        $rest_class = $model_descriptor->get_f('class');
-        $model_relationships = $model_descriptor->get_f('relationships');
-        $post = $rest_class::read($id);
-        // $filter_output = [$id];
-        if( count( $route_segments ) ) {
-            $relationship_key = array_shift($route_segments);
-            $relationship = $model_relationships->get($relationship_key);
-            if( ! is_null( $relationship ) ) {
-                // echo "FOUND relationship '$relationship_key'\n";
-                // var_dump($relationship);
-                $route_func_with_args = $this->model_registry->get_route_function_with_args('GET', $relationship);
-                $route_func = $route_func_with_args->get('func');
-                // var_dump($route_func[1]);
-                $route_func_args = array_merge($route_func_with_args->get('args'), [$id]);
-                // var_dump($route_func_args);
-                $filter_output = call_user_func_array($route_func, $route_func_args);
-                // var_dump($filter_output);
-                if(empty($filter_output)) throw new \Exception("404 not found");
+            $model_descriptor = $this->model_registry->get_model($plural_lc);
+            $rest_class = $model_descriptor->get_f('class');
+            $model_relationships = $model_descriptor->get_f('relationships');
+            $post = $rest_class::read($id);
+            // $filter_output = [$id];
+            if( count( $route_segments ) ) {
+                $relationship_key = array_shift($route_segments);
+                $relationship = $model_relationships->get($relationship_key);
+                if( ! is_null( $relationship ) ) {
+                    // echo "FOUND relationship '$relationship_key'\n";
+                    // var_dump($relationship);
+                    $route_func_with_args = $this->model_registry->get_route_function_with_args('GET', $relationship);
+                    $route_func = $route_func_with_args->get('func');
+                    // var_dump($route_func[1]);
+                    $route_func_args = array_merge($route_func_with_args->get('args'), [$id]);
+                    // var_dump($route_func_args);
+                    $filter_output = call_user_func_array($route_func, $route_func_args);
+                    // var_dump($filter_output);
+                    if(empty($filter_output)) throw new \Exception("404 not found");
 
-                $relatee_class = $this->model_registry->get_model_class($relationship->get('type'));
-                $post = $relatee_class::read($filter_output[0]['id']);
+                    $relatee_class = $this->model_registry->get_model_class($relationship->get('type'));
+                    $post = $relatee_class::read($filter_output[0]['id']);
+                }
             }
+        } catch(\Exception $e) {
+            echo "CATCH Exception" . $e->getMessage() . "\n";
+            $exception_code = $e->getCode();
+            $http_status = $exception_code ? $exception_code : 500;
+            return new \WP_REST_Response( ['error' => $e->getMessage()], $http_status );
         }
 
         // foreach($this->filters as $route_func_with_args) {
@@ -267,7 +274,8 @@ class Controller extends \WP_REST_Controller {
             $data = $rest_class::create($payload);
         } catch(\Exception $e) {
             echo "CATCH Exception" . $e->getMessage() . "\n";
-            $http_status = $e->getCode() === 400 ? 400 : 500;
+            $exception_code = $e->getCode();
+            $http_status = $exception_code ? $exception_code : 500;
             return new \WP_REST_Response( ['error' => $e->getMessage()], $http_status );
         }
        

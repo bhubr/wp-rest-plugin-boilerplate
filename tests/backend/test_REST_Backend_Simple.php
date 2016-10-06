@@ -109,11 +109,16 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
                 'country_code' => 'uk',
                 'date_issued'  => '2014-11-19',
                 'number'       => 'T7820-AXB-102',
-                'owner'        => 1
+                // 'owner'        => 1
             ]
         );
 
-        $this->request_get('/passports/3/owner', 200,
+        $this->request_get('/passports/3/owner', 404,
+            [
+                'error' => 'Post with id=3 was not found',
+            ]
+        );
+        $this->request_get('/passports/2/owner', 200,
             [
                 'id'         => 1,
                 'name'       => 'Foo Bar',
@@ -122,7 +127,7 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
                 'last_name'  => 'Bar',
                 'email'      => 'foobar@example.com',
                 'birth_year' => 1977,
-                'mypass'     => 2
+                // 'mypass'     => 2
             ]
         );
 
