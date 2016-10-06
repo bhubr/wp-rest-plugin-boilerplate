@@ -512,16 +512,20 @@ class Registry {
 
     // ATTENTION CAR IL FAUT ALORS QUE L'ENTREE de l'ancien owner soit effacée !!!!!!
     // PAR CONTRE, ICI c'est OK si l'ancien owner n'a plus de relatee!
-    function set_one_to_one_owner($rel_type, $owner_id, $relatee_id) {
+    function set_one_to_one_owner($rel_type, $relatee_id, $owner_id) {
         global $wpdb;
-        ////
-        //// !!!!!!!!!!
-        // wpdb->update
-        //// !!!!!!!!!!
-        ////
-        return $wpdb->get_results(
-            "UPDATE {$this->pivot_table} SET object1_id = $owner_id WHERE 'object2_id' = $relatee_id", ARRAY_A
-        );
+        // $res = $wpdb->get_results(
+        //     "UPDATE {$this->pivot_table} SET object1_id = $owner_id WHERE 'object2_id' = $relatee_id", ARRAY_A
+        // );
+        // if( ! $res ) {
+            $data = [
+                'rel_type'   => 'person_passport',
+                'object1_id' => $owner_id,
+                'object2_id' => $relatee_id
+            ];
+            $res = $wpdb->insert($this->pivot_table, $data, ['%s', '%d', '%d']);
+        // }
+        return $res;
     }
 
 

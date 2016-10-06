@@ -184,8 +184,30 @@ abstract class Base {
 
     // CRUD OPERATIONS : Create, Read, Update, Get
     // Which one is executed depends on the HTTP request method
+    public static function update_object_relationships($object, $payload_relationships) {
+        $plural_lc = static::$plural;
+        $model_registry = Registry::get_instance();
+        $model_descriptor = $model_registry->get_model($plural_lc);
+        $model_relationships = $model_descriptor->get_f('relationships');
 
-    public static function update_object_relations($object, $payload) {
+        foreach($payload_relationships as $key => $id_or_ids) {
+            $relationship = $model_relationships->get_f($key);
+            $route_func_with_args = $model_registry->get_route_function_with_args('SET', $relationship);
+            $route_func = $route_func_with_args->get('func');
+            $route_func_args = array_merge($route_func_with_args->get('args'), [$object['id'], $id_or_ids]);
+            // var_dump($route_func_args);
+            $filter_output = call_user_func_array($route_func, $route_func_args);
+            // var_dump($filter_output);
+            $object[$key] = $id_or_ids;
+            // var_dump($object);
+
+        }
+        return $object;
+        // var_dump($relationships);
+        // var_dump($model_relationships);
+    }
+
+    public static function _update_object_relations($object, $payload) {
         global $wpdb;
         $pivot_table = $wpdb->prefix . 'rpb_many_to_many';
         // echo __FUNCTION__ . "\n";

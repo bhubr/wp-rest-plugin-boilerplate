@@ -177,8 +177,11 @@ class Post extends Base implements Methods {
         $post_data = self::map_fields_wp_to_obj( $post );
         // $post_terms = self::get_object_terms($post_type, $post_id);
 
+        $object = array_merge( $post_data, $meta_value );
+        $object = static::update_object_relationships($object, $parsed_payload['relationships']);
+        // var_dump($object);
         // Populate values from the meta_value
-        return array_merge( $post_data, $meta_value ); // , $post_terms );
+        return $object; // , $post_terms );
     }
 
 

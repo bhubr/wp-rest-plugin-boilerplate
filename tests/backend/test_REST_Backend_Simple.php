@@ -45,9 +45,10 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
 
 
     /**
+     * CREATE OK
      * 'ID' and 'unknown' fields provided in POST request are to be ignored
      */
-    public function test_create_ok_remove_field() {
+    public function test_create_ok_remove_unknown_field() {
         $this->request_post('/persons', [
             'ID'         => 511,
             'first_name' => 'John',
@@ -63,6 +64,42 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
             'last_name'  => 'Doe',
             'email'      => 'johndoe@example.com',
             'birth_year' => 1967,
+        ]);
+    }
+
+    public function test_create_ok_relationship_one_to_one() {
+        $this->request_post('/persons', [
+            'first_name' => 'Foo',
+            'last_name'  => 'Bar',
+            'email'      => 'foobar@example.com',
+            'birth_year' => 1977,
+            // 'mypass'     => [
+            //     'country_code' => 'uk',
+            //     'date_issued'  => '2014-11-19',
+            //     'number'       => 'T7820-AXB-102'
+            // ]
+        ], 200, [
+            'id'         => 1,
+            'name'       => 'Foo Bar',
+            'slug'       => 'foo-bar',
+            'first_name' => 'Foo',
+            'last_name'  => 'Bar',
+            'email'      => 'foobar@example.com',
+            'birth_year' => 1977,
+        ]);
+        $this->request_post('/passports', [
+            'country_code' => 'uk',
+            'date_issued'  => '2014-11-19',
+            'number'       => 'T7820-AXB-102',
+            'owner'        => 1
+        ], 200, [
+            'id'           => 2,
+            'name'         => 'uk-T7820-AXB-102',
+            'slug'         => 'uk-t7820-axb-102',
+            'country_code' => 'uk',
+            'date_issued'  => '2014-11-19',
+            'number'       => 'T7820-AXB-102',
+            'owner'        => 1
         ]);
     }
 
