@@ -146,6 +146,11 @@ class Post extends Base implements Methods {
         $parsed_payload = Formatter::process_payload( $payload, $model_descriptor );
         var_dump($parsed_payload);
         $payload = $parsed_payload['attributes'];
+        if( $parsed_payload['missing'] || $parsed_payload['invalid'] ) {
+            $missing_str = implode( ', ', $parsed_payload['missing'] );
+            $invalid_str = implode( ', ', array_keys($parsed_payload['invalid']) );
+            throw new \Exception( "Missing or invalid fields (missing:$missing_str, invalid: $invalid_str)", 400 );
+        }
         static::init( $post_type );
 
         $base_fields = array(

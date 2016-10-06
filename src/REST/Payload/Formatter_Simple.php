@@ -33,6 +33,7 @@ class Formatter_Simple extends Formatter_Common implements Formatter_Interface {
             echo "###  #1 Attribute name: $attribute_name\n"; // var_dump($descriptor);
             if (! array_key_exists($attribute_name, $payload) ) {
                 if( array_key_exists('required', $descriptor) && $descriptor['required'] ) {
+                    // echo "MISSING $attribute_name\n";
                     $missing[] = $attribute_name;
                 }
                 continue;

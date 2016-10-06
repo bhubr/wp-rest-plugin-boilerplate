@@ -257,13 +257,18 @@ class Controller extends \WP_REST_Controller {
      * @return \WP_Error|\WP_REST_Request
      */
     public function create_item( $request ) {
-        $route_segments = $this->extract_route_segments( $request );
-        $payload = $request->get_json_params();
-        $model_key = $route_segments->get('model_key');
-        // $model_descriptor = $this->model_registry->get_model($model_key);
-        // $rest_class = $model_descriptor->get('class');
-        $rest_class = $this->model_registry->get_model_class($model_key);
-        $data = $rest_class::create($payload);
+        try {
+            $route_segments = $this->extract_route_segments( $request );
+            $payload = $request->get_json_params();
+            $model_key = $route_segments->get('model_key');
+            // $model_descriptor = $this->model_registry->get_model($model_key);
+            // $rest_class = $model_descriptor->get('class');
+            $rest_class = $this->model_registry->get_model_class($model_key);
+            $data = $rest_class::create($payload);
+        } catch(\Exception $e) {
+            $http_status = $e->getCode() === 400 ? 400 : 500;
+            return new \WP_REST_Response( ['error' => $e->getMessage()], $http_status );
+        }
        
         if ( is_array( $data ) ) {
             return new \WP_REST_Response( $data, 200 );

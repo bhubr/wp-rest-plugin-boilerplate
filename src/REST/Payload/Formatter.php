@@ -30,11 +30,14 @@ class Formatter {
         $result_relationships = $strategy_class::extract_relationships($payload, $model_relationships);
         $result_attributes = $strategy_class::check_and_extract_attributes($result_relationships['payload'], $model_attributes);
         // $mapped_attributes = $model_class_name::map_fields_payload_to_wp($result_attributes['attributes']);
-        return [
-            'relationships' => $result_relationships['relationships'],
-            'attributes'    => $result_attributes['attributes'],
-            'unknown_attrs' => $result_attributes['unknown'],
-        ];
+        return array_merge([
+            'relationships' => $result_relationships['relationships']
+        ],
+            $result_attributes
+        );
+        //     'attributes'    => $result_attributes['attributes'],
+        //     'unknown_attrs' => $result_attributes['unknown'],
+        // ];
     }
 
 }

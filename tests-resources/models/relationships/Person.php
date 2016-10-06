@@ -12,19 +12,21 @@ class Person extends Post {
     static $name_p = 'Persons';
 
     static $fields = [
-        'first_name'   => [
-            'type'     => 'string',
-            'required' => 'true'
+        'first_name'    => [
+            'type'      => 'string',
+            'required'  => 'true',
+            'validator' => 'alpha'
         ],
-        'last_name'    => [
-            'type'     => 'string',
-            'required' => 'true'
+        'last_name'     => [
+            'type'      => 'string',
+            'required'  => 'true',
+            'validator' => 'alpha'
         ],
-        'email'        => [
-            'type'     => 'string'
+        'email'         => [
+            'type'      => 'string'
         ],
-        'birth_year'   => [
-            'type'     => 'integer'
+        'birth_year'    => [
+            'type'      => 'integer'
         ]
     ];
     // static $map_fields = ['post_title' => 'first_name'];
