@@ -2,6 +2,7 @@
 namespace bhubr\REST\Model;
 
 use Underscore\Underscore as __;
+use bhubr\REST\Payload\Formatter;
 
 class Post extends Base implements Methods {
 
@@ -139,6 +140,12 @@ class Post extends Base implements Methods {
      * @param $post_type string Registered WP Custom Post Type
      */
     public static function _create( $post_type, $payload ) {
+        echo "\n\n\n##### DESCRIPTOR FOR $post_type:\n";
+        $model_descriptor = Registry::get_instance()->get_model_by('singular_lc', $post_type);
+        // var_dump(static::$descriptor);
+        $parsed_payload = Formatter::process_payload( $payload, $model_descriptor );
+        var_dump($parsed_payload);
+        $payload = $parsed_payload['attributes'];
         static::init( $post_type );
 
         $base_fields = array(

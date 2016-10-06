@@ -122,7 +122,7 @@ class Test_Payload_Format_JsonAPI extends WP_UnitTestCase {
      * @expectedExceptionCode bhubr\REST\Payload\Formatter::INVALID_PAYLOAD_FORMAT
      */
     function test_nok_parse_invalid_payload_format() {
-        $data = Formatter::parse_and_validate(-1, [], [], []);
+        $data = Formatter::process_payload(-1, [], [], []);
     }
 
     /**

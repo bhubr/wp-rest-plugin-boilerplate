@@ -25,6 +25,11 @@ class Passport extends Post {
             'required' => 'true'
         ]
     ];
+    static $map_functions = [
+        'name' => [__CLASS__, 'map_name']
+    ];
+    static function map_name( $attributes ) { return $attributes->get('country_code') . '-' . $attributes->get('number'); }
+
     static $relations = [
         'owner'    => 'rel\Person:belongs_to:mypass'
     ];

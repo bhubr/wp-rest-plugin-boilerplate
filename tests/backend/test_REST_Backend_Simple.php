@@ -73,8 +73,8 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
         ]);
 
         $this->request_get('/passports', 200, [
-            ['id' => 3, 'name' => "HP's pass", 'slug' => 'hps-pass', 'country_code' => 'fr', 'number' => 'XYZ666'],
-            ['id' => 4, 'name' => "SH's pass", 'slug' => 'shs-pass', 'country_code' => 'fr', 'number' => 'ZYX999'],
+            ['id' => 3, 'name' => 'fr-XYZ666', 'slug' => 'fr-xyz666', 'country_code' => 'fr', 'number' => 'XYZ666'],
+            ['id' => 4, 'name' => "fr-ZYX999", 'slug' => 'fr-zyx999', 'country_code' => 'fr', 'number' => 'ZYX999'],
         ]);
 
         global $wpdb;
@@ -115,10 +115,10 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
         );
 
         $this->request_get('/persons/1/mypass', 200,
-            ['id' => 3, 'name' => "HP's pass", 'slug' => 'hps-pass', 'country_code' => 'fr', 'number' => 'XYZ666']
+            ['id' => 3, 'name' => 'fr-XYZ666', 'slug' => 'fr-xyz666', 'country_code' => 'fr', 'number' => 'XYZ666']
         );
         $this->request_get('/persons/2/mypass', 200,
-            ['id' => 4, 'name' => "SH's pass", 'slug' => 'shs-pass', 'country_code' => 'fr', 'number' => 'ZYX999']
+            ['id' => 4, 'name' => "fr-ZYX999", 'slug' => 'fr-zyx999', 'country_code' => 'fr', 'number' => 'ZYX999']
         );
     }
 

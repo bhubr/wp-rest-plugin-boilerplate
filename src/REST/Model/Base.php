@@ -51,7 +51,13 @@ abstract class Base {
     const RELATION_MANY_TO_ONE = 'MANY_TO_ONE';
     const RELATION_MANY_TO_MANY = 'MANY_TO_MANY';
 
+    // protected static $descriptor = null;
+
     static $cache = [];
+
+    // public static function setDescriptor($descriptor) {
+    //     static::$descriptor = $descriptor;
+    // }
 
     // public static function register_type($class_name) {
     //     $singular_lc = $class_name::$singular;

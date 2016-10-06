@@ -15,7 +15,8 @@ class Formatter {
     const JSONAPI_MISSING_DATA            = 99;
     const JSONAPI_RELATIONSHIPS_NOT_ARRAY = 98;
 
-    public static function process_payload($payload_format, $payload, $model_descriptor) {
+    public static function process_payload($payload, $model_descriptor) {
+        $payload_format      = $model_descriptor->get('rest_type');
         $model_attributes    = $model_descriptor->get_f('attributes');
         $model_relationships = $model_descriptor->get_f('relationships');
         $model_class_name    = $model_descriptor->get_f('class');

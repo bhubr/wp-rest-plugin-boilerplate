@@ -131,8 +131,7 @@ class Registry {
                 "Cannot register duplicate model {$class_name::$singular} in registry"
                 );
         }
-
-        $registry = $this->registry->put( $plural_lc, collect_f ( [
+        $descriptor = collect_f ( [
             'type'          => $class_name::$type,
             'singular_lc'   => $class_name::$singular,
             'namespace'     => $plugin_descriptor['rest_root'] .
@@ -144,9 +143,22 @@ class Registry {
             //     collect_f($class_name::$relations)
             // )
             '_relationships' => collect_f($class_name::$relations)
-        ] ) );
+        ] );
+        // $class_name::setDescriptor( $descriptor );
+        $registry = $this->registry->put( $plural_lc, $descriptor );
         return $registry->get($plural_lc);
     }
+
+
+    /**
+     * Fetch data for rest controller
+     */
+    public function get_model_by($key_name, $value) {
+        return $this->registry->first( function( $descriptor, $plural_lc ) use( $key_name, $value ) {
+            return $descriptor->get($key_name) === $value;
+        } );
+    }
+
 
 
     /**
