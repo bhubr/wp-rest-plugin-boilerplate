@@ -273,7 +273,7 @@ class Controller extends \WP_REST_Controller {
             $rest_class = $this->model_registry->get_model_class($model_key);
             $data = $rest_class::create($payload);
         } catch(\Exception $e) {
-            echo "CATCH Exception" . $e->getMessage() . "\n";
+            // echo "CATCH Exception" . $e->getMessage() . "\n";
             $exception_code = $e->getCode();
             $http_status = $exception_code ? $exception_code : 500;
             return new \WP_REST_Response( ['error' => $e->getMessage()], $http_status );

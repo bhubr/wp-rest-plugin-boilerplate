@@ -165,7 +165,6 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
         $res = $wpdb->get_results(
             "SELECT * FROM {$this->pivot_table}"
         );
-        var_dump($res);
     }
 
     public function test_get() {
@@ -211,14 +210,14 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
 
         $pivot_table = $wpdb->prefix . 'rpb_many_to_many';
         $data = [
-            'rel_type'   => 'person_passport',
+            'rel_type'   => 'mypass:person_passport',
             'object1_id' => 1,
             'object2_id' => 3
         ];
         $res = $wpdb->insert($pivot_table, $data, ['%s', '%d', '%d']);
         if(!$res) throw Exception(vsprintf("unable to create rel %s %d %d", $data));
         $data = [
-            'rel_type'   => 'person_passport',
+            'rel_type'   => 'mypass:person_passport',
             'object1_id' => 2,
             'object2_id' => 4
         ];

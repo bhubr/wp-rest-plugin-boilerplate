@@ -373,6 +373,8 @@ class Registry {
     }
 
     public function get_route_function_with_args($method, $relationship) {
+        // echo "\n\n###### $method get_route_function_with_args\n";
+        // var_dump($relationship);
         $reverse_key = $relationship->get('inverse');
         $reverse_rel = $this->get_inverse_relationship($relationship)->get($reverse_key);
         $this_rel_type = $relationship->get_f('rel_type');
@@ -413,12 +415,15 @@ class Registry {
     public function get_func_args($relationship, $reverse_rel) {
         $this_rel_type    = $relationship->get_f('rel_type');
         $reverse_rel_type = $reverse_rel->get_f('rel_type');
+        // echo "######  get_func_args $this_rel_type $reverse_rel_type\n";
 
         if ($this_rel_type === 'has_one' && $reverse_rel_type === 'belongs_to') {
-            return $reverse_rel->get_f('type_s') . '_' . $relationship->get_f('type_s'); // . ':' . $reverse_rel->get_f('inverse');
+            // die('X'.$reverse_rel->get_f('type_s') . '_' . $relationship->get_f('type_s') . ':' . $reverse_rel->get_f('inverse'));
+            return $reverse_rel->get_f('inverse') . ':' . $reverse_rel->get_f('type_s') . '_' . $relationship->get_f('type_s');
         }
         else if($reverse_rel_type === 'has_one' && $this_rel_type === 'belongs_to') {
-            return $relationship->get_f('type_s') . '_' . $reverse_rel->get_f('type_s'); // . ':' . $relationship->get_f('inverse');
+            // die('Y'.$relationship->get_f('type_s') . '_' . $reverse_rel->get_f('type_s') . ':' . $relationship->get_f('inverse'));
+            return $relationship->get_f('inverse') . ':' . $relationship->get_f('type_s') . '_' . $reverse_rel->get_f('type_s');
         }
         else if($this_rel_type === 'has_many' && $reverse_rel_type === 'belongs_to') {
             // return 'get_related_one_to_many';
@@ -482,7 +487,7 @@ class Registry {
      */
     function get_one_to_one_relatee($rel_type, $owner_id) {
         global $wpdb;
-        // echo "### Query ###   SELECT object2_id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND 'object1_id' = $owner_id\n";
+        // echo "### get_one_to_one_relatee Query :   SELECT object2_id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND 'object1_id' = $owner_id\n";
         return $wpdb->get_results(
             "SELECT object2_id As id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND object1_id = $owner_id", ARRAY_A
         );
@@ -490,7 +495,7 @@ class Registry {
 
     function get_one_to_one_owner($rel_type, $relatee_id) {
         global $wpdb;
-        // echo "### Query ###   SELECT object1_id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND object2_id = $relatee_id\n";
+        // echo "### get_one_to_one_owner Query :   SELECT object1_id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND object2_id = $relatee_id\n";
         return $wpdb->get_results(
             "SELECT object1_id AS id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND object2_id = $relatee_id", ARRAY_A
         );
@@ -519,10 +524,12 @@ class Registry {
         // );
         // if( ! $res ) {
             $data = [
-                'rel_type'   => 'person_passport',
+                'rel_type'   => $rel_type,
                 'object1_id' => $owner_id,
                 'object2_id' => $relatee_id
             ];
+        // echo "### set_one_to_one_owner Query :\n";
+        // var_dump($data);
             $res = $wpdb->insert($this->pivot_table, $data, ['%s', '%d', '%d']);
         // }
         return $res;
