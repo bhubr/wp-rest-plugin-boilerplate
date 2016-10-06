@@ -101,6 +101,31 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
             'number'       => 'T7820-AXB-102',
             'owner'        => 1
         ]);
+        $this->request_get('/persons/1/mypass', 200,
+            [
+                'id'           => 2,
+                'name'         => 'uk-T7820-AXB-102',
+                'slug'         => 'uk-t7820-axb-102',
+                'country_code' => 'uk',
+                'date_issued'  => '2014-11-19',
+                'number'       => 'T7820-AXB-102',
+                'owner'        => 1
+            ]
+        );
+
+        $this->request_get('/passports/3/owner', 200,
+            [
+                'id'         => 1,
+                'name'       => 'Foo Bar',
+                'slug'       => 'foo-bar',
+                'first_name' => 'Foo',
+                'last_name'  => 'Bar',
+                'email'      => 'foobar@example.com',
+                'birth_year' => 1977,
+                'mypass'     => 2
+            ]
+        );
+
     }
 
     public function test_get() {
