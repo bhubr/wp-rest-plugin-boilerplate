@@ -25,7 +25,7 @@ class Book extends Post {
     ];
     static $map_fields = ['post_title' => 'title', 'post_content' => 'summary'];
     static $relations = [
-        'author'    => 'rel\Person:belongs_to:mybooks',
+        'author'    => 'rel\Person:belongs_to:books_authored',
         'owner'     => 'rel\Person:belongs_to:bookshelf'
     ];
 

@@ -36,15 +36,15 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
      * CREATE NOT OK
      * Missing & invalid fields
      */
-    public function test_create_nok_missing_fields() {
-        $this->request_post('/persons', [
-            'birth_year' => 1967,
-            'last_name'  => 777,
-            'unknown'    => '!! BAD FIELD: NOT DECLARED IN MODEL !!'
-        ], 400, [
-            'error' => "Missing or invalid fields (missing:first_name, invalid: last_name)"
-        ]);
-    }
+    // public function test_create_nok_missing_fields() {
+    //     $this->request_post('/persons', [
+    //         'birth_year' => 1967,
+    //         'last_name'  => 777,
+    //         'unknown'    => '!! BAD FIELD: NOT DECLARED IN MODEL !!'
+    //     ], 400, [
+    //         'error' => "Missing or invalid fields (missing:first_name, invalid: last_name)"
+    //     ]);
+    // }
 
 
     /**
@@ -118,11 +118,11 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
                 // 'owner'        => 1
             ]
         );
-        $this->request_get('/passports/3/owner', 404,
-            [
-                'error' => 'Post with id=3 was not found',
-            ]
-        );
+        // $this->request_get('/passports/3/owner', 404,
+        //     [
+        //         'error' => 'Post with id=3 was not found',
+        //     ]
+        // );
         $this->request_get('/passports/2/owner', 200,
             [
                 'id'         => 1,
@@ -180,9 +180,6 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
             "SELECT * FROM {$wpdb->postmeta}"
         );
 
-        // $folder = realpath(__DIR__ . '/../../'); // Répertoire où sauvegarder le dump de la base de données
-        // $cmd = sprintf("mysqldump -u%s -p%s %s > %s/%s", DB_USER,DB_PASSWORD,DB_NAME,$folder,DB_NAME."-".date("d-m-Y-H\hi").".sql"); 
-        // system($cmd);
 
         $this->assertEquals(0, count($res));
 
@@ -246,48 +243,101 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
         $this->request_post('/persons', [ 'first_name' => 'John', 'last_name'  => 'Doe' ],
             200, [ 'id' => 1, 'name' => 'John Doe', 'slug' => 'john-doe', 'first_name' => 'John', 'last_name'  => 'Doe' ]);
 
-        $this->request_post('/books', [
-            'title'        => 'Dune',
-            'summary'      => 'Paul Atreides becomes a blue-eyed omniscient badass.',
-            'owner'        => 1
-        ], 200, [
-            'id'           => 2,
-            'title'        => 'Dune',
-            'summary'      => 'Paul Atreides becomes a blue-eyed omniscient badass.',
-            'slug'         => 'dune',
-            'owner'        => 1
-        ]);
-        $this->request_get('/books/2/owner', 200,
-            [ 'id' => 1, 'name' => 'John Doe', 'slug' => 'john-doe', 'first_name' => 'John', 'last_name'  => 'Doe' ]
-        );
+        $this->request_post('/persons', [ 'first_name' => 'Frank', 'last_name'  => 'Herbert' ],
+            200, [ 'id' => 2, 'name' => 'Frank Herbert', 'slug' => 'frank-herbert', 'first_name' => 'Frank', 'last_name'  => 'Herbert' ]);
 
 
         $this->request_post('/books', [
-            'title'        => 'Dune Messiah',
-            'summary'      => 'Paul Atreides is yet more a badass.',
+            'title'        => 'Dune',
+            'summary'      => 'Paul Atreides becomes a blue-eyed omniscient badass.',
+            'author'       => 2,
             'owner'        => 1
         ], 200, [
             'id'           => 3,
-            'title'        => 'Dune Messiah',
-            'summary'      => 'Paul Atreides is yet more a badass.',
-            'slug'         => 'dune-messiah',
+            'title'        => 'Dune',
+            'summary'      => 'Paul Atreides becomes a blue-eyed omniscient badass.',
+            'author'       => 2,
+            'slug'         => 'dune',
             'owner'        => 1
         ]);
         $this->request_get('/books/3/owner', 200,
             [ 'id' => 1, 'name' => 'John Doe', 'slug' => 'john-doe', 'first_name' => 'John', 'last_name'  => 'Doe' ]
         );
 
+
+        $this->request_post('/books', [
+            'title'        => 'Dune Messiah',
+            'summary'      => 'Paul Atreides is yet more a badass.',
+            'author'       => 2,
+            'owner'        => 1
+        ], 200, [
+            'id'           => 4,
+            'title'        => 'Dune Messiah',
+            'summary'      => 'Paul Atreides is yet more a badass.',
+            'slug'         => 'dune-messiah',
+            'author'       => 2,
+            'owner'        => 1
+        ]);
+        $this->request_get('/books/4/owner', 200,
+            [ 'id' => 1, 'name' => 'John Doe', 'slug' => 'john-doe', 'first_name' => 'John', 'last_name'  => 'Doe' ]
+        );
+        $this->request_get('/books/4/author', 200,
+            [ 'id' => 2, 'name' => 'Frank Herbert', 'slug' => 'frank-herbert', 'first_name' => 'Frank', 'last_name'  => 'Herbert' ]
+        );
+
+        $this->request_post('/books', [
+            'title'        => "John Doe's Life and Work",
+            'summary'      => 'By Himself.',
+            'author'       => 1
+        ], 200, [
+            'id'           => 5,
+            'title'        => "John Doe's Life and Work",
+            'summary'      => 'By Himself.',
+            'slug'         => 'john-does-life-and-work',
+            'author'       => 1
+        ]);
+
+
         $this->request_get('/persons/1/bookshelf', 200,
             [
                 [
-                    'id'           => 2,
+                    'id'           => 3,
                     'title'        => 'Dune',
                     'summary'      => 'Paul Atreides becomes a blue-eyed omniscient badass.',
                     'slug'         => 'dune',
                     // 'owner'        => 1
                 ],
                 [
+                    'id'           => 4,
+                    'title'        => 'Dune Messiah',
+                    'summary'      => 'Paul Atreides is yet more a badass.',
+                    'slug'         => 'dune-messiah',
+                    // 'owner'        => 1
+                ]
+            ]
+        );
+        $this->request_get( '/persons/1/books_authored', 200, [ [
+            'id'           => 5,
+            'title'        => "John Doe's Life and Work",
+            'summary'      => 'By Himself.',
+            'slug'         => 'john-does-life-and-work',
+            // 'author'       => 1
+        ] ] );
+
+
+        $this->request_get('/persons/2/bookshelf', 200, []);
+
+        $this->request_get('/persons/2/books_authored', 200,
+            [
+                [
                     'id'           => 3,
+                    'title'        => 'Dune',
+                    'summary'      => 'Paul Atreides becomes a blue-eyed omniscient badass.',
+                    'slug'         => 'dune',
+                    // 'owner'        => 1
+                ],
+                [
+                    'id'           => 4,
                     'title'        => 'Dune Messiah',
                     'summary'      => 'Paul Atreides is yet more a badass.',
                     'slug'         => 'dune-messiah',
@@ -296,6 +346,9 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
             ]
         );
 
+        // $folder = realpath(__DIR__ . '/../../'); // Répertoire où sauvegarder le dump de la base de données
+        // $cmd = sprintf("mysqldump -u%s -p%s %s > %s/%s", DB_USER,DB_PASSWORD,DB_NAME,$folder,DB_NAME."-".date("d-m-Y-H\hi").".sql"); 
+        // system($cmd);
 
     }
 

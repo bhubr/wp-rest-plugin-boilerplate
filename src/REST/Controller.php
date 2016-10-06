@@ -217,7 +217,7 @@ class Controller extends \WP_REST_Controller {
                     // var_dump($route_func_args);
                     $filter_output = call_user_func_array($route_func, $route_func_args);
                     // var_dump($filter_output);
-                    if(empty($filter_output)) throw new \Exception("404 not found");
+                    if(! $relationship->get('plural') && empty($filter_output)) throw new \Exception("404 not found");
 
                     $relatee_class = $this->model_registry->get_model_class($relationship->get('type'));
                     // if(count($filter_output) > 1) {
@@ -233,14 +233,20 @@ class Controller extends \WP_REST_Controller {
                             $posts[] = $relatee_class::read($entry['id']);
                         }
                     }
-                    $post = $relatee_class::read($filter_output[0]['id']);
+                    else {
+                        $post = $relatee_class::read($filter_output[0]['id']);
+                    }
                 }
             }
         } catch(\Exception $e) {
             // echo "CATCH Exception" . $e->getMessage() . "\n";
-            $exception_code = $e->getCode();
+            $exception_code = $e->getCode() ;
             $http_status = $exception_code ? $exception_code : 500;
-            return new \WP_REST_Response( ['error' => $e->getMessage()], $http_status );
+            $details = sprintf("File: %s, line: %d", $e->getFile(), $e->getLine());
+            return new \WP_REST_Response( [
+                'error'         => $e->getMessage(),
+                'error_details' => $details
+            ], $http_status );
         }
 
         // foreach($this->filters as $route_func_with_args) {
