@@ -236,4 +236,67 @@ class Test_REST_Backend extends WPRPB_UnitTestCase {
         );
     }
 
+
+
+    /**
+     * CREATE m-m OK
+     * 'ID' and 'unknown' fields provided in POST request are to be ignored
+     */
+    public function test_create_one_to_many_ok() {
+        $this->request_post('/persons', [ 'first_name' => 'John', 'last_name'  => 'Doe' ],
+            200, [ 'id' => 1, 'name' => 'John Doe', 'slug' => 'john-doe', 'first_name' => 'John', 'last_name'  => 'Doe' ]);
+
+        $this->request_post('/books', [
+            'title'        => 'Dune',
+            'summary'      => 'Paul Atreides becomes a blue-eyed omniscient badass.',
+            'owner'        => 1
+        ], 200, [
+            'id'           => 2,
+            'title'        => 'Dune',
+            'summary'      => 'Paul Atreides becomes a blue-eyed omniscient badass.',
+            'slug'         => 'dune',
+            'owner'        => 1
+        ]);
+        $this->request_get('/books/2/owner', 200,
+            [ 'id' => 1, 'name' => 'John Doe', 'slug' => 'john-doe', 'first_name' => 'John', 'last_name'  => 'Doe' ]
+        );
+
+
+        $this->request_post('/books', [
+            'title'        => 'Dune Messiah',
+            'summary'      => 'Paul Atreides is yet more a badass.',
+            'owner'        => 1
+        ], 200, [
+            'id'           => 3,
+            'title'        => 'Dune Messiah',
+            'summary'      => 'Paul Atreides is yet more a badass.',
+            'slug'         => 'dune-messiah',
+            'owner'        => 1
+        ]);
+        $this->request_get('/books/3/owner', 200,
+            [ 'id' => 1, 'name' => 'John Doe', 'slug' => 'john-doe', 'first_name' => 'John', 'last_name'  => 'Doe' ]
+        );
+
+        $this->request_get('/persons/1/bookshelf', 200,
+            [
+                [
+                    'id'           => 2,
+                    'title'        => 'Dune',
+                    'summary'      => 'Paul Atreides becomes a blue-eyed omniscient badass.',
+                    'slug'         => 'dune',
+                    // 'owner'        => 1
+                ],
+                [
+                    'id'           => 3,
+                    'title'        => 'Dune Messiah',
+                    'summary'      => 'Paul Atreides is yet more a badass.',
+                    'slug'         => 'dune-messiah',
+                    // 'owner'        => 1
+                ]
+            ]
+        );
+
+
+    }
+
 }

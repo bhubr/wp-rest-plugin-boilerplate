@@ -418,20 +418,18 @@ class Registry {
         // echo "######  get_func_args $this_rel_type $reverse_rel_type\n";
 
         if ($this_rel_type === 'has_one' && $reverse_rel_type === 'belongs_to') {
-            // die('X'.$reverse_rel->get_f('type_s') . '_' . $relationship->get_f('type_s') . ':' . $reverse_rel->get_f('inverse'));
             return $reverse_rel->get_f('inverse') . ':' . $reverse_rel->get_f('type_s') . '_' . $relationship->get_f('type_s');
         }
         else if($reverse_rel_type === 'has_one' && $this_rel_type === 'belongs_to') {
-            // die('Y'.$relationship->get_f('type_s') . '_' . $reverse_rel->get_f('type_s') . ':' . $relationship->get_f('inverse'));
             return $relationship->get_f('inverse') . ':' . $relationship->get_f('type_s') . '_' . $reverse_rel->get_f('type_s');
         }
         else if($this_rel_type === 'has_many' && $reverse_rel_type === 'belongs_to') {
-            // return 'get_related_one_to_many';
-            return  $reverse_rel->get_f('type_s') . '_' . $relationship->get_f('type');
+            return $reverse_rel->get_f('inverse') . ':' . $reverse_rel->get_f('type_s') . '_' . $relationship->get_f('type');
         }
         else if($this_rel_type === 'belongs_to' && $reverse_rel_type === 'has_many') {
-            return $relationship->get_f('type_s') . '_' . $reverse_rel->get_f('type');
-            return self::RELATION_MANY_TO_ONE;
+        // die('Y' . $relationship->get_f('inverse') . ':' . $relationship->get_f('type_s') . '_' . $reverse_rel->get_f('type'));
+            return $relationship->get_f('inverse') . ':' . $relationship->get_f('type_s') . '_' . $reverse_rel->get_f('type');
+            // return self::RELATION_MANY_TO_ONE;
         }
         else if($this_rel_type === 'has_many' && $reverse_rel_type === 'has_many') {
             return self::RELATION_MANY_TO_MANY;
@@ -457,11 +455,11 @@ class Registry {
         }
         else if($this_rel_type === 'has_many' && $reverse_rel_type === 'belongs_to') {
             // echo "#### one2many\n";
-            return $prefix . '_one_to_many';
+            return $prefix . '_one_to_many_relatees';
         }
         else if($this_rel_type === 'belongs_to' && $reverse_rel_type === 'has_many') {
             // echo "#### many2one\n";
-            return self::RELATION_MANY_TO_ONE;
+            return $prefix . '_one_to_many_owner';
         }
         else if($this_rel_type === 'has_many' && $reverse_rel_type === 'has_many') {
             // echo "#### many2many\n";
@@ -500,6 +498,28 @@ class Registry {
             "SELECT object1_id AS id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND object2_id = $relatee_id", ARRAY_A
         );
     }
+    //////////////////// DUPPPPPPLICAAATES ////////////////////
+    //////////////////// DUPPPPPPLICAAATES ////////////////////
+    //////////////////// DUPPPPPPLICAAATES ////////////////////
+    //////////////////// DUPPPPPPLICAAATES ////////////////////
+    //////////////////// DUPPPPPPLICAAATES ////////////////////
+    function get_one_to_many_owner($rel_type, $relatee_id) {
+        global $wpdb;
+        // echo "### get_one_to_one_owner Query :   SELECT object1_id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND object2_id = $relatee_id\n";
+        return $wpdb->get_results(
+            "SELECT object1_id AS id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND object2_id = $relatee_id", ARRAY_A
+        );
+    }
+
+    function get_one_to_many_relatees($rel_type, $owner_id) {
+        global $wpdb;
+        // echo "### get_one_to_one_relatee Query :   SELECT object2_id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND 'object1_id' = $owner_id\n";
+        return $wpdb->get_results(
+            "SELECT object2_id As id FROM {$this->pivot_table} WHERE rel_type='$rel_type' AND object1_id = $owner_id", ARRAY_A
+        );
+    }
+
+
 
     // ATTENTION CAR IL FAUT ALORS QUE L'ENTREE de l'ancien relatee soit effacée !!!!!!
     // ICI c'est PAS OK si l'ancien relatee n'a plus d'owner!
@@ -518,6 +538,27 @@ class Registry {
     // ATTENTION CAR IL FAUT ALORS QUE L'ENTREE de l'ancien owner soit effacée !!!!!!
     // PAR CONTRE, ICI c'est OK si l'ancien owner n'a plus de relatee!
     function set_one_to_one_owner($rel_type, $relatee_id, $owner_id) {
+        global $wpdb;
+        // $res = $wpdb->get_results(
+        //     "UPDATE {$this->pivot_table} SET object1_id = $owner_id WHERE 'object2_id' = $relatee_id", ARRAY_A
+        // );
+        // if( ! $res ) {
+            $data = [
+                'rel_type'   => $rel_type,
+                'object1_id' => $owner_id,
+                'object2_id' => $relatee_id
+            ];
+        // echo "### set_one_to_one_owner Query :\n";
+        // var_dump($data);
+            $res = $wpdb->insert($this->pivot_table, $data, ['%s', '%d', '%d']);
+        // }
+        return $res;
+    }
+
+
+    // ATTENTION CAR IL FAUT ALORS QUE L'ENTREE de l'ancien owner soit effacée !!!!!!
+    // PAR CONTRE, ICI c'est OK si l'ancien owner n'a plus de relatee!
+    function set_one_to_many_owner($rel_type, $relatee_id, $owner_id) {
         global $wpdb;
         // $res = $wpdb->get_results(
         //     "UPDATE {$this->pivot_table} SET object1_id = $owner_id WHERE 'object2_id' = $relatee_id", ARRAY_A

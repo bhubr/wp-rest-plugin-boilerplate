@@ -35,7 +35,8 @@ class Person extends Post {
     ];
     static function map_name( $attributes ) { return $attributes->get('first_name') . ' ' . $attributes->get('last_name'); }
     static $relations = [
-        'mybooks'      => 'rel\Book:has_many:author',
+        'books_author' => 'rel\Book:has_many:author',
+        'bookshelf'    => 'rel\Book:has_many:owner',
         'mypass'       => 'rel\Passport:has_one:owner'
     ];
 

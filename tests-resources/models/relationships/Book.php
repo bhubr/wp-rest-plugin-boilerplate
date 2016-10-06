@@ -23,8 +23,10 @@ class Book extends Post {
             'type'     => 'integer'
         ]
     ];
+    static $map_fields = ['post_title' => 'title', 'post_content' => 'summary'];
     static $relations = [
         'author'    => 'rel\Person:belongs_to:mybooks',
+        'owner'     => 'rel\Person:belongs_to:bookshelf'
     ];
 
 }

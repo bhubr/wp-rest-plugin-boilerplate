@@ -220,6 +220,19 @@ class Controller extends \WP_REST_Controller {
                     if(empty($filter_output)) throw new \Exception("404 not found");
 
                     $relatee_class = $this->model_registry->get_model_class($relationship->get('type'));
+                    // if(count($filter_output) > 1) {
+                    //     var_dump($filter_output);
+                    //     // echo "Count: " .  . "\n";
+                    //     var_dump($relationship);
+                    //     echo $relationship->get('plural') ? 'IS PLURAL' : 'NOT PLURAL';
+                    //     die("\n");
+                    // }
+                    if($relationship->get('plural')) {
+                        $posts = [];
+                        foreach ($filter_output as $entry) {
+                            $posts[] = $relatee_class::read($entry['id']);
+                        }
+                    }
                     $post = $relatee_class::read($filter_output[0]['id']);
                 }
             }
@@ -243,8 +256,10 @@ class Controller extends \WP_REST_Controller {
         // $route_func_args = $this->model_registry->get_route_function_args('GET', $rel_descriptor);
         // $this->add_route_func( 'GET', $route, $route_func);
 
-
-        if ( is_array( $post ) ) {
+        if ( isset( $posts ) && is_array( $posts ) ) {
+            return new \WP_REST_Response( $posts, 200 );
+        }
+        else if ( is_array( $post ) ) {
             return new \WP_REST_Response( $post, 200 );
         }
 
