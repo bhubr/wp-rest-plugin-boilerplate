@@ -466,9 +466,6 @@ abstract class Base {
 
     public static function map_fields_payload_to_wp( $payload ) {
         $payload = self::apply_map_functions($payload);
-echo "\n#### PAYLOAD\n";
-var_dump($payload);
-        // Throw error if no array
         if( ! is_array( $payload ) ) {
             throw new \Exception( 'payload is not an array' );
         }
@@ -484,14 +481,11 @@ var_dump($payload);
         if ( array_key_exists(static::ID_KEY, $payload ) ) {
             unset( $payload[static::ID_KEY] );
         }
-        // echo "\n#### MAP FIELDS\n";
-        // var_dump( $map_fields );
-        // var_dump( $payload );
         foreach( $map_fields as $wp_key => $obj_key ) {
-            // echo "\n#### Map fields?? $wp_key $obj_key\n";
+            // if no mapping is done (e.g. term name maps to name)
+            // the target and source keys are the same
             $wp_obj_attr = is_string( $wp_key ) ? $wp_key : $obj_key;
             if( !array_key_exists( $obj_key, $payload ) ) continue;
-            // echo "\n#### MAP FIELDS YEEESSS $wp_key $obj_key\n";
             $wp_obj_data[$wp_obj_attr] = $payload[$obj_key];
             unset( $payload[$obj_key] );
         }
@@ -506,9 +500,7 @@ var_dump($payload);
 
     public static function apply_map_functions($attributes) {
         if ( property_exists(static::class, 'map_functions') ) {
-            echo "\n\n### HAS map_functions\n";
             foreach(static::$map_functions as $key => $callable) {
-                echo "\n\n### HAS map_function $key\n";
                 $attributes[$key] = call_user_func($callable, collect($attributes));
             }
         }

@@ -37,7 +37,7 @@ class Controller extends \WP_REST_Controller {
         // Iterate models, and register routes for each model
 
         $this->model_registry->registry->each(function($model_data, $type_plural_lc) {
-            echo "###### ROUTES FOR MODEL $type_plural_lc\n";
+            // echo "###### ROUTES FOR MODEL $type_plural_lc\n";
 
             // Get model's routes namespace (set per-plugin: all models in a plugin share it)
             $namespace = $model_data['namespace'];
@@ -93,7 +93,7 @@ class Controller extends \WP_REST_Controller {
             // Registering relationships routes
             $model_relationships = $this->model_registry->registry->get($type_plural_lc)->get('relationships');
             $model_relationships->each( function( $rel_descriptor, $rel_key ) use( $namespace, $type_plural_lc ) {
-                echo "Rel route for rel key $rel_key\n";
+                // echo "Rel route for rel key $rel_key\n";
 
                 $route = '/' . $type_plural_lc . '/(?P<id>[\d]+)' . '/' . $rel_key;
 
@@ -207,15 +207,15 @@ class Controller extends \WP_REST_Controller {
             $relationship_key = array_shift($route_segments);
             $relationship = $model_relationships->get($relationship_key);
             if( ! is_null( $relationship ) ) {
-                echo "FOUND relationship '$relationship_key'\n";
+                // echo "FOUND relationship '$relationship_key'\n";
                 // var_dump($relationship);
                 $route_func_with_args = $this->model_registry->get_route_function_with_args('GET', $relationship);
                 $route_func = $route_func_with_args->get('func');
                 // var_dump($route_func[1]);
                 $route_func_args = array_merge($route_func_with_args->get('args'), [$id]);
-                var_dump($route_func_args);
+                // var_dump($route_func_args);
                 $filter_output = call_user_func_array($route_func, $route_func_args);
-                var_dump($filter_output);
+                // var_dump($filter_output);
                 if(empty($filter_output)) throw new \Exception("404 not found");
 
                 $relatee_class = $this->model_registry->get_model_class($relationship->get('type'));
@@ -258,7 +258,7 @@ class Controller extends \WP_REST_Controller {
      */
     public function create_item( $request ) {
         $route_segments = $this->extract_route_segments( $request );
-        var_dump($route_segments);
+        // var_dump($route_segments);
         // var_dump($request->get_url_params());
         // $route_segments = explode('/', $request->get_route());
         // $type_lc = \Inflect::singularize(array_pop($route_segments));
@@ -267,7 +267,7 @@ class Controller extends \WP_REST_Controller {
         $model_descriptor = $this->model_registry->get_model($model_key);
         $payload_format = $model_descriptor->get('rest_type');
         $parsed_payload = Formatter::process_payload( $payload_format, $payload, $model_descriptor );
-        var_dump($parsed_payload);
+        // var_dump($parsed_payload);
 
         $rest_class = $model_descriptor->get('class');
         $data = $rest_class::create($parsed_payload['attributes']);

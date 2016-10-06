@@ -135,7 +135,8 @@ class Post extends Base implements Methods {
     // }
 
     /**
-     * Create plan
+     * Create WP Custom Post
+     * @param $post_type string Registered WP Custom Post Type
      */
     public static function _create( $post_type, $payload ) {
         static::init( $post_type );
@@ -145,16 +146,9 @@ class Post extends Base implements Methods {
             'post_status' => 'publish'
         );
 
-        // Parse JSON payload
-        // $post_fields = array_merge( $base_fields, self::extract_payload_taxonomies($post_type, $payload) );
         $split_payload = self::map_fields_payload_to_wp($payload);
-        var_dump($split_payload);
         $post_fields = array_merge( $base_fields, $split_payload->get_f('wp_obj'));
-        var_dump($post_fields);
-        // Extract meta values, remove them and ID from post fields
         $meta_value = $split_payload->get_f('_meta_');
-        // unset($post_fields['__meta__']);
-        // unset($post_fields['ID']);
 
         // Insert post
         $post_id = wp_insert_post( $post_fields, true );
@@ -163,19 +157,16 @@ class Post extends Base implements Methods {
         }
 
         $post_fields['ID'] = $post_id;
-        self::update_terms( $post_id, $post_fields );
+        // self::update_terms( $post_id, $post_fields );
         self::update_meta( $post_id, $meta_value );
 
         // Get the created post from the DB (so we can return the slug if it is different from what was asked)
         $post = get_post($post_id);
-        var_dump($post);
         $post_data = self::map_fields_wp_to_obj( $post );
-        $post_terms = self::get_object_terms($post_type, $post_id);
+        // $post_terms = self::get_object_terms($post_type, $post_id);
 
         // Populate values from the meta_value
-        $model = array_merge( $post_data, $meta_value, $post_terms );
-
-        return $model;
+        return array_merge( $post_data, $meta_value ); // , $post_terms );
     }
 
 
@@ -249,7 +240,6 @@ class Post extends Base implements Methods {
         $post_data = array();
         foreach( $map_fields as $wp_post_f => $obj_key ) {
             if( !property_exists($post, $wp_post_f) ) throw new \Exception("Property WP_Post::$wp_post_f not found");
-            echo "$obj_key => $wp_post_f {$post->$wp_post_f}\n";
             $post_data[$obj_key] = $post->$wp_post_f;
         }
         return $post_data;
